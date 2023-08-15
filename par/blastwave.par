@@ -1,0 +1,42 @@
+# Test parameter file:
+#
+# Simple blast-wave initial data.
+# Requires spactime=background.
+
+spacetime = background    # Static spacetime
+
+dr0 = 0.001		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 2000		  # Number of grid points
+Nt = 2000         	  # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = fluid        # Perfect fluid
+fluid_method = hlle       # Numerical method for fluid
+fluid_limiter = minmod    # Type of limiter
+fluid_gamma = 1.4         # Adiabatic index
+
+idata = blastwave         # Type of initial data
+blast_R = 0.5             # Radius of inner region
+blast_rhol = 1.0          # Density on inner region
+blast_rhor = 0.125        # Density on outer region
+blast_pl = 1.0            # Pressure on inner region
+blast_pr = 0.1            # Pressure on outer region
+
+fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
+fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
+
+directory = blastwave     # Name of output directory
+Ninfo = 100		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 100           # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_vs,fluid_Mach,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_vs,fluid_Mach,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness

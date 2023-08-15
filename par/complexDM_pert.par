@@ -1,0 +1,55 @@
+# Test parameter file:
+#
+# Cosmological spacetime with complex scalar field dark matter,
+# zero cosmological constant, geodesic slicing, no shift.
+#
+# Notice that this parameter file evolves the background
+# plus a perturbation.
+
+cosmic_run = .true.          #  Cosmology run
+
+dr0 = 0.05     	             # Grid spacing
+dtfac = 0.5	             # Courant parameter
+
+Nrtotal = 5000	             # Number of grid points
+Nt = 10000  	             # Number of time steps
+
+Nl = 1                       # Number of refinement levels
+
+slicing = cosmocf-1+log      # Type of slicing condition
+gauge_f = 2.0                # Coefficient for Bona-Masso slicing
+
+integrator = rk4             # Type of integration method (icn,rk4)
+order = four                 # Order for spatial finite differencing
+
+boundtype = constraint       # Type of boundary condition
+
+geodiss = 0.01		     # Dissipation coefficient for geometry
+scalardiss = 0.01	     # Dissipation coefficient for scalar field
+
+mattertype = complex         # Complex scalar field
+complexpotential = phi2      # Type of potential
+complex_mass = 1.0           # Mass of scalar field
+complexDM_type = harmonicTS  # Harmonic initial time dependence
+
+idata = complexDM            # Type of initial data
+complex_bg_phiR0 = 0.001     # Amplitude of background field
+complex_bg_pert = .true.     # Add a perturbation
+complexprofile = gaussian    # Initial data profile
+complexR_a0 = 0.001          # Amplitude of perturbation
+complexR_r0 = 0.0	     # Center of perturbation
+complexR_s0 = 5.0            # Width of perturbation
+
+ahfind = .true.              # Look for apparent horizon
+ahfind_every = 100           # How often to look for horizons?
+
+directory = complexDM_pert   # Name of output directory
+Ninfo = 100  	             # How often do we want to output information to screen?
+Noutput0D = 10	             # How often do we want 0D output?
+Noutput1D = 100	             # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_piR,complex_xiR,complex_phiI,complex_piI,complex_xiI,alpha_pert,phi_pert,trK_pert,rho_pert,cosmobg_alpha,cosmobg_phi,cosmobg_trK,cosmobg_H,cosmobg_a,cosmobg_complex_phiR,cosmobg_complex_phiI,cosmobg_complex_piR,cosmobg_complex_piI,cosmobg_rho,cosmobg_p,cosmobg_tau
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_piR,complex_xiR,complex_phiI,complex_piI,complex_xiI,alpha_pert,phi_pert,trK_pert,rho_pert,rho_contrast,mass_int,rho_contrast_int,cosmo_compactness
+
+checkpoint = .true.          # Do we output checkpoint files?
+Ncheckpoint = 1000           # How often do we do a checkpoint?

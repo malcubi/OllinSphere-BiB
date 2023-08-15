@@ -1,0 +1,55 @@
+# Test parameter file:
+#
+# Complex scalar field with mass and non-zero angular momentum (complex_l).
+# For this example a back hole is formed just above the critical point,
+# but its mass is finite (about 1.4 at the end of the run).
+
+dr0 = 0.05		   # Grid spacing
+dtfac = 0.5		   # Courant parameter
+
+Nrtotal = 600		   # Number of grid points
+Nt = 15000		   # Number of time steps
+
+Nl = 1                     # Number of refinement levels
+
+integrator = rk4	   # Type of integration method (icn,rk4)
+order = four  		   # Order for spatial finite differencing (two,four)
+
+ilapse = psiminus2         # Precollapsed lapse alpha=1/psi**2
+slicing = shockavoid 	   # Type of slicing condition
+gauge_f = 2.0	           # Coefficient for harmonic slicing
+
+shift = Gammadriver1       # Shift condition
+drivercsi = 0.75           # Coefficient of Gammadriver shift
+drivereta = 1.0            # Damping term for Gammadriver shift
+
+boundtype = constraint     # Constraint preserving boundary condition
+
+mattertype = complex       # Complex scalar field
+complexpotential = phi2    # Type of potential
+complex_mass = 1.0         # Mass of scalar field
+complex_l = 2              # Azimuthal quantum number (angular momentum)
+
+geodiss = 0.01		   # Dissipation coefficient for geometry
+scalardiss = 0.01	   # Dissipation coefficient for scalar field
+
+idata = complexpulse	   # Type of initial data
+complexprofile = gaussian  # Initial data profile
+complexR_a0 = 0.00132      # Amplitude of perturbation
+complexR_r0 = 5.0	   # Center of perturbation
+complexR_s0 = 1.0	   # Width of perturbation
+complexI_a0 = -0.00132	   # Amplitude of perturbation
+complexI_r0 = 5.0	   # Center of perturbation
+complexI_s0 = 1.0	   # Width of perturbation
+
+ahfind = .true.            # Look for apparent horizon
+ahfind_every = 10          # How often to look for horizons?
+
+directory = lcomplex	   # Name of output directory
+Ninfo = 100		   # How often do we want to output information to screen?
+Noutput0D = 10		   # How often do we want 0D output?
+Noutput1D = 100		   # How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,ham,mom,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_NB,mass_sch,mass_int
+outvars1D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,ham,mom,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_NB,mass_sch,mass_int
+

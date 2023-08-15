@@ -1,0 +1,46 @@
+# Test parameter file:
+#
+# Minkowski, harmonic slicing, static shift
+#
+# Notice that the static shift will cause the simulation
+# to eventually crash since the spatial metric just keeps
+# growing in place!
+
+dr0 = 0.1    	        # Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 250	        # Number of grid points
+Nt = 500	        # Number of time steps
+
+Nl = 4                  # Number of refinement levels
+
+slicing = harmonic      # Type of slicing condition
+gauge_f = 1.0	        # Coefficient for harmonic slicing
+
+shift = static 		# Shift condition
+
+integrator = rk4	# Type of integration method
+order = four 		# Order for spatial finite differencing
+
+boundtype = constraint  # Type of boundary condition
+
+idata = minkowski       # Type of initial data
+
+lapsepert = gaussian    # Gaussian perturbation to initial lapse
+lapse_a0 = 0.01         # Amplitude of perturbation
+lapse_r0 = 5.0	        # Center of perturbation
+lapse_s0 = 1.0	        # Width of perturbation
+
+shiftpert = gaussian    # Gaussian perturbation to initial shift
+shift_a0 = 0.01		# Amplitude of perturbation
+shift_r0 = 5.0	        # Center of perturbation
+shift_s0 = 1.0	        # Width of perturbation
+
+directory = harmonic-shift    # Name of output directory
+Ninfo = 25  	        # How often do we want to output information to screen?
+Noutput0D = 1	        # How often do we want 0D output?
+Noutput1D = 25	        # How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+outvars1D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+

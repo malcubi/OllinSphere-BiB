@@ -1,0 +1,38 @@
+# Test parameter file:
+#
+# deSitter spacetime, geodesic slicing, no shift, flat boundaries.
+#
+# Notice that the only quantities that evolve in this case are the
+# conformal factor (phi,psi) and the background scale factor cosmobg_a.
+#
+# Also, during the evolution we must have a=psi**2 (up to numerical error).
+ 
+cosmic_run = .true.   # Cosmology run
+
+dr0 = 0.1     	      # grid spacing
+dtfac = 0.5	      # Courant parameter
+
+Nrtotal = 250	      # Number of grid points
+Nt = 100	      # Number of time steps
+
+slicing = static      # Type of slicing condition
+
+integrator = rk4      # Type of integration method
+order = four          # Order for spatial finite differencing
+
+boundtype = flat      # Type of boundary condition
+
+idata = desitter      # Type of initial data
+mattertype = cosmo    # Cosmological constant
+lambda_cosmo = 3.0    # Value of consmological constant
+
+directory = deSitter  # Name of output directory
+Ninfo = 10  	      # How often do we want to output information to screen?
+Noutput0D = 1	      # How often do we want 0D output?
+Noutput1D = 1	      # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,SAA,SBB,cosmobg_alpha,cosmobg_trK,cosmobg_H,cosmobg_a,cosmobg_tau
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,SAA,SBB
+
+
+

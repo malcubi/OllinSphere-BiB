@@ -1,0 +1,45 @@
+# Test parameter file:
+#
+# Complex massless scalar field, 1+log slicing, no shift.
+
+dr0 = 0.05		   # Grid spacing
+dtfac = 0.5		   # Courant parameter
+
+Nrtotal = 200		   # Number of grid points
+Nt = 800		   # Number of time steps
+
+Nl = 1                     # Number of refinement levels
+
+ilapse = psiminus2         # Precollapsed lapse alpha=1/psi**2
+
+slicing = 1+log 	   # Type of slicing condition
+gauge_f = 2.0	           # Coefficient for harmonic slicing
+
+integrator = rk4	   # Type of integration method (icn,rk4)
+order = four  		   # Order for spatial finite differencing (two,four)
+
+boundtype = constraint     # Constraint preserving boundary condition
+
+mattertype = complex       # Complex scalar field
+complex_l = 2              # Azimuthal quantum number (angular momentum)
+
+geodiss = 0.01		   # Dissipation coefficient for geometry
+scalardiss = 0.01	   # Dissipation coefficient for scalar field
+
+idata = complexpulse	   # Type of initial data
+complexprofile = gaussian  # Initial data profile
+complexR_a0 = 0.001	   # Amplitude of perturbation
+complexR_r0 = 3.0	   # Center of perturbation
+complexR_s0 = 1.0	   # Width of perturbation
+complexI_a0 = -0.001	   # Amplitude of perturbation
+complexI_r0 = 3.0	   # Center of perturbation
+complexI_s0 = 1.0	   # Width of perturbation
+
+directory = lcomplex	   # Name of output directory
+Ninfo = 20		   # How often do we want to output information to screen?
+Noutput0D = 10		   # How often do we want 0D output?
+Noutput1D = 20		   # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int
+

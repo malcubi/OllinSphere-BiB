@@ -1,0 +1,39 @@
+# Test parameter file:
+#
+# Proca field, 1+log slicing, no shift.
+
+dr0 = 0.1		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 1000		# Number of grid points
+Nt = 500		# Number of time steps
+
+Nl = 2                  # Number of refinement levels
+
+slicing = 1+log 	# Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+mattertype = proca      # Proca field
+proca_mass = 1.0        # Mass parameter
+
+geodiss = 0.02		# Dissipation coefficient for geometry
+procadiss = 0.02	# Dissipation coefficient for proca field
+
+idata = procapulse	# Type of initial data
+proca_a0 = 0.01         # Amplitude of perturbation
+proca_r0 = 5.0          # Center of perturbation
+proca_s0 = 1.0          # Width of perturbation
+
+directory = proca       # Name of output directory
+Ninfo = 20		# How often do we want to output information to screen?
+Noutput0D = 1 		# How often do we want 0D output?
+Noutput1D = 20		# How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,procaV,procaPhi,procaA,procaE,Cproca,mass_sch,mass_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,procaV,procaPhi,procaA,procaE,Cproca,mass_sch,mass_int
+

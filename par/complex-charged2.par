@@ -1,0 +1,53 @@
+# Test parameter file:
+#
+# Charged complex massless scalar field, 1+log slicing, no shift.
+#
+# This configuration corresponds to a charged complex scalar field
+# with zero initial charge density. As long as the real and
+# imaginary parts are different, and overlap in some region,
+# we will have a non-zero initial current density.
+# (see J. Torres and M. Alcubierre, Gen. Rel. Grav. (2014) 46:1773)
+#
+# In this case the amplitude is high enough that a black hole forms.
+
+dr0 = 0.05		   # Grid spacing
+dtfac = 0.5		   # Courant parameter
+
+Nrtotal = 1000		   # Number of grid points
+Nt = 2000        	   # Number of time steps
+
+Nl = 1                     # Number of refinement levels
+
+slicing = 1+log 	   # Type of slicing condition
+gauge_f = 2.0	           # Coefficient for harmonic slicing
+
+integrator = rk4	   # Type of integration method (icn,rk4)
+order = four  		   # Order for spatial finite differencing (two,four)
+
+boundtype = constraint     # Constraint preserving boundary condition
+
+mattertype = complex,electric  # Complex scalar field + electric field
+complex_q = 1.0            # Charge of complex scalar field
+
+geodiss = 0.01		   # Dissipation coefficient for geometry
+scalardiss = 0.01	   # Dissipation coefficient for scalar field
+
+idata = complexpulse	   # Type of initial data
+complexprofile = gaussian  # Initial data profile
+complexR_a0 = 0.05	   # Amplitude of perturbation
+complexR_r0 = 10.0	   # Center of perturbation
+complexR_s0 = 1.0	   # Width of perturbation
+complexI_a0 = 0.05	   # Amplitude of perturbation
+complexI_r0 = 10.2	   # Center of perturbation
+complexI_s0 = 1.0	   # Width of perturbation
+
+ahfind = .true.            # Look for apparent horizon
+ahfind_every = 10          # How often to look for horizons?
+
+directory = complex-charged2	   # Name of output directory
+Ninfo = 100		   # How often do we want to output information to screen?
+Noutput0D = 10		   # How often do we want 0D output?
+Noutput1D = 100		   # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int,eQ_surf
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int,eQ_surf

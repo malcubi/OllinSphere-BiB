@@ -1,0 +1,41 @@
+# Test parameter file:
+#
+# Real massless scalar field, 1+log slicing, no shift.
+
+dr0 = 0.1		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 500		  # Number of grid points
+Nt = 500		  # Number of time steps
+
+Nl = 4                    # Number of refinement levels
+
+ilapse = psiminus2        # Precollapsed lapse alpha=1/psi**2
+
+slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = scalar       # Real scalar field
+
+geodiss = 0.01		  # Dissipation coefficient for geometry
+scalardiss = 0.01	  # Dissipation coefficient for scalar field
+
+idata = scalarpulse	  # Type of initial data
+scalarprofile = gaussian  # Initial data profile
+scalar_a0 = 0.01          # Amplitude of perturbation
+scalar_r0 = 0.0	          # Center of perturbation
+scalar_s0 = 5.0	          # Width of perturbation
+
+directory = scalar	  # Name of output directory
+Ninfo = 25		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 25		  # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,scalar_phi,scalar_xi,scalar_pi,rho,mass_sch,mass_int,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,scalar_phi,scalar_xi,scalar_pi,rho,mass_sch,mass_int,compactness
+

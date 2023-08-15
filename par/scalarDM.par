@@ -1,0 +1,43 @@
+# Test parameter file:
+#
+# Cosmological spacetime with scalar field dark matter,
+# zero cosmological constant, geodesic slicing, no shift.
+#
+# Notice that this parameter file only evolves the background.
+# Most variables remain trivial, and those that change in time
+# remain uniform.
+
+cosmic_run = .true.       # Cosmology run
+
+dr0 = 0.1     	          # Grid spacing
+dtfac = 0.4	          # Courant parameter
+
+Nrtotal = 2000            # Number of grid points
+Nt = 5000                 # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+slicing = static          # Type of slicing condition
+
+integrator = rk4          # Type of integration method (icn,rk4)
+order = four              # Order for spatial finite differencing
+
+boundtype = flat          # Type of boundary condition
+
+mattertype = scalar       # Scalar field
+scalarpotential = phi2    # Scalar field potential
+scalar_mass = 1.0         # Mass of scalar field
+
+geodiss = 0.01            # Dissipation coefficient for geometry
+scalardiss = 0.01         # Dissipation coefficient for scalar field
+
+idata = scalarDM          # Type of initial data
+scalar_bg_phi0 = 0.01     # Amplitude of background field
+
+directory = scalarDM      # Name of output directory
+Ninfo = 50  	          # How often do we want to output information to screen?
+Noutput0D = 1	          # How often do we want 0D output?
+Noutput1D = 50	          # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,scalar_phi,scalar_pi,scalar_xi,cosmobg_alpha,cosmobg_trK,cosmobg_H,cosmobg_a,cosmobg_scalar_phi,cosmobg_scalar_pi,cosmobg_rho,cosmobg_p,cosmobg_tau
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,scalar_phi,scalar_pi,scalar_xi

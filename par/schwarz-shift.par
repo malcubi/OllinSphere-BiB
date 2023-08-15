@@ -1,0 +1,46 @@
+# Test parameter file:
+#
+# Schwarzschild in isotropic coordinates, 1+log slicing, precollapsed lapse, Gammadriver shift.
+
+dr0 = 0.1		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 300		# Number of grid points
+Nt = 2000		# Number of time steps
+
+Nl = 4                  # Number of refinement levels
+
+ilapse = psiminus2      # Precollapsed lapse alpha=1/psi**2
+
+slicing = 1+log 	# Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+shift = Gammadriver1    # Shift condition
+drivercsi = 0.75        # Coefficient of Gammadriver shift
+drivereta = 2.0         # Damping term for Gammadriver shift
+
+geodiss = 0.01		# Dissipation for geometric variables
+
+chimethod = .true.      # Use chi method for conformal factor
+chipower  = 4           # Power of 1/psi in definition of chi
+regular2 = .true.       # Puncture regularization
+dorigin = onesided      # One sided derivatives at origin
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint	# Type of boundary condition
+
+idata = schwarzschild	# Type of initial data
+ahfind = .true.         # Look for apparent horizon
+ahfind_every = 10       # How often to look for horizons?
+
+directory = schwarz-shift	# Name of output directory
+Ninfo = 50		# How often do we want to output information to screen?
+Noutput0D = 10		# How often do we want 0D output?
+Noutput1D = 50		# How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,expansion
+outvars1D = alpha,beta,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,expansion
+
+

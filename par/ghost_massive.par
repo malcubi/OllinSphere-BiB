@@ -1,0 +1,41 @@
+# Test parameter file:
+#
+# Real massive ghost field, 1+log slicing, no shift.
+
+dr0 = 0.05		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 1000		  # Number of grid points
+Nt = 1000     		  # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = ghost        # Real ghost field
+ghostpotential = phi2     # Type of scalar potential
+ghost_mass = 1.0          # Mass of scalar field
+
+geodiss = 0.01		  # Dissipation coefficient for geometry
+scalardiss = 0.01	  # Dissipation coefficient for ghost field
+
+idata = ghostpulse	  # Type of initial data
+ghostprofile = gaussian   # Initial data profile
+ghost_a0 = 0.01           # Amplitude of perturbation
+ghost_r0 = 5.0            # Center of perturbation
+ghost_s0 = 1.0            # Width of perturbation
+
+directory = ghost_massive	  # Name of output directory
+Ninfo = 50		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 50		  # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,ghost_phi,ghost_xi,ghost_pi,mass_sch,mass_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,ghost_phi,ghost_xi,ghost_pi,mass_sch,mass_int
+

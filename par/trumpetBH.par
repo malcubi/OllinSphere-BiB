@@ -1,0 +1,45 @@
+# Test parameter file:
+#
+# Schwarzschild in the "trumpet" gauge.
+
+dr0 = 0.01		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 1000		# Number of grid points
+Nt = 1000		# Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+slicing = 1+log 	# Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+shift = Gammadriver2    # Shift condition
+drivercsi = 0.75        # Coefficient of Gammadriver shift
+drivereta = 2.0         # Damping term for Gammadriver shift
+
+geodiss = 0.01		# Dissipation for geometric variables
+
+chimethod = .true.      # Use chi method for conformal factor
+chipower  = 4           # Power of 1/psi in definition of chi
+regular2 = .true.       # Puncture regularization
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+idata = trumpetBH	# Type of initial data
+BHmass = 1.5		# Black hole mass.
+
+ahfind = .true.         # Look for apparent horizon
+ahfind_every = 10       # How often to look for horizons?
+
+directory = trumpetBH	# Name of output directory
+Ninfo = 50		# How often do we want to output information to screen?
+Noutput0D = 10		# How often do we want 0D output?
+Noutput1D = 50		# How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,trumpet_u,trumpet_v,D1_phi,D2_phi,D1_alpha,D2_alpha
+outvars1D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,trumpet_u,trumpet_v,D1_phi,D2_phi,D1_alpha,D2_alpha
+
+

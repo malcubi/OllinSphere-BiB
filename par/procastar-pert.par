@@ -1,0 +1,50 @@
+# Test parameter file:
+#
+# Perturbed Proca star initial data, 1+log slicing, no shift.
+
+dr0 = 0.01		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 5000		# Number of grid points
+Nt = 5000   		# Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+slicing = 1+log 	# Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+mattertype = complexproca    # Complex Proca field
+cproca_mass = 1.0       # Mass of Proca field
+
+idata = procastar	# Type of initial data
+proca_factor = harmonic # Normalization factor for proca star (physical,harmonic)
+proca_phi0 = 0.5        # Central value of scalar field
+omega_left  = 1.20190897194  # First trial omega
+omega_right = 1.20190897195  # Second trial omega
+
+procagauss = .true.     # Add perturbation to proca star
+proca_phiR_a0 = 0.05	# Amplitude of gaussian perturbation for phiR
+proca_phiR_r0 = 0.0	# Center of gaussian perturbation for phiR
+proca_phiR_s0 = 1.0	# Width of gaussian perturbation for phiR
+
+geodiss    = 0.05       # Dissipation coefficient for geometry
+scalardiss = 0.05       # Dissipation coefficient for scalar field
+procadiss  = 0.05       # Dissipation coefficient fpr Proca field
+
+ahfind = .true.         # Look for apparent horizon
+ahfind_every = 10       # How often to look for horizons?
+
+directory = procastar-pert	# Name of output directory
+Ninfo = 50		# How often do we want to output information to screen?
+Noutput0D = 10		# How often do we want 0D output?
+Noutput1D = 50		# How often do we want 1D output?
+
+outvars0D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,cproca_Qdens,cproca_Qint,virial1
+outvars1D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,cproca_Qdens,cproca_Qint,virial1
+
+

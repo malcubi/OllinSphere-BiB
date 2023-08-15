@@ -1,0 +1,39 @@
+# Test parameter file:
+#
+# Nonmin scalar field, maximal slicing, no shift.
+
+dr0 = 0.1		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 500		  # Number of grid points
+Nt = 500  		  # Number of time steps
+
+Nl = 4                    # Number of refinement levels
+
+slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = nonmin	  # Nonmin scalar field
+nonminf = quadratic	  # Form of coupling function
+
+geodiss = 0.01	  	  # Dissipation coefficient for geometry
+nonmindiss = 0.01	  # Dissipation coefficient for nonmin field
+
+idata = nonminpulse	  # Type of initial data
+nonminprofile = gaussian  # Initial data profile
+nonmin_a0 = 0.01	  # Amplitude of perturbation
+nonmin_r0 = 5.0	          # Center of perturbation
+nonmin_s0 = 1.0	          # Width of perturbation
+
+directory = nonmin	  # Name of output directory
+Ninfo = 10		  # How often do we want to output information to screen?
+Noutput0D = 1		  # How often do we want 0D output?
+Noutput1D = 10		  # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,nonmin_phi,nonmin_xi,nonmin_pi,nonmin_f,rho
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,nonmin_phi,nonmin_xi,nonmin_pi,nonmin_f,rho

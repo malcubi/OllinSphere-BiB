@@ -1,0 +1,41 @@
+# Test parameter file:
+#
+# Minkowski, harmonic slicing, no shift.
+# Simple test for Z4c formulation.
+
+dr0 = 0.1     	        # Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 250	        # Number of grid points
+Nt = 500	        # Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+formulation = z4c       # Formulation (bssn,z4c)
+kappa1 = 0.0            # Z4c damping parameter
+kappa2 = 0.0            # Z4c damping parameter
+
+slicing = harmonic      # Type of slicing condition
+gauge_f = 1.0	        # Coefficient for harmonic slicing
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+idata = minkowski       # Type of initial data
+
+lapsepert = gaussian    # Gaussian perturbation to initial lapse
+lapse_a0 = 0.01         # Amplitude of perturbation
+lapse_r0 = 5.0	        # Center of perturbation
+lapse_s0 = 1.0	        # Width of perturbation
+
+directory = harmonic-z4c # Name of output directory
+Ninfo = 25  	        # How often do we want to output information to screen?
+Noutput0D = 10	        # How often do we want 0D output?
+Noutput1D = 25	        # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,Klambda,z4theta,ham,mom,CDeltar
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,Klambda,z4theta,ham,mom,CDeltar
+
+

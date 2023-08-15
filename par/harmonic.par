@@ -1,0 +1,41 @@
+# Test parameter file:
+#
+# Minkowski, harmonic slicing, no shift.
+
+dr0 = 0.1     	        # Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 250	        # Number of grid points
+Nt = 1000	        # Number of time steps
+
+Nl = 4                  # Number of refinement levels
+
+slicing = harmonic      # Type of slicing condition
+gauge_f = 1.0	        # Coefficient for harmonic slicing
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+idata = minkowski       # Type of initial data
+#idata = checkpoint     # Restart from checkpoint.
+#checkpointfile = checkpoint_t=0.00000   # Name of checkpoint file
+
+lapsepert = gaussian    # Gaussian perturbation to initial lapse
+lapse_a0 = 0.01         # Amplitude of perturbation
+lapse_r0 = 5.0	        # Center of perturbation
+lapse_s0 = 1.0	        # Width of perturbation
+
+directory = harmonic    # Name of output directory
+Ninfo = 50  	        # How often do we want to output information to screen?
+Noutput0D = 5	        # How often do we want 0D output?
+Noutput1D = 50	        # How often do we want 1D output?
+
+outvars0D = alpha,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+outvars1D = alpha,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+
+checkpoint = .true.     # Do we output checkpoint files?
+Ncheckpoint = 500       # How often do we do a checkpoint?
+
+

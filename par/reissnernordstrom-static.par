@@ -1,0 +1,77 @@
+# Test parameter file:
+#
+# Reissner-Nordstrom black hole in isotropic coordinates with isotropic lapse.
+#
+# In these coordinates the outer horizon is located at:
+#
+#  RH  = sqrt(M^2 - Q^2)/2          (= 0.3 for M=1, Q=0.8)
+# 
+# and the "horizon" mass should be:
+#
+#  MH  = (sqrt(M**2 - Q**2) + M)/2  (= 0.8 for M=1, Q=0.8)
+#
+# Notice that this is NOT the full spacetime mass M, but just
+# the irreducible mass RA/2, with RA the area radius of the
+# horizon. The full spacetime mass is just the parameter M.
+#
+# These coordinates do not penetrate the horizon (smaller
+# values of r correspond to the other side of the wormmhole).
+#
+# This parameter file uses the isotropic lapse which keeps
+# the solution static (but singular at the origin).
+# Also, the electric scalar potential is singular at the
+# horizon since the isotropic lapse vanishes there.
+#
+#
+# IMPORTANT: These type of evolution with a static isotropic
+# lapse is not very stable, particularly close to the origin,
+# so the code crashes after some time.
+#
+# Also, if we use box in box refinement the boundaries between
+# refinement regions introduce errors and the static slicing
+# condition can not adaptt, so this can also cause the code to crash.
+#
+# Because of this it should only be used for testing!
+
+dr0 = 0.02		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 500		# Number of grid points
+Nt = 200		# Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+ilapse = isotropic      # Isotropic initial lapse
+
+slicing = static 	# Type of slicing condition (1+log,maximal)
+
+geodiss = 0.01		# Dissipation for geometric variables
+
+chimethod = .true.      # Use chi method for conformal factor
+chipower = 4            # Power of 1/psi in definition of chi
+regular2 = .true.       # Puncture regularization
+dorigin = onesided      # One sided derivatives at origin
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+mattertype = electric   # Electric field
+
+idata = reissnernordstrom  # Type of initial data
+BHmass = 1.0            # Black hole mass
+BHcharge = 0.8          # Black hole charge
+
+ahfind = .true.         # Look for apparent horizon
+ahfind_every = 10       # How often to look for horizons?
+
+directory = reissnernordstrom-static  # Name of output directory
+Ninfo = 20		# How often do we want to output information to screen?
+Noutput0D = 10		# How often do we want 0D output?
+Noutput1D = 20		# How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,electric,ePhi,eAr,Celectric,mass_sch,mass_rn,expansion
+outvars1D = alpha,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,electric,ePhi,eAr,Celectric,mass_sch,mass_rn,expansion
+
+

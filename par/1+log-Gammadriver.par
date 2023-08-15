@@ -1,0 +1,39 @@
+# Test parameter file:
+#
+# Minkowski, 1+log slicing, Gammadriver1 shift.
+
+dr0 = 0.1    	        # Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 250	        # Number of grid points
+Nt = 500	        # Number of time steps
+
+Nl = 4                  # Number of refinement levels
+
+slicing = 1+log		# Type of slicing condition
+gauge_f = 2.0		# Coefficient for harmonic slicing
+
+shift = Gammadriver1    # Gammadriver shift condition
+drivercsi = 0.75        # Coefficient of Gammadriver shift
+drivereta = 0.0         # Damping term for Gammadriver shift
+
+integrator = rk4	# Type of integration method
+order = four 		# Order for spatial finite differencing
+
+boundtype = constraint  # Type of boundary condition
+
+idata = minkowski       # Type of initial data
+
+lapsepert = gaussian    # Gaussian perturbation to initial lapse
+lapse_a0 = 0.01         # Amplitude of perturbation
+lapse_r0 = 5.0	        # Center of perturbation
+lapse_s0 = 1.0	        # Width of perturbation
+
+directory = Gammadriver # Name of output directory
+Ninfo = 25  	        # How often do we want to output information to screen?
+Noutput0D = 10	        # How often do we want 0D output?
+Noutput1D = 25	        # How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+outvars1D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom
+

@@ -1,0 +1,53 @@
+# Test parameter file:
+#
+# Cosmological spacetime with scalar field dark matter,
+# zero cosmological constant, geodesic slicing, no shift.
+#
+# Notice that this parameter file evolves the background
+# plus a  perturbation.
+
+cosmic_run = .true.       # Cosmology run
+
+dr0 = 0.1     	          # Grid spacing
+dtfac = 0.4	          # Courant parameter
+
+Nrtotal = 3000	          # Number of grid points
+Nt = 5000  	          # Number of time steps
+
+Nl = 2                    # Number of refinement levels
+
+slicing = cosmocf-1+log   # Type of slicing condition
+gauge_f = 2.0             # Coefficient for Bona-Masso slicing
+
+integrator = rk4          # Type of integration method (icn,rk4)
+order = four              # Order for spatial finite differencing
+
+boundtype = constraint    # Type of boundary condition
+
+mattertype = scalar       # Scalar field
+scalarpotential = phi2    # Scalar field potential
+scalar_mass = 1.0         # Mass of scalar field
+
+geodiss = 0.01		  # Dissipation coefficient for geometry
+scalardiss = 0.01	  # Dissipation coefficient for scalar field
+
+idata = scalarDM          # Type of initial data
+scalar_bg_phi0 = 0.001    # Amplitude of background field
+
+scalar_bg_pert = .true.   # Add a perturbation
+scalarprofile = gaussian  # Initial data profile
+scalar_a0 = 0.01          # Amplitude of perturbation
+scalar_r0 = 0.0	          # Center of perturbation
+scalar_s0 = 5.0	          # Width of perturbation
+
+ahfind = .true.           # Look for apparent horizon
+ahfind_every = 100        # How often to look for horizons?
+
+directory = scalarDM_pert    # Name of output directory
+Ninfo = 100  	          # How often do we want to output information to screen?
+Noutput0D = 10	          # How often do we want 0D output?
+Noutput1D = 100	          # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,scalar_phi,scalar_pi,scalar_xi,alpha_pert,phi_pert,trK_pert,rho_pert,cosmobg_alpha,cosmobg_phi,cosmobg_trK,cosmobg_H,cosmobg_a,cosmobg_scalar_phi,cosmobg_scalar_pi,cosmobg_rho,cosmobg_p,cosmobg_tau
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,scalar_phi,scalar_pi,scalar_xi,alpha_pert,phi_pert,trK_pert,rho_pert
+

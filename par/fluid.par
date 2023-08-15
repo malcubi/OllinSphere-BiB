@@ -1,0 +1,42 @@
+# Test parameter file:
+#
+# Fluid gaussian initial distribution, 1+log slicing, no shift.
+
+dr0 = 0.01		  # Grid spacing
+dtfac = 0.7		  # Courant parameter
+
+Nrtotal = 4000		  # Number of grid points
+Nt = 20000	  	  # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = fluid        # Real scalar field
+fluid_method = hlle       # Numerical method for fluid
+fluid_limiter = minmod    # Type of limiter
+
+idata = fluidshell	  # Type of initial data
+fluid_a0 = 0.001          # Amplitude of gaussian
+fluid_r0 = 0.0	          # Center of gaussian
+fluid_s0 = 2.5	          # Width of gaussian
+
+fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term.
+fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term.
+
+geodiss = 0.05            # Dissipation coefficient for geometry
+
+directory = fluid	  # Name of output directory
+Ninfo = 200		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 200		  # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness
+

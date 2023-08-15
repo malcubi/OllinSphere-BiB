@@ -1,0 +1,51 @@
+# Test parameter file:
+#
+# Real massless scalar field collapse, 1+log slicing, Gammadriver shift.
+
+dr0 = 0.05		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 500		  # Number of grid points
+Nt = 2000		  # Number of time steps
+
+Nl = 4                    # Number of refinement levels
+
+ilapse = psiminus2        # Precollapsed lapse
+
+slicing = 1+log 	  # Type of slicing condition
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+shift = Gammadriver1      # Gammadriver shift condition
+drivercsi = 0.75          # Coefficient of Gammadriver shift
+drivereta = 2.0           # Damping parameter for Gammadriver shift
+
+chimethod = .true.        # Use chi method for conformal factor
+regular2 = .true.         # Use alternative regularization method
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint	  # Type of boundary condition
+
+mattertype = scalar       # Real scalar field
+
+geodiss    = 0.01         # Dissipation coefficient for geometry
+scalardiss = 0.01	  # Dissipation coefficient for scalar field
+
+idata = scalarpulse	  # Type of initial data
+scalarprofile = gaussian  # Initial data profile
+scalar_a0 = 0.4           # Amplitude of perturbation
+scalar_r0 = 0.0	          # Center of perturbation
+scalar_s0 = 1.0	          # Width of perturbation
+
+ahfind = .true.           # Look for apparent horizon
+ahfind_every = 10         # How often to look for horizons?
+
+directory = scalarcollapse	# Name of output directory
+Ninfo = 50		  # How often do we want to output information to screen?
+Noutput0D = 10	  	  # How often do we want 0D output?
+Noutput1D = 50		  # How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,scalar_phi,scalar_xi,scalar_pi,mass_sch,mass_int,expansion
+outvars1D = alpha,beta,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,scalar_phi,scalar_xi,scalar_pi,mass_sch,mass_int,expansion
+
