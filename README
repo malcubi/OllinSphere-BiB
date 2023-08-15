@@ -1,4 +1,4 @@
-$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/README,v 1.14 2022/06/02 15:48:57 malcubi Exp $
+$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/README,v 1.15 2023/08/15 19:57:36 malcubi Exp $
 
 ***************************************************
 ***   README FILE FOR PROGRAM OLLINSPHERE-BiB   ***
@@ -22,8 +22,8 @@ the subdirectory "doc". If something is not there, try looking at the
 source files directly, they are extensively commented.
 
 
-For me!
-------
+These are instructions to add new users to the CVS repository (obsolete)
+------------------------------------------------------------------------
 
 Adding users to the cvs repository:
 
@@ -33,7 +33,7 @@ Adding users to the cvs repository:
 4) Check that you did this right by lokng at the files:  /etc/passwd y /etc/group
 5) Goto /usr/local/ollincvs/CVSROOT
 6) Run perl script to generate password for user:  sudo ./cvs_passwd.pl 'username' 'password' cvs
-7) Check by lookin at file passwd.
+7) Check by looking at file passwd.
 
 
 Downloading the code
@@ -42,10 +42,15 @@ Downloading the code
 If you are reading this it means you probably already downloaded the
 code.  But if for some reason you need to download it here is how.
 
+1) CVS
+
 The easiest way to obtain the code is to download it from the CVS
-server of the Ollin group (dulcinea.nucleares.unam.mx).  In order to
-obtain a username and password for this sever you need to contact
-Miguel Alcubierre (malcubi@nucleares.unam.mx). Once you have a
+server of the Ollin group (dulcinea.nucleares.unam.mx), tough this is
+becoming obsolete now that CVS is no longer maintained (and now seems
+not to work anymore outside the local network at my Institute).
+
+In order to obtain a username and password for this sever you need to
+contact Miguel Alcubierre (malcubi@nucleares.unam.mx). Once you have a
 username and password you first need to log into the repository by
 typing at the terminal:
 
@@ -59,6 +64,17 @@ cvs -d :pserver:username@dulcinea.nucleares.unam.mx:/usr/local/ollincvs co Codes
 
 This will create a directory "Codes" and inside it directory
 "OllinSphere-BiB". This is the main directory for the code.
+
+2) GITHUB
+
+For this you first need to open a github account.  Once you have it,
+you should be able to download the code very easily by just typing on
+a terminal (assuming you have git installed):
+
+git clone https://github.com/malcubi/OllinSphere-BiB
+
+This should work as the repository is public, though you won't have
+permission to make commits to the main repository.
 
 
 Directory structure
