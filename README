@@ -1,0 +1,266 @@
+$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/README,v 1.14 2022/06/02 15:48:57 malcubi Exp $
+
+***************************************************
+***   README FILE FOR PROGRAM OLLINSPHERE-BiB   ***
+***************************************************
+
+Code:   OllinSphere-BiB
+Author: Miguel Alcubierre / Ollin Numerical Relativity Group
+Date:   June 2018
+
+This program solves the Einstein evolution equations in spherical
+symmetry using a curvilinear version of the BSSN formulation for the
+3+1 evolution equations, with different types of matter and different
+gauge conditions.
+
+The main difference of this version of the code with respect to
+previous ones is the fact that it uses box-in-box mesh refinement
+(hence the BiB part of the name), and is parallelized with MPI.
+
+The documentation for the code is in the file "usermanual.pdf" inside
+the subdirectory "doc". If something is not there, try looking at the
+source files directly, they are extensively commented.
+
+
+For me!
+------
+
+Adding users to the cvs repository:
+
+1) Log into dulcinea.nucleares.unam.mx
+2) Add new user: sudo useradd 'username'
+3) add user to cvs and mail groups:  sudo usermod -a -G cvs mail
+4) Check that you did this right by lokng at the files:  /etc/passwd y /etc/group
+5) Goto /usr/local/ollincvs/CVSROOT
+6) Run perl script to generate password for user:  sudo ./cvs_passwd.pl 'username' 'password' cvs
+7) Check by lookin at file passwd.
+
+
+Downloading the code
+--------------------
+
+If you are reading this it means you probably already downloaded the
+code.  But if for some reason you need to download it here is how.
+
+The easiest way to obtain the code is to download it from the CVS
+server of the Ollin group (dulcinea.nucleares.unam.mx).  In order to
+obtain a username and password for this sever you need to contact
+Miguel Alcubierre (malcubi@nucleares.unam.mx). Once you have a
+username and password you first need to log into the repository by
+typing at the terminal:
+
+cvs -d :pserver:username@dulcinea.nucleares.unam.mx:/usr/local/ollincvs login
+
+where you should change the word "username" for your personal
+username!  You then need to type your password.  After this you can
+download the code by typing:
+
+cvs -d :pserver:username@dulcinea.nucleares.unam.mx:/usr/local/ollincvs co Codes/OllinSphere-BiB
+
+This will create a directory "Codes" and inside it directory
+"OllinSphere-BiB". This is the main directory for the code.
+
+
+Directory structure
+-------------------
+
+The main directory for the code is "OllinSphere-BiB".  There are
+several subdirectories inside this main directory:
+
+* CVS: 	      Contains information about the CVS root and server.
+
+* doc: 	      Contains the user's manual (both tex and pdf files).
+
+* exe: 	      This directory is created at compile time and contains
+              the executable file.  It also contains a copy of the
+              parameter files found in directory "par" (see below).
+
+* fakempi:    Contains fake mpi routines so that the compiler won't
+	      complain if mpi is not installed.
+
+* gnuplot     Contains a couple of simple gnuplot macros for visualization.
+
+* objs:       This directory is created at compile time and contains
+              all the object and module files.
+
+* ollingraph: Contains the visualization package "ollingraph" for
+	      convenient "quick and dirty" visualization.
+
+* par:	      Contains examples of parameter files.
+
+* prl:	      Contains perl scripts used at compile time to create the
+	      subroutines that manage parameters and arrays.
+
+* src:	      Contains the source files for all the code routines.
+
+
+The directory "src" is itself divided into a series of subdirectories
+in order to better classify the different routines. These
+subdirectories are:
+
+* CVS:        Contains information about the CVS root and server.
+
+* auto:	      Contains FORTRAN files that are automatically generated
+  	      at compile time by the perl scripts.  These files should
+  	      not be edited manually!
+
+* base:	      Contains the routines that control the basic execution of
+  	      the code, including the parameter and array declarations,
+  	      the parameter parser, the output routines, the main
+  	      evolution controllers, and generic routines for
+  	      calculating derivatives, dissipation, etc.  The code in
+  	      fact starts execution at the routine "main.f90" contained
+  	      in this directory.
+
+* geometry:   Contains routines related to initial data, evolution and
+	      analysis of the spacetime geometric variables, including
+	      sources, gauge conditions, constraints, horizon finders,
+	      etc.
+
+* matter:     Contains routines related to the initial data, evolution
+	      and analysis of the different matter models, including a
+	      generic routine for calculating the basic matter
+	      variables, and routines for evolving scalar fields,
+	      electric fields, fluids, etc.
+
+
+
+Compiling the code
+------------------
+
+The code is written in FORTRAN 90.  All subroutines are in separate
+files inside the directory "src" and its sub-directories.
+
+To compile just move inside the "OllinSphere-BiB" directory and type:
+
+make
+
+This will first run some perl scripts that create a series of
+automatically generated FORTRAN files that will be placed inside the
+directory "src/auto". It will then compile all the FORTRAN routines
+that it can find inside any of the subdirectories of "src" (it will
+attempt to compile any file with the extension ".f90").
+
+The resulting object files and FORTRAN module files will be placed
+inside the subdirectory "objs". The Makefile will then create a
+directory "exe" and will place in it the final executable file called
+"ollinsphere".  It will also copy to this directory all the sample
+parameter files inside the subdirectory "par", and the visualization
+package "ollingraph".
+
+Notice that at this time the Makefile can use the compilers "g95",
+"gfortran", or the Intel compilers "ifc" and "ifort", and it will
+automatically check if they are installed. If you have a different
+compiler then the Makefile will have to be modified (hopefully it
+won't be very difficult).  The code will also attempt to find an MPI
+installation (it looks for the command "mpif90"), and if it does not
+find it it will use the fake routines inside the directory "fakempi".
+
+The Makefile has several other useful targets that can be listed by
+typing:
+
+make help
+
+
+Running the code
+----------------
+
+To run the code move into the directory "exe" and type:
+
+ollinsphere name.par
+
+Where "name.par" is the name of your parameter file (more on parameter
+files below).  The code will then read data from the parameter file
+silently and hopefully start producing some output to the screen. The
+code will also create an output directory and will write the data
+files on that directory.
+
+For parallel runs using MPI one must use instead the command:
+
+mpirun -np N ollinsphere name.par
+
+where "N" should be an integer number that specifies the number of
+processors.
+
+
+Parameter files
+---------------
+
+At runtime the code reads the parameter values from a parameter file
+(parfile), with a name of the form "name.par", that must be specified
+in the command line after the executable:
+
+ollinsphere name.par
+
+The data in this parameter file can be given in any order, using the
+format:
+
+parameter = value
+
+Comments (anything after a #) and blank lines are ignored.
+
+Only one parameter is allowed per line, and only one value is allowed
+per parameter, with the exception of the parameters "outvars0D" and
+"outvars1D" that control which arrays get output and take lists of
+arrays as values, for example:
+
+outvars0D = alpha,A,B
+
+There is in fact one other parameter that can also take multiple
+values as input, it is the parameter "mattertype" that can accept
+several types of matter at once (see the user's manual).
+
+Parameters that do not appear in the parfile get the default values
+given in the file "param.f90".  Examples of parameter files can be
+found in the subdirectory "par".
+
+IMPORTANT: Even though FORTRAN does not distinguish between
+upper and lower case in variable names, the names of parameters are
+handled as strings by the parameter parser, so lower and upper case
+are in fact different.  The name of parameters in the parameter file
+should then be identical to the way in which they appear in the file
+"param.f90".
+
+
+Output files
+------------
+
+At runtime, the codes creates an output subdirectory whose name should
+be given in the parameter file. It then produces a series of output
+files with the data from the run. There are so called "0D" files (with
+extension *.tl) and "1D" files (with extension *.rl).
+
+The OD files refer to scalar quantities obtained from the spatial
+arrays as functions of time. These scalar quantities include the
+maximum "max", the minimum "min", and three different norms of the
+spatial arrays: maximum absolute value "nm1", root mean square
+"nm2" and total variation "var".
+
+The 1D files contain the complete spatial arrays at different times.
+Even though the code is only one-dimensional, these files can become
+quite big if you are not careful, so beware.
+
+Since we can have several grid refinement levels, the file names are
+appended with a number corresponding to the specific level (all grid
+levels have output). For example:
+
+alpha0.rl    Level 0 (coarsest grid)
+alpha1.rl    Level 1
+...
+
+All files are written in ASCII, and using a format adapted to XGRAPH
+(but other graphic packages should be able to read them).
+
+Output is controlled by the following parameters:
+
+* directory:  Name of directory for output.
+
+* Ninfo:      How often do we output information to screen?
+
+* Noutput0D:  How often do we do 0D output?
+
+* Noutput1D:  How often do we do 1D output?
+
+* outvars0D:  Arrays that need 0D output (a list separated by commas).
+
+* outvars1D:  Arrays that need 1D output (a list separated by commas).
