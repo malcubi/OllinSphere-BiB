@@ -1,0 +1,1625 @@
+#!/usr/bin/env python3
+
+# At the moment it runs fine with python3.10
+
+######################
+###   OLLINGRAPH   ###
+######################
+
+# Version 1.0:   Miguel Alcubierre, February 2017.
+# Contact:       malcubi@nucleares.unam.mx
+#
+# 23/3/17:       Customized tool bar.
+#
+# 29/5/18:       Added the option for a custom name for the plot (--title=)
+#
+# 31/5/18:       Added button for saving figure.
+#
+# 11/3/19:       Added button for log plots.
+#
+# 29/6/19:       Made sure NaN's are ignored for axis sizes.
+#
+# 20/11/19:      Made sure log plots now work for time evolutions.
+#
+# 22/10/20:      It now works with python 3.
+#
+# 12/4/23:       Modified the way lines are deleted, it was no longer working.
+
+
+#######################
+###   DESCRIPTION   ###
+#######################
+
+# This is a python package to plot simple line plots and animations.
+#
+# It is suppossed to have similar functionality to the old xgraph and
+# ygraph packages, and expects the data files in the same format (see
+# below).
+#
+# The plots are quite simple, and meant for quick/dirty interactive
+# visualization.  These plots are not supposed to be used for figures
+# intended for publication (use gnuplot or something similar for
+# that).
+#
+# To use the package type:
+#
+# ./ollingraph  file1 file2 ... filen
+#
+# or if you have the local directory "." in your PATH just type:
+#
+# ollingraph  file1 file2 ... filen
+#
+# Otherwise you can put it in /usr/local/bin so it can be found
+# from anywhere.
+#
+# One can also add a custom name for the plot using the option --title:
+#
+# ollingraph --title="Plot name" file1 file2 ... filen
+#
+# If this option is not there the plot is just named after the name of
+# the data file if there is only one, or just says "Multiple data files"
+# if there is more than one file.
+#
+# When plotting several data files at once, they are all assumed to be
+# of the same type.
+#
+# Before using it make sure that "ollingraph" has execute permission:
+#
+# chmod +x ollingraph
+#
+# The data files are expected to have the following format:
+#
+# 0D files ending in .tl:
+#
+#   1. One comment line starting with # or " with the file name (this
+#      line could be missing and it should still work).
+#
+#   2. A series of lines with the data points, with the x and y values
+#      separated by blank spaces.
+#
+# 1D (evolution type) files ending in (.xl, .yl, .zl, .rl, ...):
+#
+#   1. Each time step begins with a comment line starting with # or "
+#      that contains the time in the format:  #Time = float
+#
+#   2. A series of lines with the data points, with the x and y values
+#      separated by blank spaces.
+#
+#   3. One or more blank lines to separate the next time step.
+
+
+###########################
+###   IMPORT PACKAGES   ###
+###########################
+
+# Import math and plotting packages.
+
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
+
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from matplotlib.widgets import Button
+
+import numpy as np
+
+# Import Tkinter GUI package.
+
+import tkinter as tk
+from tkinter.constants import *
+
+# Import shell calls package.
+
+import subprocess
+
+# Eliminate warnings.
+
+import warnings
+warnings.filterwarnings("ignore")
+
+
+#############################################
+###   GET NAME AND NUMBER OF DATA FILES   ###
+#############################################
+
+# Import command line arguments.
+
+import sys
+import getopt
+
+# Find options.
+
+opts, args = getopt.getopt(sys.argv[1:], "h",["title="])
+
+plottitle = ''
+
+for opt, arg in opts:
+    if opt == '-h':
+        print('ollingraph --title="plotname" <file1> <file2> ...')
+        sys.exit()
+    elif opt == '--title':
+        plottitle = arg
+        if plottitle == '':
+            print('ollingraph: You must give a string after the argument --title')
+            sys.exit()
+
+# Get list of file names.
+
+filen = []
+
+# Copy commmand line arguments to "filen".
+# Notice that filen[0] is actually the name of the
+# script (ollingraph), while the data file names
+# in fact start at filen[1].
+
+if plottitle=='':
+    filen = sys.argv
+else:
+    filen = sys.argv[1:]
+
+# Find out total number of files.  It will be the
+# length of "filen" minus 1.
+
+nf = len(filen)-1
+
+# Check if no file was given.
+
+if nf==0:
+    print('ollingraph: You must give at least one data file in the command line')
+    sys.exit()
+
+
+####################################
+###  DECLARE GLOBAL DATA LISTS   ###
+####################################
+
+# Declare lists.
+
+t = []   # List containing the time values for the different time steps.
+x = []   # List with x data (used when reading data).
+y = []   # List with y data (used when reading data).
+
+ntime = [0   for i in range(nf+1)]  # List with number of time steps for each file.
+scale = [1.0 for i in range(nf+1)]  # List for scaling factors for data from different files.
+
+xlist = [[] for i in range(nf+1)]   # List of lists with x data for all files.
+rlist = [[] for i in range(nf+1)]   # List of lists with raw y data for all time steps and files.
+ylist = [[] for i in range(nf+1)]   # List of lists with rescaled y data for all time steps and files.
+
+slist1 = [[] for i in range(nf+1)]  # Auxiliary list of lists.
+slist2 = [[] for i in range(nf+1)]  # Auxiliary list of lists.
+
+center = [[] for i in range(nf+1)]  # List of lists with position of centers for polar data.
+
+
+#####################################################
+###   COUNT NUMBER OF TIME STEPS AND READ TIMES   ###
+#####################################################
+
+polar = False   # Flag to indicate we have polar data.
+
+# Count the number of time steps for the different files.
+# Notice that if these are not evolution files then "ntime"
+# will remain equal to zero (as declared above).
+
+for i in range(1,nf+1):
+    with open(filen[i]) as data:
+        nt0 = 0
+        for line in data:
+            if ('time') in line.lower():
+                nt0 = nt0 + 1
+            if ('center') in line.lower():
+                polar = True
+    ntime[i] = nt0
+
+# Find the maximum number of time steps among
+# the different data files.
+
+ntarr = np.array(ntime,int)
+ntmax = np.amax(ntarr)
+
+# Now find one of the files with the maximum number of
+# time steps, and use it to define the time list t[].
+
+if (ntmax>0):
+
+    for i in range(1,nf+1):
+        if ntime[i]==ntmax:
+            j = i
+            break
+
+    with open(filen[j]) as data:
+        for line in data:
+            if ('time') in line.lower():
+                s = line.split("=")
+                t.append(float(s[1]))
+
+
+#####################
+###   READ DATA   ###
+#####################
+
+# Loop over all data files.
+
+for i in range(1,nf+1):
+
+    # Open data file.
+
+    with open(filen[i]) as data:
+
+        # Set time step counter to 0 and
+        # make sure x[] and y[] are empty.
+
+        ns = 0
+        del x[:]
+        del y[:]
+
+        # Read line.
+
+        for line in data:
+
+            # If the line contains "time", append previous time step to data.
+            # But remember that for first time step we have no previous
+            # data to append.
+
+            if ('time') in line.lower():
+                if (ns>0):
+                    xlist[i].append(list(x))
+                    rlist[i].append(list(y))
+                del x[:]
+                del y[:]
+                ns = ns+1
+
+            # Check if the word "center" is present, in which case we have polar data.
+
+            if ('center') in line.lower():
+                s = line.split("=")
+                center[i].append(s[1])
+
+            # For a line with actual data read it into x[],y[].
+
+            elif (not '#' in line) and (not '"' in line) and (not line.isspace()):
+                a,b=line.split()
+                x.append(float(a))
+                y.append(float(b))
+
+        # Don't forget to append the last time step!
+
+        xlist[i].append(list(x))
+        rlist[i].append(list(y))
+
+# Now check if the files have different numbers of time steps.
+
+ntimeFlag = False
+
+if (ntmax>0):
+
+    # Compare the number of time steps for different files.
+    # (It is enough to check all files against the first one).
+
+    for i in range(2,nf+1):
+        if (ntime[i]!=ntime[1]):
+            ntimeFlag = True
+
+    # If not all files have the same number of time steps,
+    # then we copy the data from the last time step as many
+    # times as needed to ensure that the data lists for all
+    # files have the same total length.
+
+    if ntimeFlag:
+        for i in range(1,nf+1):
+            if ntime[i] < ntmax:
+                # print "Fewer time steps in file",filen[i]
+                for j in range(ntime[i],ntmax):
+                    xlist[i].append(xlist[i][ntime[i]-1])
+                    rlist[i].append(rlist[i][ntime[i]-1])
+                    if (polar):
+                        center[i].append(center[i][ntime[i]-1])
+
+# Copy raw data to rescaled data.
+
+ylist = rlist[:]
+
+                    
+##################################
+###   FIX INITIAL AXIS SCALE   ###
+##################################
+
+# Find minimum and maximum values of x for all data files.
+
+xmin0 = +1.e10
+xmax0 = -1.e10
+
+if (ntmax>0):
+    for i in range(1,nf+1):
+        for k in range(0,ntmax):
+            xarr = np.array(xlist[i][k])
+            xm = np.nanmin(xarr)
+            xx = np.nanmax(xarr)
+            if (xm<xmin0): xmin0=xm
+            if (xx>xmax0): xmax0=xx
+else:
+    for i in range(1,nf+1):
+        xarr = np.array(xlist[i][0])
+        xm = np.nanmin(xarr)
+        xx = np.nanmax(xarr)
+        if (xm<xmin0): xmin0=xm
+        if (xx>xmax0): xmax0=xx
+
+xmin = xmin0
+xmax = xmax0
+
+# Find minimum and maximum values of y for all time steps
+# and all data files.
+
+ymin0 = +1.e10
+ymax0 = -1.e10
+
+lmin0 = +1.e10
+lmax0 = -1.e10
+
+if (ntmax>0):
+    for i in range(1,nf+1):
+        for k in range(0,ntmax):
+            yarr = np.array(ylist[i][k])
+            larr = np.log10(np.absolute(np.array(ylist[i][k],float))+1e-30)
+            ym = np.nanmin(yarr)
+            yx = np.nanmax(yarr)
+            lm = np.nanmin(larr)
+            lx = np.nanmax(larr)
+            if (ym<ymin0): ymin0=ym
+            if (yx>ymax0): ymax0=yx
+            if (lm<lmin0): lmin0=lm
+            if (lx>lmax0): lmax0=lx
+else:
+    for i in range(1,nf+1):
+        yarr = np.array(ylist[i][0])
+        larr = np.log10(np.absolute(np.array(ylist[i][0],float))+1e-30)
+        ym = np.nanmin(yarr)
+        yx = np.nanmax(yarr)
+        lm = np.nanmin(larr)
+        lx = np.nanmax(larr)
+        if (ym<ymin0): ymin0=ym
+        if (yx>ymax0): ymax0=yx
+        if (lm<lmin0): lmin0=lm
+        if (lx>lmax0): lmax0=lx
+
+if (ymin0==0.0) and (ymax0==0.0):   # In case all the data are 0!
+    ymin0=-1.0
+    ymax0=+1.0
+    lmin0= 0.0
+    lmax0=+2.0
+
+ymin = ymin0
+ymax = ymax0
+lmin = lmin0
+lmax = lmax0
+
+# Now we add some extra space on top and bottom of y axis.
+
+ymed = 0.5*(ymin+ymax)
+lmed = 0.5*(lmin+lmax)
+
+yb0 = ymed + 1.5*(ymin-ymed)
+yt0 = ymed + 1.5*(ymax-ymed)
+lb0 = lmed + 1.5*(lmin-lmed)
+lt0 = lmed + 1.5*(lmax-lmed)
+
+yt = yt0
+yb = yb0
+lt = lt0
+lb = lb0
+
+
+###################################
+###   CREATE MAIN PLOT WINDOW   ###
+###################################
+
+# Remove default toolbar.
+
+plt.rcParams['toolbar'] = 'None'
+
+# Fix default fontsize.
+
+plt.rcParams['font.size'] = 12
+
+# Initialize line width, marker type and grid.
+
+lwidth = 2
+checkm = 0
+grid   = 1
+
+# Create basic figure.
+
+fig = plt.figure(figsize=(8.5,6))
+ax = fig.add_subplot(111)
+
+fig.canvas.manager.set_window_title('Ollingraph') 
+
+# Customize toolbar.
+
+can = fig.canvas
+win = can.manager.window
+
+class CustomToolbar(NavigationToolbar2Tk):
+    def __init__(self,canvas_,parent_):
+        self.toolitems = (
+            ('Home', 'Reset original view', 'home', 'home'),
+            ('Pan' , 'Pan', 'move', 'pan'),
+            ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+            #('Save', 'Save figure', 'filesave', 'save_figure')
+            )
+        NavigationToolbar2Tk.__init__(self,canvas_,parent_)
+
+fig.toolbar = CustomToolbar(can,win)
+
+# Set color list for multiple data files.
+# Notice that there are 7 basic colors:
+# (b=blue,r=red,g=green,c=cyan,m=magenta,y=yellow,k=black).
+# I add another three (limegreen,darkorange,blueviolet)
+# for a total of 10. If there are more files they will cycle.
+
+col = ['b','r','g','c','m','y','k','limegreen','darkorange','blueviolet']
+
+# Set initial marker list for multiple data files.
+# We use only 10 marker types, if we have more
+# files they will cycle.
+
+mark0 = ['None' for i in range(10)]
+mark1 = ['o','+','x','v','^','*','s','D','p','h']
+
+mstyle = mark0[:]   # No markers initially.
+
+# Plot the axis and title.
+
+plt.subplots_adjust(top=0.83,bottom=0.125,left=0.1,right=0.83)
+plt.axis([xmin,xmax,yb,yt])
+
+fig.patch.set_facecolor('lightgray')
+
+if (plottitle!=''):
+    plt.title(plottitle,fontsize=14)
+elif (nf==1):
+    plt.title(filen[1],fontsize=14)
+else:
+    plt.title('Multiple data files',fontsize=14)
+
+# Print information about number of time steps
+# (only for evolution type files).
+
+if (ntmax>0):
+    fig.text(0.1,0.03,'Number of time steps  = %s' %ntmax,fontsize=12)
+
+
+#############################
+###   PLOT INITIAL DATA   ###
+#############################
+
+# Set "grid" to True initially.
+
+ax.grid(True)
+
+# Now plot the initial data for all data files,
+# and add a legend at the lower right corner.
+
+for i in range(1,nf+1):
+    ax.plot(xlist[i][0],ylist[i][0],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10],label=filen[i])
+
+legend = ax.legend(loc='lower right',fontsize=10)
+
+plt.draw()
+
+# Print time for initial data (only for evolution type files).
+
+if (ntmax>0):
+    timetxt = fig.text(0.15,0.78,'time = %s'%t[0],ha='left',va='center',fontsize=12)
+
+
+##################################################
+###   INITIALIZE TIME STEP COUNTER AND FLAGS   ###
+##################################################
+
+# Initialize time step counter.
+
+kinit = 0
+
+# Initialize flags.
+
+pauseFlag  = True     # Flag to indicate if pause button was pressed.
+rewindFlag = False    # Flag to indicate if we need to rewind data files.
+
+scaleFlag  = False    # Flag to indicate if "scale" popoup window is active.
+axisFlag   = False    # Flag to indicate if "axis"  popoup window is active.
+styleFlag  = False    # Flag to indicate if "style" popoup window is active.
+saveFlag   = False    # Flag to indicate if "save"  popoup window is active.
+
+logFlag    = False    # Flag to indicate if we are doing a log plot.
+polFlag    = False    # Flag to indicate if we are doing a polar plot.
+
+
+####################################
+###   DEFINE DIFFERENT ACTIONS   ###
+####################################
+
+# Define different actions for buttons.
+
+class Actions:
+
+
+    #######################
+    ###   QUIT BUTTON   ###
+    #######################
+    
+    def quit(self,event):
+
+        global pauseFlag,axisFlag,scaleFlag,styleFlag
+
+        # In case we are in the middle of an animation,
+        # make sure it stops.
+
+        pauseFlag = True
+
+        # Kill popup windows.
+
+        if axisFlag:
+            popup_axis.destroy()
+
+        if scaleFlag:
+            popup_scale.destroy()
+
+        if styleFlag:
+            popup_style.destroy()
+
+        # Close main window (make sure to exit any running process).
+        
+        sys.exit()
+        plt.close("all")
+
+
+    ##################################
+    ###   FIRST TIME STEP BUTTON   ###
+    ##################################
+
+    def first(self,event):
+        
+        # Declare global variables.
+
+        global timetxt,pauseFlag,rewindFlag,kinit
+
+        # Set pauseFlag and rewindFlag to true.
+
+        pauseFlag  = True
+        rewindFlag = True
+
+        # Reset time step counter.
+
+        kinit = 0
+
+        # Remove all lines.
+
+        for art in list(ax.lines):
+            art.remove()
+
+        # Write current time (first time step).
+
+        timetxt.set_text('time = %s'%t[0])
+
+        # Plot first time step.
+
+        for i in range(1,nf+1):
+            ax.plot(xlist[i][0],ylist[i][0],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+        plt.draw()
+
+
+    #################################
+    ###   LAST TIME STEP BUTTON   ###
+    #################################
+
+    def last(self,event):
+
+        # Declare global variables.
+
+        global timetxt,pauseFlag,rewindFlag,kinit
+
+        # Reset time step counter.
+
+        kinit = ntmax-1
+
+        # Set pauseFlag and rewindFlag to true.
+
+        pauseFlag  = True
+        rewindFlag = True
+
+        # Remove all lines.
+
+        for art in list(ax.lines):
+            art.remove()
+
+        # Write current time (last time step).
+
+        timetxt.set_text('time = %s'%t[ntmax-1])
+
+        # Plot last time step.
+
+        for i in range(1,nf+1):
+            ax.plot(xlist[i][ntmax-1],ylist[i][ntmax-1],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+        plt.draw()
+
+
+    ###############################
+    ###   STEP FORWARD BUTTON   ###
+    ###############################
+    
+    def stepf(self,event):
+
+        # Declare global variables.
+
+        global timetxt,pauseFlag,kinit
+
+        # Only step if pauseFlag=true.
+
+        if pauseFlag:
+
+            # Remove all lines.
+
+            for art in list(ax.lines):
+                art.remove()
+
+            # If we are not at the last time step increase kinit.
+
+            if (kinit<ntmax-1):
+                kinit = kinit+1
+
+            # Write current time.
+
+            timetxt.set_text('time = %s'%t[kinit])
+
+            # Plot current time step.
+
+            for i in range(1,nf+1):
+                ax.plot(xlist[i][kinit],ylist[i][kinit],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+            plt.draw()
+
+        # If pauseFlag was false just set it to true.
+
+        else:
+
+            pauseFlag = True
+
+
+    ################################
+    ###   STEP BACKWARD BUTTON   ###
+    ################################
+
+    def stepb(self,event):
+
+        # Declare global variables.
+
+        global timetxt,pauseFlag,rewindFlag,kinit
+
+        # Only step if pauseFlag=true.
+
+        if pauseFlag:
+
+            # Remove all lines.
+
+            for art in list(ax.lines):
+                art.remove()
+
+            # If we are not at the first time step decrease kinit
+            # and set rewindFlag to false.
+
+            if (kinit>0):
+                rewindFlag = False
+                kinit = kinit-1
+
+            # Write current time.
+
+            timetxt.set_text('time = %s'%t[kinit])
+
+            # Plot current time step.
+
+            for i in range(1,nf+1):
+                ax.plot(xlist[i][kinit],ylist[i][kinit],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+            plt.draw()
+
+        # If pauseFlag was false just set it to true.
+
+        else:
+
+            pauseFlag = True
+
+
+    #################################
+    ###   ALL TIME STEPS BUTTON   ###
+    #################################
+
+    # Plot all time steps.
+
+    def all(self,event):
+
+        # Declare global variables.
+
+        global timetxt,pauseFlag,rewindFlag,kinit
+
+        # Reset pauseFlag and rewindFlag to true.
+
+        kinit = 0
+
+        pauseFlag  = True
+        rewindFlag = True
+
+        # Remove all lines.
+
+        for art in list(ax.lines):
+            art.remove()
+
+        # Write current time (last time step).
+  
+        timetxt.set_text('time = %s'%t[ntmax-1])
+
+        # Plot lines for all time steps (use rainbow color map).
+
+        color = iter(plt.cm.rainbow(np.linspace(0,1,ntmax*nf)))
+
+        for i in range(1,nf+1):
+            for k in range(0,ntmax):
+                ax.plot(xlist[i][k],ylist[i][k],color=next(color),lw=lwidth,marker=mstyle[(i-1)%10])
+
+        plt.draw()
+
+
+    #######################
+    ###   PLAY BUTTON   ###
+    #######################
+
+    def play(self,event):
+
+        # Declare global variables.
+
+        global timetxt,pauseFlag,rewindFlag,kinit
+
+        if rewindFlag:
+            kinit = 0
+            rewindFlag = False
+
+        # If we were paused, then play.
+
+        if pauseFlag:
+
+            # Set pauseFlag to False.
+
+            pauseFlag = False
+
+            # Change legend on play/pause button to "Pause".
+
+            bplay.label.set_text('Pause ||')
+
+            # Loop over all time steps.
+
+            if (kinit==ntmax-1):
+                kinit = 0
+
+            for k in range(kinit,ntmax):
+
+                # If pause button was pressed set kinit=k,
+                # reset pauseFlag, and break out loop.
+
+                if pauseFlag:
+
+                    # Check if we need to rewind.
+
+                    if rewindFlag:
+                        kinit = 0
+                    else:
+                        kinit = k-1
+
+                    # Break out of loop.
+
+                    break
+
+                # Write current time.
+
+                timetxt.set_text('time = %s'%t[k])
+
+                # Remove all lines.
+
+                for art in list(ax.lines):
+                   art.remove()
+
+                # Plot current time step and pause for a short time.
+
+                for i in range(1,nf+1):
+                    ax.plot(xlist[i][k],ylist[i][k],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+                plt.pause(0.15)
+
+                # If we got here after the whole loop,
+                # set pauseFlag and rewindFlag to True.
+
+                if (k>=ntmax-1):
+                    kinit = k
+                    pauseFlag  = True
+                    rewindFlag = True
+
+        # If we were not paused, then pause.
+
+        else:
+
+            # Set pauseFlag to True.
+
+            pauseFlag = True
+
+        # Change legend on play/pause button back to "Play".
+
+        bplay.label.set_text('Play >')
+        plt.draw()
+
+
+    ############################
+    ###   AXIS POPUP WINDOW  ###
+    ############################
+
+    def axis(self,event):
+
+        global axisFlag,kinit,popup_axis
+
+        # Define function that changes axis.
+
+        def apply(*args):
+
+            global axisFlag,xmin,xmax,yb,yt,lb,lt
+
+            # Get new axis ranges from input boxes.
+
+            xmin = float(input_box[0].get())
+            xmax = float(input_box[1].get())
+
+            yb = float(input_box[2].get())
+            yt = float(input_box[3].get())
+            ymin = yb; ymax=yt
+
+            # Plot again with new axis ranges.
+
+            ax.axis([xmin,xmax,ymin,ymax])
+            plt.draw()
+
+            # Close popup window.
+
+            axisFlag = False
+            popup_axis.destroy()
+
+        # Define function to close window.
+
+        def back():
+            global axisFlag
+            axisFlag = False
+            popup_axis.destroy()
+
+        # On first time it is pressed create popup window.
+
+        if not axisFlag:
+
+            axisFlag = True
+
+            # Create poup window.
+
+            popup_axis = tk.Tk()
+            popup_axis.title("Axis limits")
+
+            # Catch kill window command.
+
+            popup_axis.protocol('WM_DELETE_WINDOW',back)
+
+            # Frame for entry boxes.
+
+            frame1 = tk.Frame(popup_axis)
+            frame1.grid(column=0,row=0)
+
+            # Frame for 'apply' and 'back' buttons.
+
+            frame2 = tk.Frame(popup_axis,relief=RIDGE,borderwidth=2)
+            frame2.grid(column=0,row=1)
+
+            # Define entry variables and boxes.
+
+            input_box = [tk.StringVar(popup_axis) for i in range(4)]
+
+            input_box[0].set(round(xmin,4))
+            input_box[1].set(round(xmax,4))
+
+            input_box[2].set(round(yb,4))
+            input_box[3].set(round(yt,4))
+
+            box_entry = [tk.Entry(frame1,width=15,textvariable=input_box[i]) for i in range(4)]
+            box_entry[0].grid(column=2,row=0)
+            box_entry[1].grid(column=2,row=1)
+            box_entry[2].grid(column=2,row=2)
+            box_entry[3].grid(column=2,row=3)
+
+            # Plot text and create boxes.
+
+            tk.Label(frame1,width=15,text="xmin").grid(column=1,row=0)
+            tk.Label(frame1,width=15,text="xmax").grid(column=1,row=1)
+            tk.Label(frame1,width=15,text="ymin").grid(column=1,row=2)
+            tk.Label(frame1,width=15,text="ymax").grid(column=1,row=3)
+
+            # Create 'apply' and 'back' buttons.
+
+            tk.Button(frame2,width=15,text="Apply",command=apply).grid(column=1,row=0)
+            tk.Button(frame2,width=15,text="Back",command=back).grid(column=2,row=0)
+
+            # Put cursor on first box.
+
+            box_entry[0].focus()
+
+
+    ##############################
+    ###   SCALE POPUP WINDOW   ###
+    ##############################
+
+    def scale(self,event):
+
+        global scaleFlag,kinit,popup_scale
+
+        # Define function that applies rescaling.
+
+        def apply(*args):
+
+            global scaleFlag
+
+            # Get new values of scale[] from input boxes.
+
+            for i in range(1,nf+1):
+                scale[i] = float(input_box[i-1].get())
+
+            # Rescale the data in ylist[].
+
+            for i in range(1,nf+1):
+                RA = np.array(rlist[i],dtype=np.float64)
+                YA = scale[i]*RA
+                ylist[i] = YA
+
+            # Since we rescaled the data, we also need
+            # to rescale the y axis.
+
+            yarr = np.array(ylist[1],float)
+            ymin = np.nanmin(yarr)
+            ymax = np.nanmax(yarr)
+
+            for i in range(1,nf+1):
+                yarr = np.array(ylist[i],float)
+                ym = np.nanmin(yarr)
+                yx = np.nanmax(yarr)
+                if (ym<ymin): ymin=ym
+                if (yx>ymax): ymax=yx
+
+            ymed = 0.5*(ymin+ymax)
+            yb = ymed + 1.5*(ymin-ymed)
+            yt = ymed + 1.5*(ymax-ymed)
+
+            # Delete all lines and replot.
+
+            for art in list(ax.lines):
+                art.remove()
+
+            ax.axis([xmin,xmax,yb,yt])
+
+            for i in range(1,nf+1):
+                ax.plot(xlist[i][kinit],ylist[i][kinit],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10])
+
+            plt.draw()
+
+            # Close popup window.
+
+            scaleFlag = False
+            popup_scale.destroy()
+
+        # Define function to close window.
+
+        def back():
+            global scaleFlag
+            scaleFlag = False
+            popup_scale.destroy()
+
+        # On first time it is pressed create popup window.
+
+        if not scaleFlag:
+
+            scaleFlag = True
+
+            # Create poup window.
+
+            popup_scale = tk.Tk()
+            popup_scale.title("Rescale")
+
+            # Catch kill window command.
+
+            popup_scale.protocol('WM_DELETE_WINDOW',back)
+
+            # Frame for entry boxes.
+
+            frame1 = tk.Frame(popup_scale)
+            frame1.grid(column=0,row=0)
+
+            # Frame for 'apply' and 'back' buttons.
+
+            frame2 = tk.Frame(popup_scale,relief=RIDGE,borderwidth=2)
+            frame2.grid(column=0,row=1)
+
+            # Define entry variables and boxes.
+
+            input_box = [tk.StringVar(popup_scale,scale[i+1]) for i in range(nf)]
+            box_entry = [tk.Entry(frame1,width=15,textvariable=input_box[i]) for i in range(nf)]
+
+            # Plot text and create boxes.
+
+            for i in range(1,nf+1):
+                tk.Label(frame1,width=15,text=filen[i]).grid(column=1,row=i-1)
+                box_entry[i-1].grid(column=2,row=i-1)
+
+            # Create 'apply' and 'back' buttons.
+
+            tk.Button(frame2,width=15,text="Apply",command=apply).grid(column=1,row=0)
+            tk.Button(frame2,width=15,text="Back",command=back).grid(column=2,row=0)
+
+            # Put cursor on first box.
+
+            box_entry[0].focus()
+
+
+    ##############################
+    ###   STYLE POPUP WINDOW   ###
+    ##############################
+
+    def style(self,event):
+
+        global styleFlag,kinit,lwidth,checkm,mstyle,grid,popup_style
+
+        # Define function that changes line properties.
+
+        def apply(*args):
+
+            global styleFlag,lwidth,checkm,mstyle,grid
+
+            # Get line width, marker style and grid.
+
+            lwidth = w.get()
+            checkm = c.get()
+            grid   = g.get()
+
+            # If "lwidth" is 0 then force the markers on,
+            # otherwise you won't see anything!
+
+            if (lwidth==0):
+                checkm=1
+
+            if (checkm==0):
+                mstyle = mark0[:]
+            else:
+                mstyle = mark1[:]
+
+            # Plot grid if needed.
+
+            if (grid==0):
+                ax.grid(False)
+            else:
+                ax.grid(True)
+
+            # Delete all lines and replot.
+
+            for art in list(ax.lines):
+                art.remove()
+
+            for i in range(1,nf+1):
+                ax.plot(xlist[i][kinit],ylist[i][kinit],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10],label=filen[i])
+
+            legend = ax.legend(loc='lower right',fontsize=10)
+
+            plt.draw()
+
+            # Close popup window.
+
+            styleFlag = False
+            popup_style.destroy()
+
+        # Define function to close window.
+
+        def back():
+            global styleFlag
+            styleFlag = False
+            popup_style.destroy()
+
+        # On first time it is pressed create popup window.
+
+        if not styleFlag:
+
+            styleFlag = True
+
+            # Create poup window.
+
+            popup_style = tk.Tk()
+            popup_style.title("Style")
+
+            # Catch kill window command.
+
+            popup_style.protocol('WM_DELETE_WINDOW',back)
+
+            # Frame for style buttons.
+
+            frame1 = tk.Frame(popup_style)
+            frame1.grid(column=0,row=0)
+
+            # Create Radiobutton for line width.
+
+            w = tk.IntVar(popup_style)
+            w.set(lwidth)
+
+            tk.Label(frame1,text="Line width").grid(column=1,row=0,sticky=W)
+            tk.Radiobutton(frame1,text="0",variable=w,value=0).grid(column=2,row=0,sticky=W)
+            tk.Radiobutton(frame1,text="1",variable=w,value=1).grid(column=3,row=0,sticky=W)
+            tk.Radiobutton(frame1,text="2",variable=w,value=2).grid(column=4,row=0,sticky=W)
+            tk.Radiobutton(frame1,text="3",variable=w,value=3).grid(column=5,row=0,sticky=W)
+            tk.Radiobutton(frame1,text="4",variable=w,value=4).grid(column=6,row=0,sticky=W)
+
+            # Create Checkbutton for line markers for the case of many files.
+
+            c = tk.IntVar(popup_style)
+            c.set(checkm)
+
+            tk.Label(frame1,text="Markers").grid(column=1,row=1,sticky=W)
+            tk.Checkbutton(frame1,variable=c).grid(column=2,row=1,sticky=W)
+
+            # Create Checkbutton for plot grid.
+
+            g = tk.IntVar(popup_style)
+            g.set(grid)
+
+            tk.Label(frame1,text="Grid").grid(column=4,row=1,sticky=W)
+            tk.Checkbutton(frame1,variable=g).grid(column=5,row=1,sticky=W)
+
+            # Frame for 'apply' and 'back' buttons.
+
+            frame2 = tk.Frame(popup_style)
+            frame2.grid(column=0,row=1)
+
+            # Create 'apply and 'back' buttons.
+
+            tk.Button(frame2,width=15,text="Apply",command=apply).grid(column=1,row=0)
+            tk.Button(frame2,width=15,text="Back",command=back).grid(column=2,row=0)
+
+            popup_style.mainloop()
+
+
+    #######################
+    ###   SAVE BUTTON   ###
+    #######################
+
+    def save(self,event):
+
+        global saveFlag
+
+        # Define function that creates SAVE file.
+
+        def apply(*args):
+
+            global saveFlag
+
+            # Get file name.
+
+            name = filename.get()
+
+            # Save file.
+
+            extent = ax.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
+            fig.savefig(name,bbox_inches=extent.expanded(1.05,1.06))
+
+            # Close popup window.
+
+            saveFlag = False
+            popup_save.destroy()
+
+        # Define function to close window.
+
+        def back():
+            global saveFlag
+            saveFlag = False
+            popup_save.destroy()
+
+        # On first time it is pressed create popup window.
+
+        if not saveFlag:
+
+            saveFlag = True
+
+            # Create poup window.
+
+            popup_save = tk.Tk()
+            popup_save.title("Save")
+
+            # Catch kill window command.
+
+            popup_save.protocol('WM_DELETE_WINDOW',back)
+
+            # Frame for file name.
+
+            frame1 = tk.Frame(popup_save)
+            frame1.grid(column=0,row=0)
+
+            # Frame for 'apply' and 'back' buttons.
+
+            frame2 = tk.Frame(popup_save,relief=RIDGE,borderwidth=2)
+            frame2.grid(column=0,row=1)
+
+            # Define entry variable and create box.
+
+            filename = tk.StringVar(popup_save)
+            filename.set("outfile")
+
+            box_entry = tk.Entry(frame1,width=20,textvariable=filename)
+            box_entry.grid(column=2,row=0)
+
+            # Plot text and create box.
+
+            tk.Label(frame1,width=15,text="Filename").grid(column=1,row=0)
+
+            # Create 'apply and 'back' buttons.
+
+            tk.Button(frame2,width=15,text="Apply",command=apply).grid(column=1,row=0)
+            tk.Button(frame2,width=15,text="Back",command=back).grid(column=2,row=0)
+
+            # Put cursor on input box.
+
+            box_entry.focus()
+
+
+    ########################
+    ###   RESET BUTTON   ###
+    ########################
+
+    def reset(self,event):
+
+        global timetxt,pauseFlag,rewindFlag,logFlag
+        global kinit,lwidth,checkm,mstyle,grid,xmin,xmax,yb,yt,lb,lt
+
+        # Set pauseFlag and rewindFlag to true.
+
+        pauseFlag  = True
+        rewindFlag = True
+
+        # Reset time step counter.
+
+        kinit = 0
+
+        # Reset line width, marker style and grid.
+
+        lwidth = 2
+
+        checkm = 0
+        mstyle = mark0[:]
+
+        grid = 1
+        ax.grid(True)
+
+        # Reset axis values.
+
+        xmin = xmin0
+        xmax = xmax0
+
+        yb = yb0
+        yt = yt0
+
+        lb = lb0
+        lt = lt0
+
+        ax.axis([xmin,xmax,yb,yt])
+
+        # Rescale data back to initial values.
+
+        for i in range(1,nf+1):
+            ylist[i] = rlist[i]
+            scale[i] = 1.0
+
+       # Delete all lines and replot.
+
+        for art in list(ax.lines):
+            art.remove()
+
+        if (ntmax>1):
+            timetxt.set_text('time = %s'%t[0])
+
+        for i in range(1,nf+1):
+            ax.plot(xlist[i][kinit],ylist[i][kinit],color=col[(i-1)%10],lw=lwidth,marker=mstyle[(i-1)%10],label=filen[i])
+
+        legend = ax.legend(loc='lower right',fontsize=10)
+
+        plt.draw()
+
+
+    ######################
+    ###   LOG BUTTON   ###
+    ######################
+
+    def log(self,event):
+
+        global logFlag,polFlag
+        global yb0,yt0,lb0,lt0,ybaux,ytaux,rlist,slist1
+
+        # If logFlag = false
+
+        if ((not logFlag) and (not polFlag)):
+
+            # Set log flag to true.
+
+            logFlag = True
+
+            # Change label on button.
+
+            blog.label.set_text('Lin plot')
+
+            if (polar):
+                bpol.label.set_text('DISABLED')
+
+            # Save old plot boundaries.
+
+            ybaux = yb0
+            ytaux = yt0
+
+            # Set plot boundaries for log plot.
+
+            yb0 = lb0
+            yt0 = lt0
+
+            # Save old data to slist1.
+
+            slist1 = [x[:] for x in rlist]
+
+            # Now set rlist to log data. But be careful
+            # with data files that have no time stamp.
+
+            for i in range(1,nf+1):
+                if (ntmax==0):
+                    ylog = np.log10(np.absolute(np.array(rlist[i][0],float)+1e-30))
+                    rlist[i][0] = ylog.tolist()
+                else:
+                    for k in range(0,ntmax):
+                        ylog = np.log10(np.absolute(np.array(rlist[i][k],float)+1e-30))
+                        rlist[i][k] = ylog.tolist()
+
+            # Call reset.
+
+            callback.reset(event)
+
+        # If logFlag = false
+
+        elif (not polFlag):
+
+            # Set log flag to false.
+
+            logFlag = False
+
+            # Change label on button.
+
+            blog.label.set_text('Log10 plot')
+
+            if (polar):
+                bpol.label.set_text('Polar')
+
+            # Copy back original data.
+
+            rlist = [x[:] for x in slist1]
+
+            # Reset old plot boundaries.
+
+            yb0 = ybaux
+            yt0 = ytaux
+
+            # Call reset.
+
+            callback.reset(event)
+
+
+    ########################
+    ###   POLAR BUTTON   ###
+    ########################
+
+    def polar(self,event):
+
+        global polFlag,logFlag
+        global xmin0,xmax0,yb0,yt0,xminaux,xmaxaux,ybaux,ytaux
+        global xlist,rlist,slist1,slist2
+
+        # If polFlag = false
+
+        if (not polFlag) and (not logFlag):
+
+            # Set polar flag to true.
+
+            polFlag = True
+
+            # Change button label.
+
+            bpol.label.set_text('Cartesian')
+            blog.label.set_text('DISABLED')
+
+            # Save old plot boundaries.
+
+            xminaux = xmin0
+            xmaxaux = xmax0
+
+            ybaux = yb0
+            ytaux = yt0
+
+            # Save old data lists.
+
+            slist1 = [x[:] for x in xlist]
+            slist2 = [x[:] for x in rlist]
+
+            # Define new data lists by changing data from polar to cartesian.
+
+            for i in range(1,nf+1):
+                for k in range(0,ntmax):
+                    xaux = np.array(slist2[i][k],float)*np.sin(np.array(slist1[i][k],float))
+                    xlist[i][k] = xaux.tolist()
+                    yaux = np.array(slist2[i][k],float)*np.cos(np.array(slist1[i][k],float)) + float(center[i][k])
+                    rlist[i][k] = yaux.tolist()
+
+            # Set new boundaries for polar plot.
+
+            xarr  = np.array(xlist[1][0],float)
+            yarr  = np.array(rlist[1][0],float)
+
+            xmax = np.nanmax(xarr)
+            ymax = np.nanmax(yarr)
+            ymin = np.nanmin(yarr)
+
+            for i in range(1,nf+1):
+                for k in range(0,ntmax):
+                    xarr = np.array(xlist[i][k],float)
+                    yarr = np.array(rlist[i][k],float)
+                    xx = np.nanmax(xarr)
+                    if (xx>xmax): xmax=xx
+                    yy = np.nanmax(yarr)
+                    if (yy>ymax): ymax=yy
+                    yy = np.nanmin(yarr)
+                    if (yy<ymin): ymin=yy
+
+            rmax = 1.2*max(abs(ymin),abs(ymax),abs(xmax))
+
+            if (ymin<-0.001):
+                yb0 = - rmax
+            else:
+                yb0 = 0
+
+            if (ymax>+0.001):
+                yt0 = + rmax
+            else:
+                yt0 = 0
+
+            xmin0 = 0
+            xmax0 = rmax
+
+            # Call reset.
+
+            callback.reset(event)
+
+        # If polFlag = false
+
+        elif (not logFlag):
+
+            # Set polar flag to false.
+
+            polFlag = False
+
+            # Change button label.
+
+            bpol.label.set_text('Polar')
+            blog.label.set_text('Log10 Plot')
+
+            # Copy back originakl data.
+
+            xlist = [x[:] for x in slist1]
+            rlist = [x[:] for x in slist2]
+
+            # Reset old plot boundaries.
+
+            xmin0 = xminaux
+            xmax0 = xmaxaux
+
+            yb0 = ybaux
+            yt0 = ytaux
+
+            # Call reset.
+
+            callback.reset(event)
+
+
+#######################################
+###   CALLBACK FOR EVENT HANDLING   ###
+#######################################
+
+callback = Actions()
+
+
+######################################
+###   DEFINE MAIN WINDOW BUTTONS   ###
+######################################
+
+# General buttons for all type of files.
+
+axquit  = plt.axes([0.86,0.91,0.12,0.07])
+bquit   = Button(axquit,'Quit',color='red',hovercolor='lightcoral')
+bquit.on_clicked(callback.quit)
+
+axaxis  = plt.axes([0.86,0.76,0.12,0.07])
+baxis   = Button(axaxis,'Axis',color='gold',hovercolor='lightyellow')
+baxis.on_clicked(callback.axis)
+
+axscale = plt.axes([0.86,0.66,0.12,0.07])
+bscale  = Button(axscale,'Rescale',color='gold',hovercolor='lightyellow')
+bscale.on_clicked(callback.scale)
+
+axstyle = plt.axes([0.86,0.56,0.12,0.07])
+bstyle  = Button(axstyle,'Style',color='gold',hovercolor='lightyellow')
+bstyle.on_clicked(callback.style)
+
+axlog   = plt.axes([0.86,0.46,0.12,0.07])
+blog    = Button(axlog,'Log10 plot',color='gold',hovercolor='lightyellow')
+blog.on_clicked(callback.log)
+
+axreset = plt.axes([0.86,0.225,0.12,0.07])
+breset  = Button(axreset,'Reset',color='gray',hovercolor='silver')
+breset.on_clicked(callback.reset)
+
+axsave  = plt.axes([0.86,0.125,0.12,0.07])
+bsave   = Button(axsave,'Save',color='deepskyblue',hovercolor='lightskyblue')
+bsave.on_clicked(callback.save)
+
+# Polar button.
+
+if (polar):
+
+    axpol = plt.axes([0.86,0.36,0.12,0.07])
+    bpol  = Button(axpol,'Polar',color='darkorchid',hovercolor='orchid')
+    bpol.on_clicked(callback.polar)
+
+# The following buttons are only for evolution type files.
+
+if (ntmax>0):
+
+    axfirst = plt.axes([0.05,0.91,0.1,0.07])
+    bfirst  = Button(axfirst,'<< Start',color='limegreen',hovercolor='lightgreen')
+    bfirst.on_clicked(callback.first)
+
+    axstepb = plt.axes([0.15,0.91,0.1,0.07])
+    bstepb  = Button(axstepb,'< Step',color='limegreen',hovercolor='lightgreen')
+    bstepb.on_clicked(callback.stepb)
+
+    axplay = plt.axes([0.25,0.91,0.1,0.07])
+    bplay  = Button(axplay,'Play >',color='limegreen',hovercolor='lightgreen')
+    bplay.on_clicked(callback.play)
+
+    axstepf = plt.axes([0.35,0.91,0.1,0.07])
+    bstepf  = Button(axstepf,'Step >',color='limegreen',hovercolor='lightgreen')
+    bstepf.on_clicked(callback.stepf)
+
+    axlast = plt.axes([0.45,0.91,0.1,0.07])
+    blast  = Button(axlast,'End >>',color='limegreen',hovercolor='lightgreen')
+    blast.on_clicked(callback.last)
+
+    axall = plt.axes([0.6,0.91,0.1,0.07])
+    ball  = Button(axall,'Show All',color='limegreen',hovercolor='lightgreen')
+    ball.on_clicked(callback.all)
+
+
+#####################
+###   SHOW PLOT   ###
+#####################
+
+plt.show()
+
