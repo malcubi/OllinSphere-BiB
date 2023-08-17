@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.86 2023/08/15 17:58:49 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.87 2023/08/17 20:17:01 malcubi Exp $
 
   subroutine initial
 
@@ -666,6 +666,28 @@
    end if
 
 end if
+
+
+! **********************
+! ***  DIRAC PULSE   ***
+! **********************
+
+  if (idata=="diracpulse") then
+
+   if (contains(mattertype,"dirac")) then
+
+      call idata_diracpulse
+
+   else
+
+      print *, 'Dirac pulse initial data needs "dirac" type matter ...'
+      print *, 'Aborting! (subroutine initial)'
+      print *
+      call die
+
+   end if
+
+  end if
 
 
 ! *****************************
