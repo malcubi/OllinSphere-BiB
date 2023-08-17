@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.26 2023/05/17 22:56:04 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.27 2023/08/17 20:20:27 malcubi Exp $
 
   subroutine auxiliary_matter(l)
 
@@ -503,6 +503,58 @@
 
         diffvar => cprocaA_I
         DA_cprocaA_I(l,:) = diffadv(l,-1)
+
+     end if
+
+  end if
+
+
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+  if (contains(mattertype,"complexproca")) then
+
+!    Radial derivatives of Dirac fields (F,G).
+
+     diffvar => dirac_FR
+     D1_dirac_FR(l,:) = diff1(l,+1)
+
+     diffvar => dirac_FI
+     D1_dirac_FI(l,:) = diff1(l,+1)
+
+     diffvar => dirac_GR
+     D1_dirac_GR(l,:) = diff1(l,-1)
+
+     diffvar => dirac_GI
+     D1_dirac_GI(l,:) = diff1(l,-1)
+
+!    Auxiliary quantity H = G/r.
+
+     dirac_HR = dirac_GR/r
+     dirac_HI = dirac_GI/r
+
+     diffvar => dirac_HR
+     D1_dirac_HR(l,:) = diff1(l,+1)
+
+     diffvar => dirac_HI
+     D1_dirac_HI(l,:) = diff1(l,+1)
+
+!    Advective derivatives.
+
+     if (shift/="none") then
+
+        diffvar => dirac_FR
+        DA_dirac_FR(l,:) = diffadv(l,+1)
+
+        diffvar => dirac_FI
+        DA_dirac_FI(l,:) = diffadv(l,+1)
+
+        diffvar => dirac_GR
+        D1_dirac_GR(l,:) = diffadv(l,-1)
+
+        diffvar => dirac_GI
+        D1_dirac_GI(l,:) = diffadv(l,-1)
 
      end if
 
