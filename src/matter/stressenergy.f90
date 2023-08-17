@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.41 2023/03/02 18:43:10 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.42 2023/08/17 20:19:54 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -744,6 +744,63 @@
                        - cprocaB_I*(cprocaA_R-cprocaG_R))/(4.d0*smallpi)/(A*B*psi4**2)/r**2
 
      end if 
+
+  end if
+
+
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+! Stress-energy quantities for the Dirac field:
+!
+! rho  =  1/(2 pi) [ m ( FR**2 + FI**2 - GR**2 - GI**2 )
+!
+!      +  2/(r psi**2 sqrt(B)) ( FR*GI - FI*GR )
+!
+!      +  1/(psi**2 sqrt(A)) ( FR*dGI/dr - FI*dGR/dr + GR*dFI/dr - DI*dFR/dr ) ]
+!
+!
+! JA   =  1/(2 pi) [ FR*dFI/dr - FI*dFR/dr + GR*dGI/dr - GI*dGR/r ]
+!
+!
+! SAA  =
+!
+!
+! SBB  =
+
+  if (contains(mattertype,"dirac")) then
+
+!    Energy density.
+
+     rho(l,:) = rho(l,:) + 1.d0/(2.d0*smallpi) &
+              *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 + dirac_GI(l,:)**2) &
+              + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
+              +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
+              + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/sqrt(A(l,:))/psi2(l,:))
+              
+!    Radial momentum density (index down).
+
+     JA(l,:) = JA(l,:) + 1.d0/(2.d0*smallpi) &
+             *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
+             + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:))
+
+!    Stress tensor.
+
+     SAA(l,:) = SAA(l,:)
+
+     SBB(l,:) = SBB(l,:)
+
+!    SLL = (SAA - SBB)/r**2.
+
+     if (.not.nolambda) then
+        SLL(l,:) = SLL(l,:)
+     end if
+
+!    Dirac particle density and current.
+
+     dirac_dens = 0.d0
+     dirac_flux = 0.d0
 
   end if
 
