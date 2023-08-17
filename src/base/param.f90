@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/param.f90,v 1.159 2023/05/17 19:03:35 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/param.f90,v 1.160 2023/08/17 20:16:30 malcubi Exp $
 
 ! ****************************************
 ! ***   PARAMETERS ARE DECLARED HERE   ***
@@ -267,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,diracpulse,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
 
 
 ! *********************
@@ -325,6 +325,7 @@
   real(8) :: nonmindiss = 0.05d0     ! Dissipation for nonmin field.
   real(8) :: elecdiss   = 0.05d0     ! Dissipation for electric field.
   real(8) :: procadiss  = 0.05d0     ! Dissipation for Proca field.
+  real(8) :: diracdiss  = 0.05d0     ! Dissipation for Dirac field.
   real(8) :: fluiddiss  = 0.05d0     ! Dissipation for fluids.
 
 
@@ -369,10 +370,11 @@
 !    electric     =  Electric field (there is no magnetic field in spherical symmetry).
 !    proca        =  Proca field (complex massive EM field).
 !    complexproca =  Complex Proca field.
+!    dirac        =  Dirac field.
 !    fluid        =  Perfect fluid type matter.
 !    dust         =  Dust (fluid with zero pressure).
 
-  character(1000) :: mattertype = "vacuum"  ! multiple, range=(vacuum,cosmo,scalar,ghost,complex,complexghost,nonmin,electric,proca,complexproca,fluid,dust)
+  character(1000) :: mattertype = "vacuum"  ! multiple, range=(vacuum,cosmo,scalar,ghost,complex,complexghost,nonmin,electric,proca,complexproca,dirac,fluid,dust)
 
 
 ! *********************
@@ -534,7 +536,7 @@
 
 ! Boson star perturbation.
 !
-! bosongauss:        Do we add a initial profile to the boson star solution?
+! bosongauss:        Do we add an initial profile to the boson star solution?
 ! boson_a0:          Amplitude of initial profile.
 ! boson_r0:          Center of initial profile.
 ! boson_s0:          Width of initial profile.
@@ -739,6 +741,59 @@
   real(8) :: proca_phiR_a0 = 0.d0
   real(8) :: proca_phiR_r0 = 0.d0
   real(8) :: proca_phiR_s0 = 1.d0
+
+
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+! dirac_mass:        Mass parameter for Dirac field.
+
+  real(8) :: dirac_mass = 1.d0
+
+! diracprofile:      Form of initial profile.
+!
+! dirac*_a0:         Amplitude of initial profile.
+! dirac*_r0:         Center of initial profile.
+! dirac*_s0:         Width of initial profile.
+! dirac*_t0:         Transition width of initial profile (for top-hat profile).
+!
+! diractype:         Type of initial data (to guarantee time symmetry).
+!                        1  (F,G) are purely real or purely imaginary.
+!                        2  Either GR=GI=0 with FI = +- FR, or viceversa.
+!                        3  GR = +- FR/k,  GI = -+ k FI (k=cte).
+! dirac_k:           Constant por type 3 initial data.
+
+  character(1000) :: diracprofile   = "gaussian"   ! range=(gaussian,tophat)
+
+  integer :: diractype = 1
+
+  real(8) :: dirac_k = 1.d0
+
+! Profile parameters for (GR,GI).
+
+  real(8) :: diracFR_a0 = 0.d0
+  real(8) :: diracFR_r0 = 0.d0
+  real(8) :: diracFR_s0 = 1.d0
+  real(8) :: diracFR_t0 = 1.d0
+
+  real(8) :: diracFI_a0 = 0.d0
+  real(8) :: diracFI_r0 = 0.d0
+  real(8) :: diracFI_s0 = 1.d0
+  real(8) :: diracFI_t0 = 1.d0
+
+! Profile parameters for (GR,GI). Notice that diracGR_r0 and diracGI_r0
+! must both be non-zero since G must be odd.
+
+  real(8) :: diracGR_a0 = 0.d0
+  real(8) :: diracGR_r0 = 1.d0
+  real(8) :: diracGR_s0 = 1.d0
+  real(8) :: diracGR_t0 = 1.d0
+
+  real(8) :: diracGI_a0 = 0.d0
+  real(8) :: diracGI_r0 = 1.d0
+  real(8) :: diracGI_s0 = 1.d0
+  real(8) :: diracGI_t0 = 1.d0
 
 
 ! ****************
