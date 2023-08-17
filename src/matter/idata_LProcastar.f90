@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.2 2023/02/17 11:42:26 lazarte Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.3 2023/08/17 20:21:45 malcubi Exp $
 
   subroutine idata_LProcastar
 
@@ -9,13 +9,14 @@
 ! This subroutine calculates initial data for a l-Proca star
 ! using a shooting method in the conformally flat gauge.
 
-! MAIN PROBLEM: The main problem with this routine is that
-! it requires a very fine tuned initial guess since we are
-! fighting a growing exponential.  This gets worse as
-! we move the boundary further away. So the way to
-! proceed is to put the boundary close in, find omega,
-! and then move it slowly further out adjusting omega
-! to high precision as we move out.
+
+! MAIN PROBLEM: THIS ROUTINE DOES NOT WORK WELL IN PRACTICE,
+! SINCE WE HAVE FOUND THAT L-PROCA STARS REQUIRE US TO FIX
+! TWO PARAMETERS, SO A SIMPLE SHOOTING FAILS.
+!
+! CLAUDIO LAZARTE HAS WRITTEN A SPECTRAL CODE THAT SOLVES THIS
+! PROBLEM, BUT IT IS STILL NOT ADDED TO THE MAIN OLLINSPHERE CODE.
+
 
 ! L-Proca stars are self-gravitating solutions of a collection
 ! of odd number 2l+1 of complex massive vector fields (Proca fields) 
