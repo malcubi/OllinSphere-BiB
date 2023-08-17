@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/sources_matter.f90,v 1.18 2023/02/21 20:31:24 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/sources_matter.f90,v 1.19 2023/08/17 20:19:23 malcubi Exp $
 
   subroutine sources_matter(l)
 
@@ -92,6 +92,15 @@
 
   if (contains(mattertype,"complexproca")) then
      call sources_complexproca(l)
+  end if
+
+
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+  if (contains(mattertype,"dirac")) then
+     call sources_dirac(l)
   end if
 
 
