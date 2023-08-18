@@ -756,12 +756,12 @@
 !
 ! rho  =  1/(2 pi) [ m ( FR**2 + FI**2 - GR**2 - GI**2 )
 !
-!      +  2/(r psi**2 sqrt(B)) ( FR*GI - FI*GR )
+!      +  2/(psi**2 sqrt(B) r) ( FR GI - FI GR )
 !
-!      +  1/(psi**2 sqrt(A)) ( FR*dGI/dr - FI*dGR/dr + GR*dFI/dr - DI*dFR/dr ) ]
+!      +  1/(psi**2 sqrt(A)) ( FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/dr ) ]
 !
 !
-! JA   =  1/(2 pi) [ FR*dFI/dr - FI*dFR/dr + GR*dGI/dr - GI*dGR/r ]
+! JA   =  1/(2 pi) [ FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r ]
 !
 !
 ! SAA  =
@@ -774,10 +774,10 @@
 !    Energy density.
 
      rho(l,:) = rho(l,:) + 1.d0/(2.d0*smallpi) &
-              *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 + dirac_GI(l,:)**2) &
+              *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 - dirac_GI(l,:)**2) &
               + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
               +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
-              + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/sqrt(A(l,:))/psi2(l,:))
+              + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(sqrt(A(l,:))*psi2(l,:)))
               
 !    Radial momentum density (index down).
 
