@@ -126,8 +126,8 @@
 ! for all functions assuming that far away they behave as f(r-t)/r.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
-     sdirac_FR(l,Nr) = - (D1_dirac_FR(l,Nr) + dirac_FR(l,Nr)/r(l,Nr)) + 0.5d0*dirac_mass*(dirac_FI(l,Nr) - dirac_GI(l,Nr))
-     sdirac_FI(l,Nr) = - (D1_dirac_FI(l,Nr) + dirac_FI(l,Nr)/r(l,Nr)) - 0.5d0*dirac_mass*(dirac_FR(l,Nr) - dirac_GR(l,Nr))
+     sdirac_FR(l,Nr) = - (D1_dirac_FR(l,Nr) + dirac_FR(l,Nr)/r(l,Nr))
+     sdirac_FI(l,Nr) = - (D1_dirac_FI(l,Nr) + dirac_FI(l,Nr)/r(l,Nr))
      sdirac_GR(l,Nr) = - (D1_dirac_GR(l,Nr) + dirac_GR(l,Nr)/r(l,Nr))
      sdirac_GI(l,Nr) = - (D1_dirac_GI(l,Nr) + dirac_GI(l,Nr)/r(l,Nr))
   end if
