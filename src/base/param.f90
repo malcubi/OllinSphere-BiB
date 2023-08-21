@@ -320,13 +320,13 @@
 
 ! Kreiss-Oliger dissipation coefficients.  It is better if they are independent.
 
-  real(8) :: geodiss    = 0.05d0     ! Dissipation for geometric variables.
-  real(8) :: scalardiss = 0.05d0     ! Dissipation for scalar field.
-  real(8) :: nonmindiss = 0.05d0     ! Dissipation for nonmin field.
-  real(8) :: elecdiss   = 0.05d0     ! Dissipation for electric field.
-  real(8) :: procadiss  = 0.05d0     ! Dissipation for Proca field.
-  real(8) :: diracdiss  = 0.05d0     ! Dissipation for Dirac field.
-  real(8) :: fluiddiss  = 0.05d0     ! Dissipation for fluids.
+  real(8) :: geodiss    = 0.01d0      ! Dissipation for geometric variables.
+  real(8) :: scalardiss = 0.01d0      ! Dissipation for scalar field.
+  real(8) :: nonmindiss = 0.01d0      ! Dissipation for nonmin field.
+  real(8) :: elecdiss   = 0.01d0      ! Dissipation for electric field.
+  real(8) :: procadiss  = 0.01d0      ! Dissipation for Proca field.
+  real(8) :: diracdiss  = 0.01d0      ! Dissipation for Dirac field.
+  real(8) :: fluiddiss  = 0.01d0      ! Dissipation for fluids.
 
 
 ! ********************
