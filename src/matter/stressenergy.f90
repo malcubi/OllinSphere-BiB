@@ -53,6 +53,7 @@
   real(8) zero,half,one,two
   real(8) third,smallpi
   real(8) rhoatmos,Eatmos,patmos
+  real(8) aux
 
 
 ! *******************
@@ -756,24 +757,26 @@
 !
 ! rho  =  1/(2 pi) [ m ( FR**2 + FI**2 - GR**2 - GI**2 )
 !
-!      +  2/(psi**2 sqrt(B) r) ( FR GI - FI GR )
+!      +  2/(r sqrt(B) psi**2) ( FR GI - FI GR )
 !
-!      +  1/(psi**2 sqrt(A)) ( FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/dr ) ]
+!      +  1/(sqrt(A) psi**2) ( FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/dr ) ]
 !
 !
 ! JA   =  1/(2 pi) [ FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r ]
 !
 !
-! SAA  =
+! SAA  =  1/(2 pi sqrt(A) psi**2) [ FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/r ]
 !
 !
-! SBB  =
+! SBB  =  1/(2 pi r sqrt(B) psi**2) [ FR GI - FI GR ]
 
   if (contains(mattertype,"dirac")) then
 
+     aux = 1.d0/(2.d0*smallpi)
+
 !    Energy density.
 
-     rho(l,:) = rho(l,:) + 1.d0/(2.d0*smallpi) &
+     rho(l,:) = rho(l,:) + aux &
               *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 - dirac_GI(l,:)**2) &
               + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
               +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
@@ -781,20 +784,32 @@
               
 !    Radial momentum density (index down).
 
-     JA(l,:) = JA(l,:) + 1.d0/(2.d0*smallpi) &
+     JA(l,:) = JA(l,:) + aux &
              *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
              + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:))
 
 !    Stress tensor.
 
-     SAA(l,:) = SAA(l,:)
+     SAA(l,:) = SAA(l,:) + aux/(sqrt(A(l,:))*psi2(l,:)) &
+              *(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
+              + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))
 
-     SBB(l,:) = SBB(l,:)
+     SBB(l,:) = SBB(l,:) + aux/(r(l,:)*sqrt(B(l,:))*psi2(l,:)) &
+              *(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:))
 
-!    SLL = (SAA - SBB)/r**2.
+!    SLL = (SAA - SBB)/r**2.  This term is somewhat complicated, and in order
+!    to make it regular it must be written in terms of the auxiliary variables
+!    H = G/r, their derivatives, and lambda.  We find after some algebra:
+!
+!    SLL  =  1/(2 pi sqrt(A) psi**2) [ (FR dHI/dr - FI dHR/dr + HR dF//dr - HI dFR/dr) / r
+!
+!         + lambda / (1 + sqrt(A/B)) ( FR HI - HR FI ) ]
 
      if (.not.nolambda) then
-        SLL(l,:) = SLL(l,:)
+        SLL(l,:) = SLL(l,:) + aux/(sqrt(A(l,:))*psi2(l,:)) &
+                 *((dirac_FR(l,:)*D1_dirac_HI(l,:) - dirac_FI(l,:)*D1_dirac_HR(l,:) &
+                 +  dirac_HR(l,:)*D1_dirac_FI(l,:) - dirac_HI(l,:)*D1_dirac_FR(l,:))/r(l,:) &
+                 + lambda(l,:)/(1.d0 + sqrt(A(l,:)/B(l,:)))*(dirac_FR(l,:)*dirac_HI(l,:) - dirac_HR(l,:)*dirac_FI(l,:)))
      end if
 
 !    Dirac particle density and current.
