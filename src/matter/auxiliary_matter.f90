@@ -513,7 +513,7 @@
 ! ***   DIRAC FIELD   ***
 ! ***********************
 
-  if (contains(mattertype,"complexproca")) then
+  if (contains(mattertype,"dirac")) then
 
 !    Radial derivatives of Dirac fields (F,G).
 
