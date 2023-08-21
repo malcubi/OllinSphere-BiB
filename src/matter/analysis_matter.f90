@@ -167,6 +167,33 @@
   end if
 
 
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+  if (contains(mattertype,"dirac")) then
+
+!    Scalar eigenfields.
+
+     if (allocated(wpR_dirac)) then
+        wpR_dirac = dirac_FR + dirac_GR
+     end if
+
+     if (allocated(wpI_dirac)) then
+        wpI_dirac = dirac_FI + dirac_GI
+     end if
+
+     if (allocated(wmR_dirac)) then
+        wmR_dirac = dirac_FR - dirac_GR
+     end if
+
+     if (allocated(wmI_dirac)) then
+        wmI_dirac = dirac_FI - dirac_GI
+     end if
+
+  end if
+
+
 ! **************************
 ! ***   ELECTRIC FIELD   ***
 ! **************************
