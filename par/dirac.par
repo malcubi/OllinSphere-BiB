@@ -5,8 +5,8 @@
 dr0 = 0.1		  # Grid spacing
 dtfac = 0.5		  # Courant parameter
 
-Nrtotal = 500		  # Number of grid points
-Nt = 0		  # Number of time steps
+Nrtotal = 200		  # Number of grid points
+Nt = 500		  # Number of time steps
 
 Nl = 1                    # Number of refinement levels
 
@@ -19,34 +19,35 @@ order = four  		  # Order for spatial finite differencing (two,four)
 boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = dirac        # Dirac field
+dirac_mass = 1.0          # Mass of Dirac field
 
 geodiss = 0.01		  # Dissipation coefficient for geometry
-diracdiss = 0.01	  # Dissipation coefficient for Dirac field
+diracdiss = 0.01 	  # Dissipation coefficient for Dirac field
 
 idata = diracpulse	  # Type of initial data
 diracprofile = gaussian   # Initial data profile
 
-diracFR_a0 = 0.01         # Amplitude of perturbation
-diracFR_r0 = 0.0	  # Center of perturbation
+diracFR_a0 = 0.05         # Amplitude of perturbation
+diracFR_r0 = 5.0	  # Center of perturbation
 diracFR_s0 = 1.0	  # Width of perturbation
 
-diracFI_a0 = 0.005        # Amplitude of perturbation
-diracFI_r0 = 2.0	  # Center of perturbation
+diracFI_a0 = 0.0          # Amplitude of perturbation
+diracFI_r0 = 0.0	  # Center of perturbation
 diracFI_s0 = 1.0	  # Width of perturbation
 
-diracGR_a0 = 0.01         # Amplitude of perturbation
-diracGR_r0 = 2.0	  # Center of perturbation
+diracGR_a0 = 0.0          # Amplitude of perturbation
+diracGR_r0 = 1.0	  # Center of perturbation
 diracGR_s0 = 1.0	  # Width of perturbation
 
-diracGI_a0 = 0.01         # Amplitude of perturbation
-diracGI_r0 = 5.0	  # Center of perturbation
+diracGI_a0 = 0.0          # Amplitude of perturbation
+diracGI_r0 = 1.0	  # Center of perturbation
 diracGI_s0 = 1.0	  # Width of perturbation
 
 directory = dirac	  # Name of output directory
-Ninfo = 25		  # How often do we want to output information to screen?
+Ninfo = 50		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
-Noutput1D = 25		  # How often do we want 1D output?
+Noutput1D = 50		  # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,mass_sch,mass_int
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,mass_sch,mass_int
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int
 
