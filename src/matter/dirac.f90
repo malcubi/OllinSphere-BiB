@@ -57,6 +57,8 @@
 
   integer l
 
+  real(8) DFR,DFI
+
 
 ! *******************
 ! ***   SOURCES   ***
@@ -123,13 +125,34 @@
 ! **********************
 
 ! At the moment I use a simple outgoing wave boundary condition
-! for all functions assuming that far away they behave as f(r-t)/r.
+! for (FR,FI) assuming that far away they behave as f(r-t)/r.
+! This implies a condition of the form:
+!
+! dF/dt  ~  - (dF/dr + F/r)
+!
+! We calculate the spatial derivatives at the boundary here,
+! since the high order derivatives that are calculated by
+! the routine "derivatives.f90" cause instabilities.
+!
+! Notice that we do not need a boundary condition for (GR,GI),
+! in fact trying to impose a boundary condition for them is
+! inconsistent.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
-     sdirac_FR(l,Nr) = - (D1_dirac_FR(l,Nr) + dirac_FR(l,Nr)/r(l,Nr))
-     sdirac_FI(l,Nr) = - (D1_dirac_FI(l,Nr) + dirac_FI(l,Nr)/r(l,Nr))
-     sdirac_GR(l,Nr) = - (D1_dirac_GR(l,Nr) + dirac_GR(l,Nr)/r(l,Nr))
-     sdirac_GI(l,Nr) = - (D1_dirac_GI(l,Nr) + dirac_GI(l,Nr)/r(l,Nr))
+
+     if (order=="two") then
+        DFR = 0.5d0*(3.d0*dirac_FR(l,Nr) - 4.d0*dirac_FR(l,Nr-1) + dirac_FR(l,Nr-2))/dr(l)
+        DFI = 0.5d0*(3.d0*dirac_FI(l,Nr) - 4.d0*dirac_FI(l,Nr-1) + dirac_FI(l,Nr-2))/dr(l)
+     else
+        DFR = (25.d0*dirac_FR(l,Nr) - 48.d0*dirac_FR(l,Nr-1) &
+            + 36.d0*dirac_FR(l,Nr-2) - 16.d0*dirac_FR(l,Nr-3) + 3.d0*dirac_FR(l,Nr-4))/(12.d0*dr(l))
+        DFI = (25.d0*dirac_FI(l,Nr) - 48.d0*dirac_FI(l,Nr-1) &
+            + 36.d0*dirac_FI(l,Nr-2) - 16.d0*dirac_FI(l,Nr-3) + 3.d0*dirac_FI(l,Nr-4))/(12.d0*dr(l))
+     end if
+
+     sdirac_FR(l,Nr) = - DFR - dirac_FR(l,Nr)/r(l,Nr)
+     sdirac_FI(l,Nr) = - DFI - dirac_FI(l,Nr)/r(l,Nr)
+
   end if
 
 
