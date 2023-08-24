@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dirac.f90,v 1.1 2023/08/17 20:18:37 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dirac.f90,v 1.3 2023/08/24 18:26:34 malcubi Exp $
 
   subroutine sources_dirac(l)
 
@@ -10,29 +10,29 @@
 ! a Dirac field.  The dynamical variables
 ! are: dirac_FR, dirac_FI, dirac_GR, dirac_GI.
 !
-! The evolution equations for these quantities
-! are obtained directly from the Dirac equation:
+! The evolution equations for these quantities come
+! directly from the Dirac equation:
 !
-! dFR/dt  =  -  alpha / (A psi**2) { d GR + GR [ d alpha / alpha + d B / 2B + 2 d phi
-!                                     r           r                 r            r
+! dFR/dt  =  -  alpha / (A psi**2) { d GR + GR [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                     r           r                   r            r
 !
 !            + ( 1 + sqrt(A/B) ) / r ] }  +  alpha ( trK FR / 2  +  m FI )
 !
 !
-! dFI/dt  =  -  alpha / (A psi**2) { d GI + GI [ d alpha / alpha + d B / 2B + 2 d phi
-!                                     r           r                 r            r
+! dFI/dt  =  -  alpha / (A psi**2) { d GI + GI [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                     r           r                   r            r
 !
 !            + ( 1 + sqrt(A/B) ) / r ] }  +  alpha ( trK FI / 2  -  m FR )
 !
 !
-! dGR/dt  =  -  alpha / (A psi**2) { d FR + FR [ d alpha / alpha + d B / 2B + 2 d phi
-!                                     r           r                 r            r
+! dGR/dt  =  -  alpha / (A psi**2) { d FR + FR [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                     r           r                   r            r
 !
 !            + ( 1 - sqrt(A/B) ) / r ] }  +  alpha ( trK GR / 2  -  m GI )
 !
 !
-! dGI/dt  =  -  alpha / (A psi**2) { d FI + FI [ d alpha / alpha + d B / 2B + 2 d phi
-!                                     r           r                 r            r
+! dGI/dt  =  -  alpha / (A psi**2) { d FI + FI [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                     r           r                   r            r
 !
 !            + ( 1 - sqrt(A/B) ) / r ] }  +  alpha ( trK GI / 2  +  m GR )
 !

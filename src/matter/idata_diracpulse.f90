@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_diracpulse.f90,v 1.1 2023/08/17 20:18:06 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_diracpulse.f90,v 1.2 2023/08/22 17:59:32 malcubi Exp $
 
   subroutine idata_diracpulse
 

@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.42 2023/08/17 20:19:54 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.43 2023/08/22 18:00:03 malcubi Exp $
 
   subroutine stressenergy(l)
 
