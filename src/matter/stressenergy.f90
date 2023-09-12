@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.44 2023/09/12 20:05:26 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.45 2023/09/12 20:13:17 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -814,11 +814,11 @@
 
 !    Dirac particle density and radial flux:
 !
-!                             2       2                     2    2     2    2
-!    dens  =  1 / (2 pi) [ |F|  +  |G| ]  =  1 / (2 pi) [ FR + FI +  GR + GI ]
+!                             2       2                     2    2    2    2
+!    dens  =  1 / (2 pi) [ |F|  +  |G| ]  =  1 / (2 pi) [ FR + FI + GR + GI ]
 !
 !                                     *       *
-!    flux  =  1 / (2 pi sqrt(A)) [ F G  +  G F  ]  =  1 / (pi sqrt(A)) [ FR GR  + FI GI ]
+!    flux  =  1 / (2 pi sqrt(A)) [ F G  +  G F  ]  =  1 / (pi sqrt(A)) [ FR GR + FI GI ]
 
      dirac_dens(l,:) = aux*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 + dirac_GR(l,:)**2 + dirac_GI(l,:)**2)
 
