@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dirac.f90,v 1.3 2023/08/24 18:26:34 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dirac.f90,v 1.4 2023/09/13 19:00:10 malcubi Exp $
 
   subroutine sources_dirac(l)
 
@@ -13,26 +13,26 @@
 ! The evolution equations for these quantities come
 ! directly from the Dirac equation:
 !
-! dFR/dt  =  -  alpha / (A psi**2) { d GR + GR [ d alpha / 2 alpha + d B / 2B + 2 d phi
-!                                     r           r                   r            r
+! dFR/dt  =  -  alpha / (sqrt(A) psi**2) { d GR + GR [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                           r           r                   r            r
 !
 !            + ( 1 + sqrt(A/B) ) / r ] }  +  alpha ( trK FR / 2  +  m FI )
 !
 !
-! dFI/dt  =  -  alpha / (A psi**2) { d GI + GI [ d alpha / 2 alpha + d B / 2B + 2 d phi
-!                                     r           r                   r            r
+! dFI/dt  =  -  alpha / (sqrt(A) psi**2) { d GI + GI [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                           r           r                   r            r
 !
 !            + ( 1 + sqrt(A/B) ) / r ] }  +  alpha ( trK FI / 2  -  m FR )
 !
 !
-! dGR/dt  =  -  alpha / (A psi**2) { d FR + FR [ d alpha / 2 alpha + d B / 2B + 2 d phi
-!                                     r           r                   r            r
+! dGR/dt  =  -  alpha / (sqrt(A) psi**2) { d FR + FR [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                           r           r                   r            r
 !
 !            + ( 1 - sqrt(A/B) ) / r ] }  +  alpha ( trK GR / 2  -  m GI )
 !
 !
-! dGI/dt  =  -  alpha / (A psi**2) { d FI + FI [ d alpha / 2 alpha + d B / 2B + 2 d phi
-!                                     r           r                   r            r
+! dGI/dt  =  -  alpha / (sqrt(A) psi**2) { d FI + FI [ d alpha / 2 alpha + d B / 2B + 2 d phi
+!                                           r           r                   r            r
 !
 !            + ( 1 - sqrt(A/B) ) / r ] }  +  alpha ( trK GI / 2  +  m GR )
 !
