@@ -652,20 +652,20 @@
 
   if (idata=="l-procastar") then
 
-   if (contains(mattertype,"complexproca")) then
+     if (contains(mattertype,"complexproca")) then
 
-     call idata_LProcastar
+        call idata_LProcastar
 
-   else
+     else
 
-      print *, 'Proca star initial data needs "complexproca" type matter ...'
-      print *, 'Aborting! (subroutine initial)'
-      print *
-      call die
+        print *, 'Proca star initial data needs "complexproca" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+         print *
+         call die
 
-   end if
+     end if
 
-end if
+  end if
 
 
 ! **********************
@@ -674,18 +674,39 @@ end if
 
   if (idata=="diracpulse") then
 
-   if (contains(mattertype,"dirac")) then
+     if (contains(mattertype,"dirac")) then
 
-      call idata_diracpulse
+        call idata_diracpulse
 
-   else
+     else
 
-      print *, 'Dirac pulse initial data needs "dirac" type matter ...'
-      print *, 'Aborting! (subroutine initial)'
-      print *
-      call die
+        print *, 'Dirac pulse initial data needs "dirac" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
 
-   end if
+     end if
+
+  end if
+
+! **********************
+! ***  DIRAC PULSE   ***
+! **********************
+
+  if (idata=="diracstar") then
+
+     if (contains(mattertype,"dirac")) then
+
+        call idata_diracstar
+
+     else
+
+        print *, 'Dirac star initial data needs "dirac" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
+
+     end if
 
   end if
 

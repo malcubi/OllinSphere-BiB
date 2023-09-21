@@ -267,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,diracpulse,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
 
 
 ! *********************
@@ -716,7 +716,7 @@
   integer :: cproca_l    = 0
 
 ! Proca star initial data (we use the same parameters omega_right
-! and omega_left declared above for boson stars).
+! and omega_left declared above for boson stars):
 !
 ! proca_phi0:        Proca star parameter for value at origin (see proca_factor).
 ! proca_factor:      Normalization factor:
@@ -794,6 +794,15 @@
   real(8) :: diracGI_r0 = 1.d0
   real(8) :: diracGI_s0 = 1.d0
   real(8) :: diracGI_t0 = 1.d0
+
+! Dirac star initial data (we use the same parameters omega_right
+! and omega_left declared above for boson stars):
+!
+! dirac_f0:          Dirac star parameter for value of function f at origin.
+! dirac_omega:       Frequency of the Dirac star.
+
+  real(8) :: dirac_f0    = 0.d0
+  real(8) :: dirac_omega = 0.d0
 
 
 ! ****************
