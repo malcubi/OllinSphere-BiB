@@ -1,0 +1,40 @@
+# Test parameter file:
+#
+# Dirac field with initial pulse, 1+log slicing, no shift.
+
+dr0 = 0.025		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 1000		  # Number of grid points
+Nt = 500		  # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = dirac        # Dirac field
+dirac_mass = 1.0          # Mass of Dirac field
+
+geodiss = 0.05		  # Dissipation coefficient for geometry
+diracdiss = 0.05 	  # Dissipation coefficient for Dirac field
+
+idata = diracstar	  # Type of initial data
+dirac_f0 =  0.2           # Central value of Dirac field.
+omega_left   =  1.236653   # First trial omega
+omega_right  =  1.236654   # Second trial omega
+
+directory = diracstar1	  # Name of output directory
+Ninfo = 50		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 50		  # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint
+
+
