@@ -8,9 +8,9 @@
 
 ! This is the integrated boson number (boson charge):
 !
-!                /                       /              1/2      6   2
-! complex_NB  =  | rho_boson dV  =  4 pi | rho_boson [ A   B  psi ] r dr
-!                /                       /
+!                /                           /                  1/2      6   2
+! complex_NB  =  | complex_Bdens dV  =  4 pi | complex_Bdens [ A   B  psi ] r dr
+!                /                           /
 !
 ! Notice that this assumes that the spacetime is REGULAR at the
 ! origin, so it will not work for eternal black holes such as
