@@ -191,6 +191,31 @@
         wmI_dirac = dirac_FI - dirac_GI
      end if
 
+!    Total conserved charge.
+
+!    The total boson number (integrated boson charge) is then:
+!
+!                        /r             2
+!    dirac_Nint  =  4 pi |  dirac_dens R  dR
+!                        /0
+!
+!    with R the Schwarzschild radius.
+
+     if (allocated(dirac_Nint)) then
+
+        call diracintegral
+
+!       Output total binding energy, but only at t=0 and
+!       for certain type of initial data.
+
+        if ((t(0)==0.d0).and.(rank==0)) then
+           if (idata=="diracstar") then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
+           end if
+        end if
+
+     end if
+
   end if
 
 
