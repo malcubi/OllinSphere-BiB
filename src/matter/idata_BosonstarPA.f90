@@ -1294,7 +1294,7 @@
 
 
 ! **********************************************************
-! ***   IMAGINARY PART OF (phi,xi) AND REAL PART of pi   ***
+! ***   IMAGINARY PART OF (phi,xi) AND REAL PART OF pi   ***
 ! **********************************************************
 
 ! Set the imaginary part and its spatial derivative to zero.
