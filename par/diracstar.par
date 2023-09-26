@@ -29,7 +29,7 @@ dirac_f0 =  0.2           # Central value of Dirac field.
 omega_left   =  1.236653   # First trial omega
 omega_right  =  1.236654   # Second trial omega
 
-directory = diracstar1	  # Name of output directory
+directory = diracstar	  # Name of output directory
 Ninfo = 50		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 50		  # How often do we want 1D output?
