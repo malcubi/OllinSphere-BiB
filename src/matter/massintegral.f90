@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.39 2023/04/26 23:56:10 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.40 2023/09/26 16:40:27 malcubi Exp $
 
   subroutine massintegral
 
@@ -275,7 +275,7 @@
 ! density decays very slowly.
 
   if ((t(0)==0.d0).and. &
-     ((idata=="bosonstar").or.(idata=="procastar").or.(idata=="l-procastar"))) then
+     ((idata=="bosonstar").or.(idata=="procastar").or.(idata=="l-procastar").or.idata=='diracstar')) then
 
      !R95 = 0.d0
      R99 = 0.d0
@@ -337,8 +337,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' R99   = ',R99
-        write(*,'(A,E19.12)') ' M/R99 = ',MTOT/R99
+        write(*,'(A,E19.12)') ' R99 from mass = ',R99
+        write(*,'(A,E19.12)') ' M/R99         = ',MTOT/R99
         print *
      end if
 
