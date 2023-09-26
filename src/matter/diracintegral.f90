@@ -1,4 +1,4 @@
-!$Header: $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/diracintegral.f90,v 1.1 2023/09/26 16:42:03 malcubi Exp $
 
   subroutine diracintegral
 
@@ -110,8 +110,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Total Dirac charge =',NTOT
-        write(*,'(A,E19.12)') ' R99 =',R99
+        write(*,'(A,E19.12)') ' Total Dirac charge    = ',NTOT
+        write(*,'(A,E19.12)') ' R99 from Dirac charge = ',R99
         print *
      end if
 
