@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/param.f90,v 1.161 2023/08/22 17:57:40 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/param.f90,v 1.162 2023/09/26 16:39:54 malcubi Exp $
 
 ! ****************************************
 ! ***   PARAMETERS ARE DECLARED HERE   ***
