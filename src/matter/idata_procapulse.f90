@@ -250,7 +250,7 @@
 ! ********************************************
 
 ! For parallel runs we need to find the global
-! array for the radial merric coefficient.
+! array for the radial metric coefficient.
 
 ! Copy A into AL.
 

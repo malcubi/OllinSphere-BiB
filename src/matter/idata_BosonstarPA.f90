@@ -186,6 +186,15 @@
      print *
   end if
 
+! Sanity check.
+
+  if (spacetime=="minkowski") then
+     print *, 'Boson star initial data is not compatible with a Minkowski background ...'
+     print *, 'Aborting! (subroutine idata_BosonstarPA)'
+     print *
+     call die
+  end if
+
 
 ! *************************
 ! ***   NORMALIZATION   ***
@@ -746,13 +755,7 @@
 !
 !       phi' + k phi = 0
 !
-!       But in principle we don't know the value of k.  However, we can obtain
-!       it as: k = - log|phi|/r.  So the final condition is:
-!
-!       phi' - ( log|phi| / r ) phi = 0
-!
-!       Also, if the solution at the last two points is already smaller than
-!       the tolerance we just assume we have found the solution and jump out.
+!       Notice that far away we must have:  k = m**2 - (omega/alpha)**2
 
         res_old = res
 
@@ -760,7 +763,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           res = xi_g(0,Nrtotal) - log(abs(phi_g(0,Nrtotal)))/rr(0,Nrtotal)*phi_g(0,Nrtotal)
+           aux = complex_mass**2 - (boson_omega/alpha(0,Nrtotal))**2
+           res = xi_g(0,Nrtotal) + aux*phi_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega

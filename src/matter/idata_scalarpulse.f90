@@ -147,6 +147,10 @@
 
   scalar_pi = 0.d0
 
+! If we are running on Minkowski spacetime just return.
+
+  if (spacetime=="minkowski") return
+
 
 ! **************************
 ! ***   ZERO POTENTIAL   ***

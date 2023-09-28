@@ -187,6 +187,10 @@
      D1_dirac_GI(l,:) = diff1(l,-1)
   end do
 
+! If we are running on Minkowski spacetime just return.
+
+  if (spacetime=="minkowski") return
+
 
 ! ************************
 ! ***   SANITY CHECK   ***

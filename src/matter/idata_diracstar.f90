@@ -136,6 +136,15 @@
      print *
   end if
 
+! Sanity check.
+
+  if (spacetime=="minkowski") then
+     print *, 'Dirac star initial data is not compatible with a Minkowski background ...'
+     print *, 'Aborting! (subroutine idata_diracstar)'
+     print *
+     call die
+  end if
+
 
 ! *************************************
 ! ***   FIND GRID POINT POSITIONS   ***
@@ -455,13 +464,7 @@
 !
 !       F' + k F = 0
 !
-!       But in principle we don't know the value of k.  However, we can obtain
-!       it as: k = - log|F|/r.  So the final condition is:
-!
-!       F' - ( log|F| / r ) phi = 0
-!
-!       Also, if the solution at the last two points is already smaller than
-!       the tolerance we just assume we have found the solution and jump out.
+!       Notice that far away we must have:  k = m**2 - (omega/alpha)**2
 
         res_old = res
 
@@ -469,8 +472,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           res = (F_g(0,Nrtotal)-F_g(0,Nrtotal-1))/dr(0) &
-               - log(abs(F_g(0,Nrtotal)))/rr(0,Nrtotal)*F_g(0,Nrtotal)
+           aux = dirac_mass**2 - (dirac_omega/alpha(0,Nrtotal))**2
+           res = (F_g(0,Nrtotal)-F_g(0,Nrtotal-1))/dr(0) + aux*F_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega
@@ -509,7 +512,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES22.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',dirac_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',dirac_omega,'    Residual: ',res
 
      end do
 
@@ -591,6 +594,7 @@
             + 36.d0*alpha_g(0,Nrtotal-2) - 16.d0*alpha_g(0,Nrtotal-3) + 3.d0*alpha_g(0,Nrtotal-4))/3.d0
      end if
 
+     alphafac = 1.d0
      alpha_g = alpha_g/alphafac
 
 !    Write value of omega to screen and rescale it.
