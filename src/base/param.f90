@@ -274,7 +274,7 @@
 ! ***   EVOLUTION   ***
 ! *********************
 
-! spacetime:     Dynamic or background (static) spacetime.
+! spacetime:     Dynamic spacetime, background (static) spacetime, or just Minkowski
 !
 ! integrator:    Time integration method.
 ! order:         Order of spatial differencing.
@@ -296,7 +296,7 @@
 ! kappa1:        Constraint dissipation coefficient for Z4c.
 ! kappa2:        Constraint dissipation coefficient for Z4c.
 
-  character(30) :: spacetime   = "dynamic"    ! range = (dynamic,background)
+  character(30) :: spacetime   = "dynamic"    ! range = (dynamic,background,minkowski)
   character(30) :: formulation = "bssn"       ! range = (bssn,z4c)
   character(30) :: bssnflavor  = "lagrangian" ! range = (eulerian,lagrangian)
   character(30) :: integrator  = "rk4"        ! range = (icn,rk4)
