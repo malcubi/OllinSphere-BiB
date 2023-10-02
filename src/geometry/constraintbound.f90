@@ -39,7 +39,7 @@
 ! ***   DO WE WANT TO BE HERE?   ***
 ! **********************************
 
-  if (spacetime=="background") return
+  if (spacetime/="dynamic") return
 
 
 ! *******************
