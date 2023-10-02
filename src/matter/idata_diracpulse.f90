@@ -202,7 +202,7 @@
   if (diractype==1) then
 
 !    For type 1 initial data both F and G must be either
-!    purely real of purely imaginary.
+!    purely real or purely imaginary.
 
      if (diracFR_a0*diracFI_a0/=0.d0) then
         print *, 'For diractype=1 the function F must be either purely real of purely imaginary ...'
