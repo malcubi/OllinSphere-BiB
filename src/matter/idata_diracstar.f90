@@ -594,7 +594,6 @@
             + 36.d0*alpha_g(0,Nrtotal-2) - 16.d0*alpha_g(0,Nrtotal-3) + 3.d0*alpha_g(0,Nrtotal-4))/3.d0
      end if
 
-     alphafac = 1.d0
      alpha_g = alpha_g/alphafac
 
 !    Write value of omega to screen and rescale it.
