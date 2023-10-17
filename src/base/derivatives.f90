@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/derivatives.f90,v 1.33 2023/02/14 18:50:39 malcubi Exp $
 
   module derivatives
 
@@ -108,40 +107,31 @@
                  -           (diffvar(l,i+2) - diffvar(l,i-2)))/12.d0
      end do
 
-!    Point Nr-1:  6th order semi one-sided (1 point to the right, 5 to the left).
-!    I use 6th order to improve boundary behaviour.
+!    Point Nr-1:  4th order semi one-sided (1 point to the right, 5¡3 to the left).
 
      i = Nr-1
 
-     diff1(i) = idr*(1.d0/6.d0*diffvar(l,i+1) + 77.d0/60.d0*diffvar(l,i) - 5.d0/2.d0*diffvar(l,i-1) &
-              + 5.d0/3.d0*diffvar(l,i-2) - 5.d0/6.d0*diffvar(l,i-3) + 0.25d0*diffvar(l,i-4) &
-              - 1.d0/30.d0*diffvar(l,i-5)) ! 6th order semi one-sided
+     diff1(i) = idr*(3.d0*diffvar(l,i+1) + 10.d0*diffvar(l,i) - 18.d0*diffvar(l,i-1) &
+              + 6.d0*diffvar(l,i-2) - diffvar(l,i-3))/12.d0
 
-!    Point Nr:  6th order fully one-sided.
-!    I use 6th order to improve boundary behaviour.
+!    Point Nr:  4th order fully one-sided.
 
      i = Nr
 
-     diff1(i) = idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i-1) + 7.5d0*diffvar(l,i-2) &
-              - 20.d0/3.d0*diffvar(l,i-3) + 15.d0/4.d0*diffvar(l,i-4) - 6.d0/5.d0*diffvar(l,i-5) &
-              + 1.d0/6.d0*diffvar(l,i-6))  ! 6th order fully one-sided
+     diff1(i) = idr*(25.d0*diffvar(l,i) - 48.d0*diffvar(l,i-1) &
+              + 36.d0*diffvar(l,i-2) - 16.d0*diffvar(l,i-3) + 3.d0*diffvar(l,i-4))/12.d0
 
 !    Check if we want one-sided derivatives at origin.
 
      if (oflag) then
 
-        !do i=1,2
-        !   diff1(i) = - idr*(25.d0*diffvar(l,i) - 48.d0*diffvar(l,i+1) &
-        !            + 36.d0*diffvar(l,i+2) - 16.d0*diffvar(l,i+3) + 3.d0*diffvar(l,i+4))/12.d0
-        !end do
+        i = 1
+        diff1(i) = - idr*(25.d0*diffvar(l,i) - 48.d0*diffvar(l,i+1) &
+                + 36.d0*diffvar(l,i+2) - 16.d0*diffvar(l,i+3) + 3.d0*diffvar(l,i+4))/12.d0
 
-        diff1(1) = - idr*(49.d0/20.d0*diffvar(l,1) - 6.d0*diffvar(l,2) + 7.5d0*diffvar(l,3) &
-                 - 20.d0/3.d0*diffvar(l,4) + 15.d0/4.d0*diffvar(l,5) - 6.d0/5.d0*diffvar(l,6) &
-                 + 1.d0/6.d0*diffvar(l,7))  ! 6th order fully one-sided
-
-        diff1(2) = - idr*(1.d0/6.d0*diffvar(l,1) + 77.d0/60.d0*diffvar(l,2) - 5.d0/2.d0*diffvar(l,3) &
-                 + 5.d0/3.d0*diffvar(l,4) - 5.d0/6.d0*diffvar(l,5) + 0.25d0*diffvar(l,6) &
-                 - 1.d0/30.d0*diffvar(l,7)) ! 6th order semi one-sided
+        i = 2
+        diff1(i) = - idr*(3.d0*diffvar(l,i+1) + 10.d0*diffvar(l,i) - 18.d0*diffvar(l,i-1) &
+              + 6.d0*diffvar(l,i-2) - diffvar(l,i-3))/12.d0
 
      end if
 
@@ -250,13 +240,13 @@
 
      i = Nr
 
-     !diff1(i) = idr*(761.d0/280.d0*diffvar(l,i) - 8.d0*diffvar(l,i-1) + 14.d0*diffvar(l,i-2) &
-     !         - 56.d0/3.d0*diffvar(l,i-3) + 35.d0/2.d0*diffvar(l,i-4) - 56.d0/5.d0*diffvar(l,i-5) &
-     !         + 14.d0/3.d0*diffvar(l,i-6) - 8.d0/7.d0*diffvar(l,i-7) + 1.d0/8.d0*diffvar(l,i-8)) ! 8th order
-
      diff1(i) = idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i-1) + 7.5d0*diffvar(l,i-2) &
               - 20.d0/3.d0*diffvar(l,i-3) + 15.d0/4.d0*diffvar(l,i-4) - 6.d0/5.d0*diffvar(l,i-5) &
               + 1.d0/6.d0*diffvar(l,i-6)) ! 6th order fully one-sided.
+
+     !diff1(i) = idr*(761.d0/280.d0*diffvar(l,i) - 8.d0*diffvar(l,i-1) + 14.d0*diffvar(l,i-2) &
+     !         - 56.d0/3.d0*diffvar(l,i-3) + 35.d0/2.d0*diffvar(l,i-4) - 56.d0/5.d0*diffvar(l,i-5) &
+     !         + 14.d0/3.d0*diffvar(l,i-6) - 8.d0/7.d0*diffvar(l,i-7) + 1.d0/8.d0*diffvar(l,i-8)) ! 8th order
 
 !    Check if we want one-sided derivatives at origin.
 
@@ -467,12 +457,12 @@
 
      i = Nr-1
 
+     diff2(i) = idr2*(10.d0*diffvar(l,i+1) - 15.d0*diffvar(l,i) - 4.d0*diffvar(l,i-1) &
+              + 14.d0*diffvar(l,i-2) - 6.d0*diffvar(l,i-3) + diffvar(l,i-4))/12.d0 ! 4th order
+
      !diff2(i) = idr2*(0.7d0*diffvar(l,i+1) - 7.d0/18.d0*diffvar(l,i) - 2.7d0*diffvar(l,i-1) &
      !         + 19.d0/4.d0*diffvar(l,i-2) - 67.d0/18.d0*diffvar(l,i-3) + 9.d0/5.d0*diffvar(l,i-4) &
      !         - 0.5d0*diffvar(l,i-5) + 11.d0/180.d0*diffvar(l,i-6)) ! 6th order
-
-     diff2(i) = idr2*(10.d0*diffvar(l,i+1) - 15.d0*diffvar(l,i) - 4.d0*diffvar(l,i-1) &
-              + 14.d0*diffvar(l,i-2) - 6.d0*diffvar(l,i-3) + diffvar(l,i-4))/12.d0 ! 4th order
 
 !    Point Nr:  6th order fully one-sided.
 
