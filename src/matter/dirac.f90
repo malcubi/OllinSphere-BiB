@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dirac.f90,v 1.4 2023/09/13 19:00:10 malcubi Exp $
 
   subroutine sources_dirac(l)
 
@@ -130,29 +129,13 @@
 !
 ! dF/dt  ~  - (dF/dr + F/r)
 !
-! We calculate the spatial derivatives at the boundary here,
-! since the high order derivatives that are calculated by
-! the routine "derivatives.f90" cause instabilities.
-!
 ! Notice that we do not need a boundary condition for (GR,GI),
 ! in fact trying to impose a boundary condition for them is
 ! inconsistent.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
-
-     if (order=="two") then
-        DFR = 0.5d0*(3.d0*dirac_FR(l,Nr) - 4.d0*dirac_FR(l,Nr-1) + dirac_FR(l,Nr-2))/dr(l)
-        DFI = 0.5d0*(3.d0*dirac_FI(l,Nr) - 4.d0*dirac_FI(l,Nr-1) + dirac_FI(l,Nr-2))/dr(l)
-     else
-        DFR = (25.d0*dirac_FR(l,Nr) - 48.d0*dirac_FR(l,Nr-1) &
-            + 36.d0*dirac_FR(l,Nr-2) - 16.d0*dirac_FR(l,Nr-3) + 3.d0*dirac_FR(l,Nr-4))/(12.d0*dr(l))
-        DFI = (25.d0*dirac_FI(l,Nr) - 48.d0*dirac_FI(l,Nr-1) &
-            + 36.d0*dirac_FI(l,Nr-2) - 16.d0*dirac_FI(l,Nr-3) + 3.d0*dirac_FI(l,Nr-4))/(12.d0*dr(l))
-     end if
-
-     sdirac_FR(l,Nr) = - DFR - dirac_FR(l,Nr)/r(l,Nr)
-     sdirac_FI(l,Nr) = - DFI - dirac_FI(l,Nr)/r(l,Nr)
-
+     sdirac_FR(l,Nr) = - D1_dirac_FR(l,Nr) - dirac_FR(l,Nr)/r(l,Nr)
+     sdirac_FI(l,Nr) = - D1_dirac_FI(l,Nr) - dirac_FI(l,Nr)/r(l,Nr)
   end if
 
 
