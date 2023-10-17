@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/analysis_geometry.f90,v 1.32 2023/03/09 23:29:22 malcubi Exp $
 
   subroutine analysis_geometry
 
@@ -149,20 +148,27 @@
   end if
 
 
-! ********************************************
-! ***   EXPANSION OF OUTGOING NULL LINES   ***
-! ********************************************
+! ****************************************************
+! ***   EXPANSION OF OUTGOING/INGOING NULL LINES   ***
+! *****************************************************
 
 ! The expansion of outward null lines is given by:
 !
 ! theta = (2/r + d B / B + 4 d phi) / (psi**2 sqrt(A)) - 2 K_theta^theta
 !                 r           r
 !
-! We multiply it by r so that it is constant and equal to
-! 2 for flat spacetimes.
+! We multiply it by r so that it is constant and equal to +2 for
+! a flat spacetime.
 
   if (allocated(expansion)) then
      expansion = r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/sqrt(A)/psi**2 - 2.d0*KBPHYS)
+  end if
+
+! Expansion of ingoing null lines.  This is the same as above, but changing
+! the sign of the first term. For a flat spacetime it should be -2.
+
+  if (allocated(expansion_in)) then
+     expansion_in = - r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/sqrt(A)/psi**2 + 2.d0*KBPHYS)
   end if
 
 
