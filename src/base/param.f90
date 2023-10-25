@@ -758,9 +758,9 @@
 ! dirac*_t0:         Transition width of initial profile (for top-hat profile).
 !
 ! diractype:         Type of initial data (to guarantee time symmetry).
-!                        1  (F,G) are purely real or purely imaginary.
-!                        2  Either GR=GI=0 with FI = +- FR, or viceversa.
-!                        3  GR = +- FR/k,  GI = -+ k FI (k=cte).
+!                        1  Both F and G must be purely real or purely imaginary.
+!                        2  FI = k1 FR and GI = k2 GR, with (k1,k2) constants.
+!                        3  GR = +- FR/k,  GI = -+ k FI, or GR = +- FI/k,  GI = -+ k FR, with k constant.
 ! dirac_k:           Constant por type 3 initial data.
 
   character(1000) :: diracprofile   = "gaussian"   ! range=(gaussian,tophat)
@@ -802,6 +802,12 @@
 
   real(8) :: dirac_f0    = 0.d0
   real(8) :: dirac_omega = 0.d0
+
+! Dirac star perturbation.
+!
+! diracgauss:        Do we add a initial profile to the boson star solution?
+
+  logical :: diracgauss = .false.
 
 
 ! ****************
