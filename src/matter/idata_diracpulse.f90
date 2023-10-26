@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_diracpulse.f90,v 1.2 2023/08/22 17:59:32 malcubi Exp $
 
   subroutine idata_diracpulse
 
@@ -201,7 +200,7 @@
 
   if (diractype==1) then
 
-!    For type 1 initial data both F and G must be either
+!    For type 1 initial data both F and G must be
 !    purely real or purely imaginary.
 
      if (diracFR_a0*diracFI_a0/=0.d0) then
@@ -218,23 +217,47 @@
         call die
      end if
 
+! For tyoe 2 initial data FI must be proportional to FR,
+! and GI must be proportional to GR.
+
   else if (diractype==2) then
 
-     print *, 'diractype=2 initial data not yet working ...'
-     print *, 'Aborting! (subroutine idata_diracpulse)'
-     print *
-     call die
+     if (diracprofile=="gaussian") then
+        if ((diracFI_r0/=diracFR_r0).or.(diracFI_s0/=diracFR_s0)) then
+           print *, 'For diractype=2 we must have diracFI_r0=diracFR_r0 and diracFI_s0=diracFR_s0'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        else if ((diracGI_r0/=diracGR_r0).or.(diracGI_s0/=diracGR_s0)) then
+           print *, 'For diractype=2 we must have diracGI_r0=diracGR_r0 and diracGI_s0=diracGR_s0'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        end if
+     else if (diracprofile=="tophat") then
+        if ((diracFI_r0/=diracFR_r0).or.(diracFI_s0/=diracFR_s0).or.(diracFI_t0/=diracFR_t0)) then
+           print *, 'For diractype=2 we must have diracFI_r0=diracFR_r0, diracFI_s0=diracFR_s0, and diracFI_t0=diracFR_t0'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        else if ((diracGI_r0/=diracGR_r0).or.(diracGI_s0/=diracGR_s0).or.(diracGI_t0/=diracGR_t0)) then
+           print *, 'For diractype=2 we must have diracGI_r0=diracGR_r0, diracGI_s0=diracGR_s0, and diracGI_t0=diracGR_t0'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        end if
+     end if
 
   else if (diractype==3) then
 
-     print *, 'diractype=3 initial data not yet working ...'
+     print *, 'diractype=3 initial data not yet implemented ...'
      print *, 'Aborting! (subroutine idata_diracpulse)'
      print *
      call die
 
   else
 
-     print *, 'Unkown type of diracpulse initial data ...'
+     print *, 'Unknown type of diracpulse initial data ...'
      print *, 'Aborting! (subroutine idata_diracpulse)'
      print *
      call die
@@ -514,3 +537,4 @@
 ! ***************
 
   end subroutine idata_diracpulse
+
