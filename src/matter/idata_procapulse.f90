@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_procapulse.f90,v 1.16 2022/07/12 23:59:18 malcubi Exp $
 
   subroutine idata_procapulse
 

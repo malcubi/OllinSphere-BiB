@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.113 2023/09/26 16:41:43 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.114 2023/10/25 18:02:03 malcubi Exp $
 
   subroutine idata_BosonstarPA
 

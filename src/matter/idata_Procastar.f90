@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_Procastar.f90,v 1.16 2023/02/22 22:10:12 malcubi Exp $
 
   subroutine idata_Procastar
 
@@ -739,6 +738,11 @@
 
      if ((procagauss).and.(proca_phiR_a0/=0.d0)) then
 
+!       Message to screen.
+
+        print *, 'Adding gaussian perturbation to Proca star ...'
+        print *
+
 !       Rescale the amplitude of the gaussian with max(phi).
 
         aux = maxval(abs(procaPhi_g))
@@ -934,11 +938,9 @@
 !          Fix ghost zones.
 
            do i=1,ghost
-
               A_g(l,1-i)      = + A_g(l,i)
               alpha_g(l,1-i)  = + alpha_g(l,i)
               procaE_g(l,1-i) = - procaE_g(l,i)
-
            end do
 
         end do
