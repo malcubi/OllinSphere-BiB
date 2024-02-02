@@ -2,41 +2,45 @@
 #
 # Test parameter file for L-Proca star initial data,
 # 1+log slicing, no shift.
+#
+# NOTE:  This parameter file does not work well!!!
+# The shooting algorithm fails for l-Proca stars.
+# I leave it here for future reference only.
 
-dr0 = 0.01		# Grid spacing
-dtfac = 0.5		# Courant parameter
+dr0 = 0.01		     # Grid spacing
+dtfac = 0.5		     # Courant parameter
 
-Nrtotal = 5000		# Number of grid points
-Nt = 5000   		# Number of time steps
+Nrtotal = 5000		     # Number of grid points
+Nt = 5000   		     # Number of time steps
 
-Nl = 1                  # Number of refinement levels
+Nl = 1                       # Number of refinement levels
 
-slicing = 1+log 	# Type of slicing condition
-gauge_f = 2.0	        # Coefficient for harmonic slicing
+slicing = 1+log 	     # Type of slicing condition
+gauge_f = 2.0	             # Coefficient for harmonic slicing
 
-integrator = rk4	# Type of integration method (icn,rk4)
-order = four  		# Order for spatial finite differencing (two,four)
+integrator = rk4	     # Type of integration method (icn,rk4)
+order = four  		     # Order for spatial finite differencing (two,four)
 
-boundtype = constraint  # Constraint preserving boundary condition
+boundtype = constraint       # Constraint preserving boundary condition
 
 mattertype = complexproca    # Complex Proca field
 cproca_mass = 1.0            # Mass of Proca field
 cproca_l = 1                 # Angular Momentum azimutal parameter for rotating field constituents (0,1,2,...)
 
-idata = l-procastar	# Type of initial data
-proca_factor = harmonic # Normalization factor for Proca star (physical,harmonic)
-proca_phi0 = 0.5        # Central value of scalar field
+idata = l-procastar	     # Type of initial data
+proca_factor = harmonic      # Normalization factor for Proca star (physical,harmonic)
+proca_phi0 = 0.5             # Central value of scalar field
 omega_left  = 1.128918822070 # First trial omega
-omega_right = 1.128918822079 # Second trial omega
+omega_right = 1.128918822071 # Second trial omega
               
-geodiss    = 0.05       # Dissipation coefficient for geometry
-scalardiss = 0.05       # Dissipation coefficient for scalar field
-procadiss  = 0.05       # Dissipation coefficient fpr Proca field
+geodiss    = 0.05            # Dissipation coefficient for geometry
+scalardiss = 0.05            # Dissipation coefficient for scalar field
+procadiss  = 0.05            # Dissipation coefficient fpr Proca field
 
-directory = l-procastar	# Name of output directory
-Ninfo = 100		# How often do we want to output information to screen?
-Noutput0D = 10		# How often do we want 0D output?
-Noutput1D = 100		# How often do we want 1D output?
+directory = l-procastar	     # Name of output directory
+Ninfo = 100		     # How often do we want to output information to screen?
+Noutput0D = 10		     # How often do we want 0D output?
+Noutput1D = 100		     # How often do we want 1D output?
 
 outvars0D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaB_R,cprocaB_I,cprocaE_R,cprocaE_I,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,cproca_Qdens,cproca_Qint,virial1
 outvars1D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaB_R,cprocaB_I,cprocaE_R,cprocaE_I,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,cproca_Qdens,cproca_Qint,virial1
