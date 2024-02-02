@@ -525,6 +525,7 @@
         print *, 'Maximum iteration number reached, initial data solver did not converge.'
         print *, 'Aborting! (subroutine idata_diracstar)'
         print *
+        call die
      else
         print *
         print *, 'Done!'
