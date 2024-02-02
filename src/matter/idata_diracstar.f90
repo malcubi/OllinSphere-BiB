@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_diracstar.f90,v 1.2 2023/10/25 18:23:23 malcubi Exp $
 
   subroutine idata_diracstar
 

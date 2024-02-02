@@ -1,3 +1,4 @@
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.39 2024/02/02 17:18:01 malcubi Exp $
 
   subroutine idata_complexpulse
 
@@ -456,7 +457,7 @@
 
         end do
 
-!       For initial guess solve taking phi=1 on the right-hand side.
+!       For initial guess solve taking psi=1 on the right-hand side.
 
         C2 = - 2.d0*smallpi*VG
 

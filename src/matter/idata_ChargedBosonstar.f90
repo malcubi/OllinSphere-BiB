@@ -1,3 +1,4 @@
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedBosonstar.f90,v 1.24 2023/10/25 18:08:19 malcubi Exp $
 
   subroutine idata_chargedboson
 

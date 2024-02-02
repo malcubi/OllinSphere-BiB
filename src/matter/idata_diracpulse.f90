@@ -217,9 +217,6 @@
         call die
      end if
 
-! For tyoe 2 initial data FI must be proportional to FR,
-! and GI must be proportional to GR.
-
   else if (diractype==2) then
 
      if (diracprofile=="gaussian") then

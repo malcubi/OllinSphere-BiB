@@ -1,13 +1,13 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.3 2023/08/17 20:21:45 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.4 2024/02/02 17:32:56 malcubi Exp $
 
   subroutine idata_LProcastar
 
-! ***************************************************************
-! ***   L-PROCA STAR INITIAL DATA IN CONFORMALLY FLAT GAUGE   ***
-! ***************************************************************
+! *************************************
+! ***   L-PROCA STAR INITIAL DATA   ***
+! *************************************
 
 ! This subroutine calculates initial data for a l-Proca star
-! using a shooting method in the conformally flat gauge.
+! using a shooting method in the polar/areal gauge.
 
 
 ! MAIN PROBLEM: THIS ROUTINE DOES NOT WORK WELL IN PRACTICE,
@@ -21,53 +21,49 @@
 ! L-Proca stars are self-gravitating solutions of a collection
 ! of odd number 2l+1 of complex massive vector fields (Proca fields) 
 ! such that the spacetime is static and spherically symmetric.  
-! Those Proca fields have the same harmonic time dependence, the 
-! same radial amplitude, and their angular dependence given
+! Those Proca fields have the same harmonic time dependence and the 
+! same radial profile, and their angular dependence given
 ! by spherical harmonics Y^{lm} with a fixed azimuthal quantum
-! number l and all possible values of the quantum number m=-l,...,+l. 
-
+! number l and all possible values of the quantum number m=-l,...,+l.
+! (for details see the Master thesis of Claudio Lazarte, or the
+! paper in preparation).
+!
 ! To obtain the initial data we assume that spacetime is
 ! static (K_ij=0), and also that the complex scalar and
-! vector potentials (Phi,A) for each (lm) have the form:
+! vector potentials (phi,A) for each (lm) have the form:
 !
-! Phi(t,vec{r}) = phi(r) Y^{lm} exp(-i omega t) 
-! A(t,vec{r})   = i a(r) Y^{lm} exp(-i omega t) 
+! Phi  =  phi(r) Y^{lm} exp(-i omega t) 
+! A    =  i a(r) Y^{lm} exp(-i omega t) 
 !  
 ! Where a(r) := procaA is the radial component of the vector potential.
-! These two functions are enough to describe l-Procastars with l=0, 
-! i.e. a "single field" Proca star. Nevertheless, when l /= 0, the 
-! vector potential has non-zero angular components, and both, the polar 
-! and the azimutal component are given by 
+! These two functions are enough to describe l-Proca stars with l=0, 
+! i.e. a "single field" Proca star.  However, when l is not 0 the 
+! vector potential has non-zero angular components, and both the polar 
+! and the azimutal component are in terms of a function:
 !
-! B(t,vec{r})   = i b(r) dY^{lm} exp(-i omega t) 
-!  
-! Whose spatial derivative, needed to construct a 1st order system of 
-! diferential equations, is
-! 
-! B'(t,vec{r})   = i G(r) dY^{lm} exp(-i omega t)
-!  
-! Where G(r) = db/dr. In those cases, the effect in the equations is
-! adding centrifugal terms proportional to (Phi,A,B,G) by the
-! factor l(l+1)/r^2. 
+! B  =  i b(r) dY^{lm} exp(-i omega t) 
+!
+! where dY are the angular derivatives of the spherical harmonics.
+! In those cases, the effect in the equations is adding centrifugal
+! terms proportional to (Phi,A,B,G) with the factor l(l+1)/r^2. 
 !    
-! Notice that with this ansatz the stress-energy tensor
-! is time-independent so the metric can be static, and
-! it is shown that is spherically symmetric. Also, at 
-! t=0 phi(r):= procaPhi is purely real while procaA and b(r):= procaB 
-! are purely imaginary. 
+! Notice that with this ansatz the total stress-energy tensor is both
+! time-independent and spherically symmetric.  Also, at t=0 the
+! scalar potential phi is purely real, while the components of
+! the vector potential A and B are purely imaginary. 
 !
 ! The standard ansatz for the metric for l-Proca stars is:
 !
 !   2          2   2        2     2      2
 ! ds  = - alpha  dt  +  A dr  +  r dOmega
 !
-! In other words, we are assuming psi=B=1, beta=0, and
-! the radial coordinate is the area radius.
+! In other words, we are assuming psi=B=1, beta=0, and the radial
+! coordinate is the area radius.
 !
 ! It is in fact much better to work with the quantity F := alpha*phi
 ! instead of phi itself, and then reconstruct phi at the end.
-! With the above ansatz, and using F, the l-Proca evolution
-! equations reduce to:
+! With the above ansatz, and using F, the l-Proca evolution equations
+! reduce to:
 !
 !                                     2                      2                  2 
 ! dF/dr  =  a omega[ ( m alpha/omega )  -  1 ] + l(l+1) (alpha/omega) (a - G) /r 
@@ -82,7 +78,7 @@
 ! dG/dr  =  [ m  - (omega/alpha)  + l(l+1)/r  ] A b  - 2a/r  - G [ (A-1)/r + 4 pi r A (SA - rho) ]   
 !              
 !
-! RMK: It is shown that these two last equations are valid only for l /= 0.   
+! The last two equations are valid only for l different from 0.
 !
 !   
 ! Furthermore, the energy density rho is given by:
@@ -115,9 +111,8 @@
 ! dA/dr  =  A [ (1 - A)/r + 8 pi r A rho ]
 !
 !
-! For the lapse we use the polar slicing condition
-! K_{theta,theta}=0, which when combined with the
-! hamiltonian constraint above takes the form:
+! For the lapse we use the polar slicing condition K_{theta,theta}=0,
+! which when combined with the hamiltonian constraint above takes the form:
 !
 !
 ! dalpha/dr  =  alpha [ (A - 1)/(2r) + 4 pi r A SA ]
@@ -129,9 +124,7 @@
 ! "proca_omega" that is compatible with the asymptotically
 ! decaying solution.
 !
-!
-! For the boundary conditions at the origin we considerer for metric 
-! components     
+! The boundary conditions at the origin for (alpha,A) are:
 !
 ! A(r=0)     = 1,     d A(r=0)     = 0
 !                      r
@@ -139,10 +132,13 @@
 ! alpha(r=0) = 1,     d alpha(r=0) = 0
 !                      r
 !
-! And for Proca fields, at the origin behaves as 
-! F(r=0) ~ phi0 r**l,
-! a(r=0) ~ a0 r**(l+1), and
-! b(r=0) ~ b0 r**(l+2),  
+! And for Proca fields we have:
+!
+! F(r=0) ~ phi0 r**l
+!
+! a(r=0) ~ a0 r**(l+1)
+!
+! b(r=0) ~ b0 r**(l+2)
 !      
 ! it is noted that for l>=1 it turns out that the fourth order 
 ! Runge-Kutta is inconsistent at the origin due to the behavior of
@@ -206,31 +202,31 @@
   real(8) procaBres0,procaGres0         ! Initial values of reescaled variables.  
   real(8) k11,k12,k13,k14               ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24               ! Runge-Kutta sources for alpha.
-  real(8) k31,k32,k33,k34               ! Runge-Kutta sources for procaF.
-  real(8) k41,k42,k43,k44               ! Runge-Kutta sources for procaA.
-  real(8) k51,k52,k53,k54               ! Runge-Kutta sources for procaB.
-  real(8) k61,k62,k63,k64               ! Runge-Kutta sources for procaG.
+  real(8) k31,k32,k33,k34               ! Runge-Kutta sources for procaFres.
+  real(8) k41,k42,k43,k44               ! Runge-Kutta sources for procaAres.
+  real(8) k51,k52,k53,k54               ! Runge-Kutta sources for procaBres.
+  real(8) k61,k62,k63,k64               ! Runge-Kutta sources for procaGres.
   real(8) A_rk,alpha_rk                 ! Runge-Kutta values of variables.
   real(8) procaFres_rk,procaAres_rk     ! Runge-Kutta values of reescaled variables.
   real(8) procaBres_rk,procaGres_rk     ! Runge-Kutta values of reescales variables.
   real(8) J1_lproca,J2_lproca           ! Functions for sources of differential equations.
   real(8) J3_lproca,J4_lproca           ! Functions for sources of differential equations.
   real(8) J5_lproca,J6_lproca           ! Functions for sources of differential equations.
-  real(8) res,res_old                   ! Residual.
+  real(8) res_old,res                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval. 
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,aux               ! Auxiliary quantities.
   real(8) :: epsilon = 1.d-8            ! Tolerance.
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                        ! Radial coordinate.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g               ! Global arrays for radial metric and lapse.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaPhi_g,procaA_g       ! Global arrays for potentials.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaB_g,procaG_g         ! Global arrays for potentials.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaF_g                  ! Global array for F = alpha*phi.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaE_g                  ! Global array for radial electric field.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaXi_g                 ! Global array for angular electric field.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaFres_g,procaAres_g   ! Global arrays for reescaled potentials.
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaBres_g,procaGres_g   ! Global arrays for reescaled potentials.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                      ! Radial coordinate.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g             ! Global arrays for radial metric and lapse.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaPhi_g,procaA_g     ! Global arrays for potentials.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaB_g,procaG_g       ! Global arrays for potentials.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaF_g                ! Global array for F = alpha*phi.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaE_g                ! Global array for radial electric field.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaXi_g               ! Global array for angular electric field.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaFres_g,procaAres_g ! Global arrays for reescaled potentials.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: procaBres_g,procaGres_g ! Global arrays for reescaled potentials.
 
 
 ! *******************
@@ -247,7 +243,7 @@
 ! *****************************
 
   if (rank==0) then
-     print *, 'Solving initial data for a l-Proca star in conformally flat gauge using shooting method ...'
+     print *, 'Solving initial data for a l-Proca star in the polar/areal gauge using a shooting method ...'
      print *
   end if
 
@@ -260,36 +256,36 @@
 
   if (proca_factor=="physical") then
 
-   if (rank==0) then
-      if (cproca_l==0) then
-         write(*,'(A)') ' Using "physical" normalization at origin: phi(r=0) = phi0'
-         print *
-      else
-         write(*,'(A)') ' Using "physical" normalization at origin: phi ~ phi0 r**l'
-         print *
-      end if
-   end if
+     if (rank==0) then
+        if (cproca_l==0) then
+           write(*,'(A)') ' Using "physical" normalization at origin: phi(r=0) = phi0'
+           print *
+        else
+           write(*,'(A)') ' Using "physical" normalization at origin: phi ~ phi0 r**l'
+           print *
+     end if
+  end if
 
-! Alternative normalization.
+! Harmonic normalization.
 
-else
+  else
 
-   proca_phi0 = proca_phi0/sqrt(dble(2*cproca_l+1))/sqrt(4.d0*smallpi)
+     proca_phi0 = proca_phi0/sqrt(dble(2*cproca_l+1))/sqrt(4.d0*smallpi)
 
-   if (rank==0) then
-      if (cproca_l==0) then
-         write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', proca_phi0
-         print *
-      else
-         write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi/r**l ~ phi0/sqrt(4pi*(2l+1)) = ', proca_phi0
-         print *
-      end if
-   end if
+     if (rank==0) then
+        if (cproca_l==0) then
+           write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', proca_phi0
+           print *
+        else
+           write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi/r**l ~ phi0/sqrt(4pi*(2l+1)) = ', proca_phi0
+           print *
+        end if
+     end if
 
-end if
+  end if
 
-! Rescale the tolerance with boson_phi0, so the final tolerance
-! is measured with respect to this value.
+! Rescale the tolerance with proca_phi0, so the final
+! tolerance is measured with respect to this value.
 
   epsilon = epsilon*proca_phi0
 
@@ -356,7 +352,7 @@ end if
      if (domega<0.d0) then
         print *
         print *, 'For l-Proca star initial data we must have omega_right>omega_left.'
-        print *, 'Aborting! (subroutine idata_LProcastar)'
+        print *, 'Aborting! (subroutine idata_Lprocastar)'
         print *
         call die
      end if
@@ -473,10 +469,8 @@ end if
                  procaGres0 = 0
 
                  if (cproca_l/=0) then   
-
-                    procaBres0 = - proca_omega*proca_phi0/dble(2*cproca_l+3)/dble(cproca_l+1)     
-                    procaGres0 = - dble(cproca_l+2)*proca_omega*proca_phi0/dble(2*cproca_l+3)/dble(cproca_l+1) 
-
+                    procaBres0 = - proca_omega*proca_phi0/dble(2*cproca_l+3)/dble(cproca_l+1)
+                    procaGres0 = - dble(cproca_l+2)*proca_omega*proca_phi0/dble(2*cproca_l+3)/dble(cproca_l+1)
                  end if 
 
 !             Grid spacing and values at previous grid point.
@@ -495,11 +489,9 @@ end if
                  procaGres0 = 0
 
                  if (cproca_l/=0) then
-                    
                     procaBres0 = procaBres_g(l,i-1)
                     procaGres0 = procaGres_g(l,i-1)
-
-                 end if 
+                 end if
 
               end if
 
@@ -517,14 +509,14 @@ end if
                  k31 = 0.d0
                  k41 = 0.d0
 
-                 if (cproca_l/=0) then 
+                 if (cproca_l/=0) then
 
 !                   At the origin we have:  procaBres' = procaGres'= 0
 
-                    k51 = 0.d0 
+                    k51 = 0.d0
                     k61 = 0.d0
 
-                 end if          
+                 end if
 
 !             Sources at previous grid point.
 
@@ -539,27 +531,23 @@ end if
                  procaAres_rk = procaAres0
 
                  procaBres_rk = 0
-                 procaGres_rk = 0 
+                 procaGres_rk = 0
 
-                 if (cproca_l/=0) then 
-
+                 if (cproca_l/=0) then
                     procaBres_rk = procaBres0
-                    procaGres_rk = procaGres0  
-
-                 end if  
+                    procaGres_rk = procaGres0
+                 end if
 
 !                Sources.
-                              
+
                  k11 = delta*J1_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
                  k21 = delta*J2_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
                  k31 = delta*J3_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
                  k41 = delta*J4_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
 
                  if(cproca_l/=0) then 
-
                     k51 = delta*J5_lproca(procaBres_rk,procaGres_rk,rm)
-                    k61 = delta*J6_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)  
-
+                    k61 = delta*J6_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
                  end if 
 
               end if
@@ -575,14 +563,12 @@ end if
               procaAres_rk = procaAres0 + half*k41
 
               procaBres_rk = 0
-              procaGres_rk = 0 
+              procaGres_rk = 0
 
-              if (cproca_l/=0) then 
-
+              if (cproca_l/=0) then
                   procaBres_rk = procaBres0 + half*k51
-                  procaGres_rk = procaGres0 + half*k61 
-
-              end if  
+                  procaGres_rk = procaGres0 + half*k61
+              end if
 
 !             Sources.
 
@@ -592,10 +578,8 @@ end if
               k42 = delta*J4_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
 
               if (cproca_l/=0) then 
-
                   k52 = delta*J5_lproca(procaBres_rk,procaGres_rk,rm)
                   k62 = delta*J6_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
-
               end if 
 
 !             III) Third Runge-Kutta step.
@@ -610,10 +594,8 @@ end if
               procaGres_rk = 0 
 
               if (cproca_l/=0) then 
-
                   procaBres_rk = procaBres0 + half*k52
-                  procaGres_rk = procaGres0 + half*k62 
-
+                  procaGres_rk = procaGres0 + half*k62
               end if  
 
 !             Sources.
@@ -624,10 +606,8 @@ end if
               k43 = delta*J4_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
 
               if (cproca_l/=0) then 
-
                   k53 = delta*J5_lproca(procaBres_rk,procaGres_rk,rm)
                   k63 = delta*J6_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
-
               end if 
 
 !             IV) Fourth Runge-Kutta step.
@@ -644,10 +624,8 @@ end if
               procaGres_rk = 0 
 
               if (cproca_l/=0) then 
-
                   procaBres_rk = procaBres0 + k53
-                  procaGres_rk = procaGres0 + k63 
-
+                  procaGres_rk = procaGres0 + k63
               end if  
 
 !             Sources.
@@ -658,10 +636,8 @@ end if
               k44 = delta*J4_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
 
               if (cproca_l/=0) then 
-
                   k54 = delta*J5_lproca(procaBres_rk,procaGres_rk,rm)
                   k64 = delta*J6_lproca(A_rk,alpha_rk,procaFres_rk,procaAres_rk,procaBres_rk,procaGres_rk,rm)
-
               end if 
 
 !             Advance variables to next grid point.
@@ -676,17 +652,16 @@ end if
               procaGres_g(l,i) = 0
 
               if (cproca_l/=0) then 
-
                   procaBres_g(l,i) = procaBres0 + (k51 + 2.d0*(k52 + k53) + k54)/6.d0
                   procaGres_g(l,i) = procaGres0 + (k61 + 2.d0*(k62 + k63) + k64)/6.d0
-
               end if 
+
+!             Reconstruct physical potentials.
 
               procaF_g(l,i) = procaFres_g(l,i)*rr(l,i)**cproca_l
               procaA_g(l,i) = procaAres_g(l,i)*rr(l,i)**(cproca_l+1)
               procaB_g(l,i) = procaBres_g(l,i)*rr(l,i)**(cproca_l+2)
               procaG_g(l,i) = procaGres_g(l,i)*rr(l,i)**(cproca_l+1) 
-
 
 !             Check if solution is blowing up. This helps to reduce
 !             the need for a very fine tuned initial guess.
@@ -706,11 +681,8 @@ end if
 !             Check if solution is already very small.
 
               if (abs(procaFres_g(l,i))+abs(procaFres_g(l,i-1))<epsilon) then
- 
                  procaFres_g(l,i) = 0.d0
-               
                  procaF_g(l,i) = 0.d0
-
               end if
 
            end do
@@ -722,12 +694,12 @@ end if
 
            do i=1,ghost
 
-              A_g(l,1-i)      = + A_g(l,i)
-              alpha_g(l,1-i)  = + alpha_g(l,i)
+              A_g(l,1-i)     = + A_g(l,i)
+              alpha_g(l,1-i) = + alpha_g(l,i)
 
               procaF_g(l,1-i) = +(1.d0-2.d0*mod(cproca_l,2))*procaF_g(l,i)
               procaA_g(l,1-i) = +(1.d0-2.d0*mod(cproca_l+1,2))*procaA_g(l,i)
-              procaB_g(l,1-i) = +(1.d0-2.d0*mod(cproca_l+2,2))*procaB_g(l,i)
+              procaB_g(l,1-i) = +(1.d0-2.d0*mod(cproca_l,2))*procaB_g(l,i)
               procaG_g(l,1-i) = +(1.d0-2.d0*mod(cproca_l+1,2))*procaG_g(l,i)
 
               procaFres_g(l,1-i) = + procaFres_g(l,i)
@@ -779,7 +751,7 @@ end if
 
            left = .true.
 
-           omega_old = proca_omega
+           omega_old   = proca_omega
            proca_omega = omega_right
 
         else
@@ -852,11 +824,9 @@ end if
            procaBres_g(l-1,iaux) = 0
            procaGres_g(l-1,iaux) = 0
 
-           if (cproca_l/=0) then 
-
+           if (cproca_l/=0) then
               procaBres_g(l-1,iaux) = (9.d0*(procaBres_g(l,i)+procaBres_g(l,i+1)) - (procaBres_g(l,i-1)+procaBres_g(l,i+2)))/16.d0
               procaGres_g(l-1,iaux) = (9.d0*(procaGres_g(l,i)+procaGres_g(l,i+1)) - (procaGres_g(l,i-1)+procaGres_g(l,i+2)))/16.d0
-
            end if 
 
            procaF_g(l-1,iaux) = procaFres_g(l-1,iaux)*rr(l-1,iaux)**cproca_l
@@ -875,14 +845,13 @@ end if
 
            procaF_g(l-1,1-i) = +(1.d0-2.d0*mod(cproca_l,2))*procaF_g(l-1,i)
            procaA_g(l-1,1-i) = +(1.d0-2.d0*mod(cproca_l+1,2))*procaA_g(l-1,i)
-           procaB_g(l-1,1-i) = +(1.d0-2.d0*mod(cproca_l+2,2))*procaB_g(l-1,i)
+           procaB_g(l-1,1-i) = +(1.d0-2.d0*mod(cproca_l,2))*procaB_g(l-1,i)
            procaG_g(l-1,1-i) = +(1.d0-2.d0*mod(cproca_l+1,2))*procaG_g(l-1,i)
 
            procaFres_g(l-1,1-i) = + procaFres_g(l-1,i)
            procaAres_g(l-1,1-i) = + procaAres_g(l-1,i)
            procaBres_g(l-1,i-1) = + procaBres_g(l-1,i)
-           procaGres_g(l-1,i-1) = + procaGres_g(l-1,i) 
-
+           procaGres_g(l-1,i-1) = + procaGres_g(l-1,i)
 
         end do
 
@@ -924,9 +893,10 @@ end if
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,I10)' ) ' l-Procastar parameter = ', cproca_l
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', proca_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+        write(*,'(A,I1)' )    ' l-Procastar parameter  = ', cproca_l
+        write(*,'(A,E22.16)') ' Omega (not-rescaled)   = ', proca_omega
+        write(*,'(A,E22.16)') ' Omega (rescaled)       = ', omega_new
+        print *
      end if
 
 !    Rescale procaF.
@@ -951,14 +921,15 @@ end if
 !
 !      = - alpha [ m**2 procaA + l(l+1)(procaA -procaG)/r**2] / (A omega)
 
-     procaE_g = - alpha_g*(  cproca_mass**2*procaA_g &
-                             + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA_g-procaG_g)/rr**2  )/(A_g*omega_new)
+     procaE_g = - alpha_g*(cproca_mass**2*procaA_g &
+              + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA_g-procaG_g)/rr**2)/(A_g*omega_new)
 
-!    Angular component (index down) of electric field is given by: 
-
-!    Xi = -(omega*procaB + alpha*procaPhi)/alpha 
+!    Angular component (index down) of electric field is given by:
+!
+!    Xi = - (omega*procaB + alpha*procaPhi)/alpha 
     
-     procaXi_g = - ( omega_new*procaB_g + alpha_g*procaPhi_g )/alpha_g
+     procaXi_g = - (omega_new*procaB_g + alpha_g*procaPhi_g)/alpha_g
+
 
 !    *************************************
 !    ***   L-PROCA STAR PERTURBATION   ***
@@ -1017,21 +988,27 @@ end if
   end if
 
 
-! ***************************************************************************************
-! ***   IMAGINARY PARTS OF (procaPhi,procaE) AND REAL PART OF (procaA,procaB,procaG)  ***
-! ***************************************************************************************
+! ********************************************************
+! ***   IMAGINARY PARTS OF (procaPhi,procaE,procaXi)   ***
+! ***   AND REAL PARTS  OF (procaA,procaB,procaG)      ***
+! ********************************************************
 
-! Set imaginary parts of procaPhi, procaE, procaXi to zero.
+! Set imaginary parts of (procaPhi,procaE,procaXi) to zero.
 
   cprocaPhi_I = 0.d0
   cprocaE_I   = 0.d0
   cprocaXi_I  = 0.d0
 
-! Set real part of procaA, procaB and procaG to zero.
+! Set real part of (procaA,procaB,procaG) to zero.
 
   cprocaA_R = 0.d0
   cprocaB_R = 0.d0
   cprocaG_R = 0.d0
+
+! Find procaL.
+
+  cprocaL_R = 0.d0
+  cprocaL_I= (cprocaA_I - cprocaG_I)/r**2
 
 
 ! ***************
@@ -1072,23 +1049,25 @@ end if
   procaB = procaBres*rm**(cproca_l+2)
   procaG = procaGres*rm**(cproca_l+1) 
 
-! Radial electric field   
+! Radial electric field:
+!
 ! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
 
-  procaE = - alpha*( cproca_mass**2*procaA &
-                     + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2 )/(A*proca_omega)
+  procaE = - alpha/(A*proca_omega)*(cproca_mass**2*procaA &
+         + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2)
 
-
+! Energy density:
 !                        2     2           2    2                 2 2                        2        2
 ! rho  = + 1/(8 pi) { A E  +  m [ (F/alpha)  + a / A ] + l(l+1)[ m b  + ([omega b + F]/alpha)  + (a-G) / A ]/ r**2 }
 !
 ! Notice that we don't divide by 8*pi since it cancels.
 
   rho = A*procaE**2 + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A) &
-        + dble(cproca_l)*(dble(cproca_l)+1.d0)*( cproca_mass**2*procaB**2 + ((proca_omega*procaB + procaF)/alpha)**2 & 
-                                                 + (procaA-procaG)**2/A )/rm**2  
+      + dble(cproca_l)*(dble(cproca_l)+1.d0)*((cproca_mass*procaB)**2 &
+      + ((proca_omega*procaB + procaF)/alpha)**2 + (procaA-procaG)**2/A)/rm**2
 
-
+! Radial derivative of A:
+!
 ! dA/dr  =  A [ (1 - A)/r + 8 pi r A rho ]
 !
 ! Notice that we don't multiply the last term with 8*pi since it cancels.
@@ -1129,23 +1108,26 @@ end if
   procaB = procaBres*rm**(cproca_l+2)
   procaG = procaGres*rm**(cproca_l+1)
 
-! Radial electric field   
+! Radial electric field:
+!
 ! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
 
-  procaE = - alpha*( cproca_mass**2*procaA &
-                     + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2 )/(A*proca_omega)
+  procaE = - alpha/(A*proca_omega)*(cproca_mass**2*procaA &
+         + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2)
 
-
+! Radial stress tensor component:
+!
 !                         2     2           2    2                   2 2                        2        2
 ! SA  = + 1/(8 pi) { - A E  +  m [ (F/alpha)  + a / A ] + l(l+1)[ - m b  + ([omega b + F]/alpha)  + (a-G) / A ]/ r**2 }
 !
 ! Notice that we don't divide by 8*pi since it cancels.
 
-  SA = -A*procaE**2 + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A) &
-       + dble(cproca_l)*(dble(cproca_l)+1.d0)*( -cproca_mass**2*procaB**2 + ((proca_omega*procaB + procaF)/alpha)**2 & 
-                                                 + (procaA-procaG)**2/A )/rm**2  
+  SA = - A*procaE**2 + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A) &
+     + dble(cproca_l)*(dble(cproca_l)+1.d0)*(((proca_omega*procaB + procaF)/alpha)**2 &
+     - cproca_mass**2*procaB**2 + (procaA-procaG)**2/A)/rm**2
 
-
+! Radial derivative of alpha:
+!
 ! dalpha/dr  =  alpha [ (A - 1)/(2r) + 4 pi r A SA ]
 !
 ! Notice that we don't multiply the last term with 4*pi*A since
@@ -1178,16 +1160,14 @@ end if
   real(8) J3_lproca
   real(8) A,alpha,procaFres,procaAres,procaBres,procaGres,rm
 
-!                                        2                                                                2
-! dF_res/dr  =  ( -l F_res + l(l+1)(alpha /omega)[ a_res - G_res ] )/r  +  r omega a_res [ (m alpha/omega) - 1 ]                                              
-!              
+! Radial derivative of procaFres:
+!
+! dF_res/dr  =  ( -l F_res + l(l+1)(alpha**2 /omega)[ a_res - G_res ] ) / r  +  r omega a_res [ (m alpha/omega)**2 - 1 ]
+!
 
-  J3_lproca = ( - dble(cproca_l)*procaFres & 
-                
-                + dble(cproca_l)*(dble(cproca_l)+1.d0)*(alpha**2/proca_omega)*(procaAres-procaGres) )/rm &  
-             
-              + rm*proca_omega*procaAres*((cproca_mass*alpha/proca_omega)**2 - 1.d0) 
-   
+  J3_lproca = (-dble(cproca_l)*procaFres & 
+                + dble(cproca_l)*(dble(cproca_l)+1.d0)*(alpha**2/proca_omega)*(procaAres-procaGres))/rm &  
+                + rm*proca_omega*procaAres*((cproca_mass*alpha/proca_omega)**2 - 1.d0)
 
   end function J3_lproca
 
@@ -1223,7 +1203,8 @@ end if
   procaB = procaBres*rm**(cproca_l+2)
   procaG = procaGres*rm**(cproca_l+1) 
 
-! Radial electric field   
+! Radial electric field:
+!
 ! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
 
   procaE = - alpha*( cproca_mass**2*procaA &
@@ -1244,7 +1225,6 @@ end if
 ! it cancels.
 
   J4_lproca = ( proca_omega*procaFres*A/alpha**2 - (dble(cproca_l)+2.d0+A)*procaAres &
-
                 + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres )/rm - rm*procaAres*A*aux
 
   end function J4_lproca
@@ -1259,7 +1239,7 @@ end if
 ! ***   RADIAL DERIVATIVE OF procaBres   ***
 ! ******************************************
 
-! The radial derivative of procaBres. This is just the definition of G_res
+! The radial derivative of procaBres. This is just the definition of G_res.
 
   function J5_lproca(procaBres,procaGres,rm)
 
@@ -1270,9 +1250,9 @@ end if
   real(8) J5_lproca
   real(8) procaBres,procaGres,rm
 
-! d b_res/dr = ( G_res - (l+2) b_res )/r  
+! d b_res/dr = (G_res - (l+2) b_res)/r  
 
-  J5_lproca = ( procaGres - (dble(cproca_l)+2.d0)*procaBres )/rm
+  J5_lproca = (procaGres - (dble(cproca_l)+2.d0)*procaBres)/rm
 
   end function J5_lproca
 
@@ -1328,11 +1308,11 @@ end if
  ! Notice that we don't multiply the last term with 4*pi since
  ! it cancels.
  
-   J6_lproca = ( -2*procaAres - (dble(cproca_l)+A)*procaGres + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres  )  /rm  &
-               
-               + rm*( (cproca_mass**2-(proca_omega/alpha)**2)*A*procaBres - A*procaGres*aux )  
- 
-   end function J6_lproca  
+   J6_lproca = ( -2*procaAres - (dble(cproca_l)+A)*procaGres + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres)/rm  &
+                 + rm*A*((cproca_mass**2-(proca_omega/alpha)**2)*procaBres - procaGres*aux )  
+
+   end function J6_lproca
+  
 
 
 
