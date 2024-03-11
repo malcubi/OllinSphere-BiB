@@ -61,8 +61,8 @@
 ! ghost:         Number of ghost zones.
 ! intorder:      Order of interpolation (1,3).
 !
-! nproctot:         Total number of processors uses in the run.  It is not really a parameter
-!                   and I use it only for checkpointing (should not be set in parameter file).
+! nproctot:      Total number of processors used in the run.  It is not really a parameter
+!                and I use it only for checkpointing (should not be set in parameter file).
 !
 ! Notice that the number of ghost zones should
 ! not be given in the parameter file since it
@@ -415,6 +415,7 @@
 ! scalar_lambda:     Coefficient of phi**4 term in potential.
 !
 ! scalarmethod:      Finite difference method.
+! scalar_relax:      Do we use relaxation method for initial data?
 
   real(8) :: scalar_a0 = 0.d0
   real(8) :: scalar_r0 = 0.d0
@@ -427,6 +428,8 @@
   character(1000) :: scalarprofile   = "gaussian"   ! range=(gaussian,r2gaussian,tophat)
   character(1000) :: scalarpotential = "none"       ! range=(none,phi2,phi4)
   character(1000) :: scalarmethod    = "second"     ! range=(first,second)
+
+  logical :: scalar_relax = .false.
 
 ! Cosmological runs:
 !
@@ -523,6 +526,7 @@
 ! omega_right:       Right frequency guess.
 !
 ! boson_gauge:       Gauge for boson star initial data (PA=polar-areal,CF=conformally flat)   
+! boson_relax:       Do we use relaxation method for boson star initial data?
 
   real(8) :: boson_phi0  = 0.d0
 
@@ -532,6 +536,8 @@
 
   character(1000) :: boson_factor = "harmonic" ! range=(physical,harmonic)
   character(1000) :: boson_gauge  = "PA"       ! range=(PA,CF)
+
+  logical :: boson_relax = .false.
 
 ! Boson star perturbation.
 !

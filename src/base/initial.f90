@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.88 2023/09/26 16:39:22 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.89 2024/02/27 18:30:52 malcubi Exp $
 
   subroutine initial
 
@@ -660,8 +660,8 @@
 
         print *, 'Proca star initial data needs "complexproca" type matter ...'
         print *, 'Aborting! (subroutine initial)'
-         print *
-         call die
+        print *
+        call die
 
      end if
 
@@ -688,6 +688,7 @@
      end if
 
   end if
+
 
 ! **********************
 ! ***  DIRAC PULSE   ***
