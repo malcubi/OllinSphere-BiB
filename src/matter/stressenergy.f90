@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.45 2023/09/12 20:13:17 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.46 2024/02/27 18:36:01 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -632,7 +632,7 @@
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               + cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               + cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2))
-              
+
 !    Radial momentum density (index down).
 
      JA(l,:) = JA(l,:) + (0.25d0/smallpi)*cproca_mass**2 &
@@ -655,13 +655,13 @@
                  - proca_mass**2*(cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)))/r(l,:)**2
      end if
 
-!    Aditional terms added for non-zero angular momentum of constituent fields.
+!    Aditional terms added for non-zero angular momentum of constituent fields:
 !
-!                                                2        2            2                    2
-!    rho  ->  rho +  1/(8 pi) l(l+1) [ proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
+!                                                  2        2            2                    2
+!    rho  ->  rho +  1/(8 pi) l(l+1) [ + proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
 !
 !
-!    JA   ->   JA -  1/(4 pi) l(l+1) [ procaXi_R ( procaA_R-procaG_R ) + procaXi_I (procaA_I-procaG_I) ] / ( r^2 B psi^4)
+!    JA   ->   JA -  1/(4 pi) l(l+1) [ procaXi_R ( procaA_R - procaG_R ) + procaXi_I (procaA_I - procaG_I) ] / ( r^2 B psi^4)
 !
 !                                                  2        2            2                    2
 !    SAA  ->  SAA +  1/(8 pi) l(l+1) [ - proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
@@ -670,29 +670,30 @@
 !    Notice that there is no extra term for SBB.
 !
 !                                                  2        2            2                    2
-!    SLL ->   SLL +  1/(8 pi) l(l+1) [ - proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^4 B psi^4) 
-!     
-    if (cproca_l/=0) then 
-          
-        rho(l,:) = rho(l,:) + (0.125d0/smallpi)*( dble(cproca_l*(cproca_l+1))) &
-                 *( proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2) + (cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2) &
-                 + ((cprocaA_R(l,:)-cprocaG_R(l,:))**2 + (cprocaA_I(l,:)-cprocaG_I(l,:))**2)/(A(l,:)*psi4(l,:)) ) &
-                 /(B(l,:)*psi4(l,:))/r(l,:)**2
+!    SLL ->   SLL +  1/(8 pi) l(l+1) [ - proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^4 B psi^4)
 
-        JA(l,:)  = JA(l,:) - (0.25d0/smallpi)*( dble(cproca_l*(cproca_l+1))) &
-                 *( cprocaXi_R(l,:)*(cprocaA_R(l,:)-cprocaG_R(l,:)) + cprocaXi_I(l,:)*(cprocaA_I(l,:)-cprocaG_I(l,:)) ) &
-                 /(B(l,:)*psi4(l,:))/r(l,:)**2
 
-        SAA(l,:) = SAA(l,:) + (0.125d0/smallpi)*( dble(cproca_l*(cproca_l+1))) &
-                 *( - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2) + (cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2) &
-                 + ((cprocaA_R(l,:)-cprocaG_R(l,:))**2 + (cprocaA_I(l,:)-cprocaG_I(l,:))**2)/(A(l,:)*psi4(l,:)) ) &
-                 /(B(l,:)*psi4(l,:))/r(l,:)**2
+     if (cproca_l/=0) then
+
+        rho(l,:) = rho(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
+                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 + proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                 + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
+                 /(B(l,:)*psi4(l,:))
+
+        JA(l,:)  = JA(l,:) - (0.25d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
+                 *(cprocaXi_R(l,:)*cprocaL_R(l,:) + cprocaXi_I(l,:)*cprocaL_I(l,:)) &
+                 /(B(l,:)*psi4(l,:))
+
+        SAA(l,:) = SAA(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
+                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                 + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
+                 /(B(l,:)*psi4(l,:))
 
         if (.not.nolambda) then
-            SLL(l,:) = SLL(l,:) + (0.125d0/smallpi)*( dble(cproca_l*(cproca_l+1))) &
-                     *( - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2) + (cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2) &
-                     + ((cprocaA_R(l,:)-cprocaG_R(l,:))**2 + (cprocaA_I(l,:)-cprocaG_I(l,:))**2)/(A(l,:)*psi4(l,:)) ) &
-                     /(B(l,:)*psi4(l,:))/r(l,:)**4
+            SLL(l,:) = SLL(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
+                     *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                     + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
+                     /(B(l,:)*psi4(l,:))
         end if
 
      end if 
@@ -728,7 +729,7 @@
 
 !    Additional terms for angular momentum.
 
-     if (cproca_l/=0) then 
+     if (cproca_l/=0) then
 
 !         rho  = rho  +  1/(4 pi) l(l+1)[ cprocaB cprocaXi  -  cprocaB cprocaXi  ] / r^2
 !            Q      Q                            R        I           I        R
@@ -736,7 +737,7 @@
           cproca_Qdens = cproca_Qdens &
                        + dble(cproca_l*(cproca_l+1))*(cprocaB_R*cprocaXi_I - cprocaB_I*cprocaXi_R)/(4.d0*smallpi)/r**2
 
-!          r    r         
+!          r    r
 !         j  = j  -  1/(4 pi) l(l+1)[ cprocaB ( cprocaA - cprocaG )  -  cprocaB ( cprocaA - cprocaG ) ] / (A B psi^8 r^2)
 !                                            R         I         I             I         R         R
 
@@ -744,7 +745,7 @@
                        - dble(cproca_l*(cproca_l+1))*(cprocaB_R*(cprocaA_I-cprocaG_I) &
                        - cprocaB_I*(cprocaA_R-cprocaG_R))/(4.d0*smallpi)/(A*B*psi4**2)/r**2
 
-     end if 
+     end if
 
   end if
 
@@ -781,7 +782,7 @@
               + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
               +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
               + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(sqrt(A(l,:))*psi2(l,:)))
-              
+
 !    Radial momentum density (index down).
 
      JA(l,:) = JA(l,:) + aux &

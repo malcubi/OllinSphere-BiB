@@ -567,8 +567,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           aux = cproca_mass**2 - (proca_omega/alpha(0,Nrtotal))**2
-           res = (procaF_g(0,Nrtotal) - procaF_g(0,Nrtotal-1))/dr(0) + aux*procaF_g(0,Nrtotal)
+           aux = abs(cproca_mass**2 - (proca_omega/alpha_g(0,Nrtotal))**2)
+           res = (procaF_g(0,Nrtotal) - procaF_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaF_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega

@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedBosonstar.f90,v 1.24 2023/10/25 18:08:19 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedBosonstar.f90,v 1.25 2024/02/28 23:42:16 malcubi Exp $
 
   subroutine idata_chargedboson
 
@@ -698,7 +698,7 @@
 !
 !       phi' + k phi = 0
 !
-!       Notice that far away we must have:  k = m**2 - (omega/alpha)**2
+!       Notice that far away we must have:  k = sqrt(m**2 - (omega/alpha)**2)
 
         res_old = res
 
@@ -706,8 +706,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           aux = complex_mass**2 - (boson_omega/alpha(0,Nrtotal))**2
-           res = xi_g(0,Nrtotal) - log(abs(phi_g(0,Nrtotal)))/rr(0,Nrtotal)*phi_g(0,Nrtotal)
+           aux = abs(complex_mass**2 - (boson_omega/alpha(0,Nrtotal))**2)
+           res = xi_g(0,Nrtotal) + dsqrt(aux)*phi_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega

@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarCF.f90,v 1.38 2022/07/12 23:59:18 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarCF.f90,v 1.41 2024/03/11 16:54:53 malcubi Exp $
 
   subroutine idata_BosonstarCF
 
@@ -6,9 +6,10 @@
 ! ***   BOSON STAR INITIAL DATA IN CONFORMALLY FLAT GAUGE   ***
 ! *************************************************************
 
+! Boson stars are solutions such that the spacetime is static
+! and the complex scalar field has a harmonic dependence on time.
 ! This subroutine calculates initial data for a boson star
-! using a shooting method in the conformally flat gauge.
-
+! in the conformally flat gauge using a shooting method.
 
 ! MAIN PROBLEM: The main problem with this routine is that
 ! it requires a very fine tuned initial guess since we are
@@ -18,10 +19,6 @@
 ! and then move it slowly further out adjusting omega
 ! to high precision as we move out.
 
-
-! Boson stars are solutions such that the spacetime is static
-! and the complex scalar field has a harmonic time dependence.
-!
 ! To obtain the initial data we assume that spacetime is
 ! static (K_ij=0), and also that the complex scalar field
 ! has the form:
@@ -68,7 +65,7 @@
 !  r             r       \        r        /
 !
 ! where now:
-!                                    2
+!                                      2
 ! rho + S  =  2 [ ( omega phi / alpha )  -  V ]
 !
 ! This routine takes as input parameter the value of the scalar
@@ -835,14 +832,27 @@
 !       ***   FIND RESIDUAL AND CORRECT OMEGA   ***
 !       *******************************************
 
-!       Find the difference between the solution at the coarsest
-!       level and the expected asymptotic behaviour. The solution
-!       should decay exponetially far away, but for the moment I
-!       assume that it decays as phi/r, so that we should have:
-!       phi + r*xi = 0.  I will fix this later.
+!       Find the difference between the solution at the coarsest level
+!       and the expected asymptotic behaviour. The solution should
+!       decay exponetially far away as:
+!
+!       phi ~ exp(-k*r)
+!
+!       so that:
+!
+!       phi' + k phi = 0
+!
+!       Notice that far away we must have:  k = sqrt(m**2 - (omega/alpha)**2)
 
         res_old = res
-        res = rr(0,Nrtotal)*xi_g(0,Nrtotal) + phi_g(0,Nrtotal)
+
+        if (abs(phi_g(0,Nrtotal))+abs(phi_g(0,Nrtotal-1))<epsilon) then
+           res = epsilon/2.d0
+           goto 200
+        else
+           aux = abs(complex_mass**2 - (boson_omega/alpha_g(0,Nrtotal))**2)
+           res = xi_g(0,Nrtotal) + dsqrt(aux)*phi_g(0,Nrtotal)
+        end if
 
 !       Secant method:  Having found the difference for the two values of omega
 !       we can use it to extrapolate linearly to the next best guess.

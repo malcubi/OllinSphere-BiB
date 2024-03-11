@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.115 2024/02/02 17:44:30 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.117 2024/03/11 16:54:06 malcubi Exp $
 
   subroutine idata_BosonstarPA
 
@@ -9,7 +9,11 @@
 ! Boson stars are solutions such that the spacetime is static
 ! and the complex scalar field has a harmonic dependence on time.
 ! This subroutine calculates initial data for a boson star
-! using a shooting method in the polar-areal gauge (PA).
+! in the polar-areal gauge (PA) using a shooting method.
+! (There is in fact an option to use a relaxation method
+! by setting boson_relax=.true. in the parameter file,
+! but it is only second order accurate so the shooting
+! method is better).
 
 ! MAIN PROBLEM: The main problem with this routine is that
 ! it requires a very fine tuned initial guess since we are
@@ -288,6 +292,25 @@
   xires_g  = 0.d0
 
 
+! **********************************
+! ***   SOLVE WITH RELAXATION?   ***
+! **********************************
+
+! If we want to use the relaxation method from Numerical Recipes we call
+! the routine "BosonstarPArelax" (last routine at the end of the file)
+! and then return.
+!
+! Notice that at this point the relaxation routine does not allow for
+! perturbations.  We could fix this later, but for the moment this is
+! just for testing since the shooting algorithm works well and is fourth
+! order, while the relaxation routine is only second order.
+
+  if (boson_relax) then
+     call BosonstarPArelax(rr,A_g,alpha_g,phi_g,xi_g)
+     return
+  end if
+
+
 ! *********************************************
 ! ***   ONLY PROCESSOR 0 SOLVES THE ODE's   ***
 ! *********************************************
@@ -536,7 +559,7 @@
                     VL_rk = 0.5d0*(dble(complex_l)*(dble(complex_l)+1.d0)/rm**2)*phi_rk**2
                  endif
 
-                 K_rk  = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
+                 K_rk = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
 
 !                Sources.
 
@@ -580,7 +603,7 @@
                  VL_rk = 0.5d0*(dble(complex_l)*(dble(complex_l)+1.d0)/rm**2)*phi_rk**2
               end if
 
-              K_rk  = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
+              K_rk = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
 
 !             Sources.
 
@@ -620,7 +643,7 @@
                  VL_rk = 0.5d0*(dble(complex_l)*(dble(complex_l)+1.d0)/rm**2)*phi_rk**2
               end if
 
-              K_rk  = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
+              K_rk = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
 
 !             Sources.
 
@@ -662,7 +685,7 @@
                  VL_rk = 0.5d0*(dble(complex_l)*(dble(complex_l)+1.d0)/rm**2)*phi_rk**2
               end if
 
-              K_rk  = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
+              K_rk = 0.5d0*(xi_rk**2/A_rk + (phi_rk*boson_omega/alpha_rk)**2)
 
 !             Sources.
 
@@ -755,7 +778,7 @@
 !
 !       phi' + k phi = 0
 !
-!       Notice that far away we must have:  k = m**2 - (omega/alpha)**2
+!       Notice that far away we must have:  k = sqrt(m**2 - (omega/alpha)**2)
 
         res_old = res
 
@@ -763,8 +786,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           aux = complex_mass**2 - (boson_omega/alpha(0,Nrtotal))**2
-           res = xi_g(0,Nrtotal) + aux*phi_g(0,Nrtotal)
+           aux = abs(complex_mass**2 - (boson_omega/alpha_g(0,Nrtotal))**2)
+           res = xi_g(0,Nrtotal) + dsqrt(aux)*phi_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega
@@ -916,11 +939,9 @@
 
      omega_new = boson_omega/alphafac
 
-     if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', boson_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
-        print *
-     end if
+     write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', boson_omega
+     write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+     print *
 
 
 !    ********************************
@@ -1271,6 +1292,25 @@
 
   end if
 
+
+! **********************************************************
+! ***   IMAGINARY PART OF (phi,xi) AND REAL PART OF pi   ***
+! **********************************************************
+
+! Set the imaginary part and its spatial derivative to zero.
+
+  complex_phiI = 0.d0
+  complex_xiI  = 0.d0
+
+! Set time derivative of real part to zero.
+
+  complex_piR  = 0.d0
+
+
+! ***********************
+! ***   DERIVATIVES   ***
+! ***********************
+
 ! Derivatives of A and alpha.
 
   diffvar => A
@@ -1297,19 +1337,7 @@
 
   end if
 
-
-! **********************************************************
-! ***   IMAGINARY PART OF (phi,xi) AND REAL PART OF pi   ***
-! **********************************************************
-
-! Set the imaginary part and its spatial derivative to zero.
-
-  complex_phiI = 0.d0
-  complex_xiI  = 0.d0
-
-! Set time derivative of real part to zero.
-
-  complex_piR  = 0.d0
+  200  continue
 
 
 ! ***************
@@ -1358,6 +1386,11 @@
 
   J1_PA = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho)
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end function J1_PA
 
 
@@ -1397,6 +1430,11 @@
 
   J2_PA = alpha*(0.5d0*(A - 1.d0)/rm + 4.d0*smallpi*rm*A*(K-V-VL))
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end function J2_PA
 
 
@@ -1423,6 +1461,11 @@
 ! dphi/dr = xi.
 
   J3_PA = xi
+
+
+! ***************
+! ***   END   ***
+! ***************
 
   end function J3_PA
 
@@ -1480,6 +1523,11 @@
   J4_PA = - xi/rm*(1.d0 + A - 8.d0*smallpi*rm**2*A*(V+VL)) &
         + A*((DV+DVL) - (boson_omega/alpha)**2*phi)
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end function J4_PA
 
 
@@ -1506,6 +1554,11 @@
 ! dphires/dr = xires.
 
   J5_PA = xires
+
+
+! ***************
+! ***   END   ***
+! ***************
 
   end function J5_PA
 
@@ -1575,6 +1628,11 @@
         + 8.d0*smallpi*A*(V+VL)*(rm*xires + dble(complex_l)*phires) &
         + A*(DV/rm**complex_l - (boson_omega/alpha)**2*phires)
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end function J6_PA
 
 
@@ -1624,6 +1682,11 @@
      call die
 
   end if
+
+
+! ***************
+! ***   END   ***
+! ***************
 
   end function V_PA
 
@@ -1675,5 +1738,361 @@
 
   end if
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end function DV_PA
+
+
+
+
+
+
+
+  subroutine BosonstarPArelax(rr,A_g,alpha_g,phi_g,xi_g)
+
+! *****************************************************************
+! ***   SOLVE THE EIGENVALUE PROBLEM WITH A RELAXATION METHOD   ***
+! *****************************************************************
+
+! Here we solve the eigenvalue problem using the routine "solvde"
+! from Numerical Recipes, which solves the equations with a relaxation
+! that uses Newton's method.
+!
+! The routine "solvde" calls the subroutine "difeq", where one must define
+! the equations to solve and the derivatives for Newton's method.  Have a look
+! at it, it is in the directory "base".
+!
+! The routine "solvde" is adapated to first order systems, so here I take:
+!
+! y1  =  A
+! y2  =  alpha
+! y3  =  phi
+! y4  =  dphi/dr  =  xi
+! y5  =  omega (eigenvalue)
+!
+! This section is just for testing, as it is only second order.
+! If you want to use it you must set "boson_relax = .true." in the
+! paremeter file.
+
+! Include modules.
+
+  use mpi
+  use param
+  use arrays
+  use procinfo
+
+! Include Numerical Recipes modules.
+
+  use nrtype
+  use nr, only : solvde
+
+! Extra variables.
+
+  implicit none
+
+  integer i,i0
+
+  real(8) r0,delta,ddr
+  real(8) alphafac,omega_new
+  real(8) aux
+
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                 ! Radial coordinate.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g        ! Radial metric and lapse global arrays.
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: phi_g,xi_g,piI_g   ! Scalar field global arrays.
+
+! Variables passed to solvde (I4B and DP are Numerical Recipes types).
+
+  integer(I4B) itmax,nb,l
+  integer(I4B), dimension(5) :: indexv
+
+  real(DP) conv,slowc
+  real(DP), dimension(5) :: scalv
+  real(DP), dimension(1:Nrtotal) :: x    ! Radial position for solvde.
+  real(DP), dimension(5,1:Nrtotal) :: y  ! Solution vector for solvde.
+
+
+! **************************************************
+! ***   CALL RELAXATION ROUTINE ON COARSE GRID   ***
+! **************************************************
+
+! Only processor 0 solves the system of equation.
+
+  if (rank==0) then
+
+!    Message to screen.
+
+     print *, 'Solving the system using the "solvde" routine from Numerical Recipes ...'
+     print *
+
+!    We have four boundary conditions at left hand side:
+!
+!    A(r=0)     =  1
+!    alpha(r=0) =  1
+!    phi(r=0)   =  phi0
+!    xi(r=0)    =  0
+
+     nb = 4
+
+!    Set "solvde" parameters (slowc,scalv) to 1 (the default).
+
+     slowc = 1.d0
+     scalv = 1.d0
+
+!    Maximum number of iterations and tolerance.
+
+     itmax = 100
+     conv  = 1.d-10
+
+!    Trivial ordering.
+
+     indexv(1) = 1
+     indexv(2) = 2
+     indexv(3) = 3
+     indexv(4) = 4
+     indexv(5) = 5
+
+!    Initialize (alpha,A) to 1.
+
+     y(1,:) = 1.d0
+     y(2,:) = 1.d0
+
+!    Initial guess for (phi,xi).  For the moment a simple
+!    gaussian. The width of the gaussian must be inverse to the
+!    amplitude phi0. The expresion below works reasonably well.
+!
+!    I will improve this later and allow one to read a previous
+!    solution as initial guess.
+
+     aux = complexR_s0/boson_phi0
+
+     y(3,:) = boson_phi0*exp(-rr(0,:)**2/aux**2)
+     y(4,:) = - 2.d0*rr(0,:)*y(3,:)/aux**2
+
+!    Initialize eigenvalue to average between omega_left and omega_right.
+
+     y(5,:) = 0.5d0*(omega_left+omega_right)
+
+!    Copy radial position from rr to x.
+
+     do i=1,Nrtotal
+        x(i) = rr(0,i)
+     end do
+
+!    Call "solvde" routine.
+
+     call solvde(itmax,conv,slowc,scalv,indexv,nb,x,y,0)
+     print *
+
+!    Copy solution to arrays (A,alpha,phi,xi).
+
+     do i=1,Nrtotal
+        A_g(0,i)     = y(1,i)
+        alpha_g(0,i) = y(2,i)
+        phi_g(0,i)   = y(3,i)
+        xi_g(0,i)    = y(4,i)
+     end do
+
+!    The new frequency must be the value of y(5,:),
+!    which should be constant.
+
+     boson_omega = y(5,1)
+
+!    Ghost zones.
+
+     do i=1,ghost
+        A_g(0,1-i)     = + A_g(0,i)
+        alpha_g(0,1-i) = + alpha_g(0,i)
+        phi_g(0,1-i)   = + phi_g(0,i)
+        xi_g(0,1-i)    = - xi_g(0,i)
+     end do
+
+
+!    *********************************
+!    ***   RESCALE (ALPHA,OMEGA)   ***
+!    *********************************
+
+!    Normalize lapse and omega.  Since we integrated initially
+!    assuming alpha(r=0)=1, we now need to rescale the lapse.
+!    This can be done easily since its equation is linear.
+!    But notice that this also rescales the final frequency omega.
+!
+!    In practice we just divide both alpha and omega by
+!    the asymptotic value of the lapse.  In order to obtain
+!    this value we assume that far away the lapse behaves
+!    as alpha = alpha0 + const/r.  This implies that:
+!
+!    alpha0  =  alpha + r dalpha/dr
+!
+!    We calculate dalpha/dr at the boundary with one sided
+!    differences and solve for alpha0.
+
+     if (order=="two") then
+        alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
+           *(3.d0*alpha_g(0,Nrtotal) - 4.d0*alpha_g(0,Nrtotal-1) + alpha_g(0,Nrtotal-2))
+     else
+        alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.25d0/dr(0) &
+            *(25.d0*alpha_g(0,Nrtotal) - 48.d0*alpha_g(0,Nrtotal-1) &
+            + 36.d0*alpha_g(0,Nrtotal-2) - 16.d0*alpha_g(0,Nrtotal-3) + 3.d0*alpha_g(0,Nrtotal-4))/3.d0
+     end if
+
+     alpha_g = alpha_g/alphafac
+
+!    Write value of omega to screen and rescale it.
+
+     omega_new = boson_omega/alphafac
+
+     write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', boson_omega
+     write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+     print *
+
+
+!    ************************
+!    ***   FINNER GRIDS   ***
+!    ************************
+
+!    At this point we only have the solution on the coarse
+!    grid.  If we have finner grids we need to find the
+!    solution on those grids.
+!
+!    Here we just interpolate.  This is not particularly
+!    accurate, but it is easy and works. It would be much
+!    better to solve on the finner grids using Dirichlet
+!    boundary conditions from the coarse grid.  I might
+!    try this later.
+
+     if (Nl>1) then
+
+        do l=1,Nl-1
+
+!          Grid spacing.
+
+           ddr = dr(l-1)
+
+!          Interpolation.
+
+           do i=1,Nrtotal
+
+!             Position to interpolate.
+
+              r0 = rr(l,i)
+
+!             Find grid point to the left of r0.
+
+              i0 = int((r0-rr(l-1,0))/ddr)
+              delta = r0 - rr(l-1,i0)
+              aux = delta/ddr
+
+!             Cubic interpolation.
+
+              A_g(l,i) = A_g(l-1,i0) - aux*(A_g(l-1,i0+2) - 6.d0*A_g(l-1,i0+1) &
+                 + 3.d0*A_g(l-1,i0) + 2.d0*A_g(l-1,i0-1))/6.d0 &
+                 + aux**2*(3.d0*A_g(l-1,i0+1) - 6.d0*A_g(l-1,i0) + 3.d0*A_g(l-1,i0-1))/6.d0 &
+                 + aux**3*(A_g(l-1,i0+2) - 3.d0*A_g(l-1,i0+1) + 3.d0*A_g(l-1,i0) - A_g(l-1,i0-1))/6.d0
+
+              alpha_g(l,i) = alpha_g(l-1,i0) + aux*(alpha_g(l-1,i0+1) - alpha_g(l-1,i0))
+
+              alpha_g(l,i) = alpha_g(l-1,i0) - aux*(alpha_g(l-1,i0+2) - 6.d0*alpha_g(l-1,i0+1) &
+                 + 3.d0*alpha_g(l-1,i0) + 2.d0*alpha_g(l-1,i0-1))/6.d0 &
+                 + aux**2*(3.d0*alpha_g(l-1,i0+1) - 6.d0*alpha_g(l-1,i0) + 3.d0*alpha_g(l-1,i0-1))/6.d0 &
+                 + aux**3*(alpha_g(l-1,i0+2) - 3.d0*alpha_g(l-1,i0+1) + 3.d0*alpha_g(l-1,i0) - alpha_g(l-1,i0-1))/6.d0
+
+              phi_g(l,i) = phi_g(l-1,i0) - aux*(phi_g(l-1,i0+2) - 6.d0*phi_g(l-1,i0+1) &
+                 + 3.d0*phi_g(l-1,i0) + 2.d0*phi_g(l-1,i0-1))/6.d0 &
+                 + aux**2*(3.d0*phi_g(l-1,i0+1) - 6.d0*phi_g(l-1,i0) + 3.d0*phi_g(l-1,i0-1))/6.d0 &
+                 + aux**3*(phi_g(l-1,i0+2) - 3.d0*phi_g(l-1,i0+1) + 3.d0*phi_g(l-1,i0) - phi_g(l-1,i0-1))/6.d0
+
+              xi_g(l,i) = xi_g(l-1,i0) - aux*(xi_g(l-1,i0+2) - 6.d0*xi_g(l-1,i0+1) &
+                 + 3.d0*xi_g(l-1,i0) + 2.d0*xi_g(l-1,i0-1))/6.d0 &
+                 + aux**2*(3.d0*xi_g(l-1,i0+1) - 6.d0*xi_g(l-1,i0) + 3.d0*xi_g(l-1,i0-1))/6.d0 &
+                 + aux**3*(xi_g(l-1,i0+2) - 3.d0*xi_g(l-1,i0+1) + 3.d0*xi_g(l-1,i0) - xi_g(l-1,i0-1))/6.d0
+
+           end do
+
+!          Ghost zones.
+
+           do i=1,ghost
+              A_g(l,1-i)     = + A_g(l,i)
+              alpha_g(l,1-i) = + alpha_g(l,i)
+              phi_g(l,1-i)   = + phi_g(l,i)
+              xi_g(l,1-i)    = - xi_g(l,i)
+           end do
+
+        end do
+
+     end if
+
+
+!    ********************************
+!    ***   IMAGINARY PART OF pi   ***
+!    ********************************
+
+!    From the original ansatz, we take the time derivative of
+!    the imaginary part equal to (omega/alpha)*phi.
+
+     piI_g = (omega_new/alpha_g)*phi_g
+
+
+! *************************************
+! ***   FINISHED FINDING SOLUTION   ***
+! *************************************
+
+! When we get here the solution has been found,
+! so we close the "if" statement for processor 0.
+
+  end if
+
+
+! ************************************************
+! ***   DISTRIBUTE SOLUTION AMONG PROCESSORS   ***
+! ************************************************
+
+! For parallel runs, when we get here the solution
+! is known only on processor zero for the full size
+! arrays with dimensions Nrtotal.  We must now distribute
+! the solution among all other processors.
+
+  if (size==1) then
+
+     A     = A_g
+     alpha = alpha_g
+
+     complex_phiR = phi_g
+     complex_xiR  = xi_g
+     complex_piI  = piI_g
+
+  else
+
+     call distribute(0,Nl-1,A,A_g)
+     call distribute(0,Nl-1,alpha,alpha_g)
+
+     call distribute(0,Nl-1,complex_phiR,phi_g)
+     call distribute(0,Nl-1,complex_xiR,xi_g)
+     call distribute(0,Nl-1,complex_piI,piI_g)
+
+  end if
+
+
+! **********************************************************
+! ***   IMAGINARY PART OF (phi,xi) AND REAL PART OF pi   ***
+! **********************************************************
+
+! Set the imaginary part of phi and its spatial derivative to zero.
+
+  complex_phiI = 0.d0
+  complex_xiI  = 0.d0
+
+! Set time derivative of the real part of phi to zero.
+
+  complex_piR  = 0.d0
+
+
+! ***************
+! ***   END   ***
+! ***************
+
+  end subroutine BosonstarPArelax
+
 

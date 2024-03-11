@@ -5,10 +5,10 @@
 ! ***   DIRAC STAR INITIAL DATA IN POLAR-AREAL GAUGE  ***
 ! *******************************************************
 
-! This subroutine calculates initial data for a Dirac star
-! using a shooting method in the polar-areal gauge (PA).
 ! Dirac stars are solutions such that the spacetime is static
 ! and the Dirac fields have a harmonic dependence on time.
+! This subroutine calculates initial data for a Dirac star
+! in the polar-areal gauge (PA) using a shooting method.
 
 ! MAIN PROBLEM: The main problem with this routine is that
 ! it requires a very fine tuned initial guess since we are

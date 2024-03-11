@@ -1,3 +1,4 @@
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_scalarpulse.f90,v 1.70 2024/03/11 16:52:16 malcubi Exp $
 
   subroutine idata_scalarpulse
 
@@ -57,6 +58,11 @@
   use derivatives
   use radialfunctions
 
+! Include Numerical Recipes modules.
+
+  use nrtype
+  use nr, only : solvde
+
 ! Extra variables.
 
   implicit none
@@ -65,15 +71,15 @@
   integer lmin,lmax
   integer i0,imax,Naux
   integer status(MPI_STATUS_SIZE)
-  integer :: maxiter = 100
+  integer :: maxiter = 1000
 
-  real(8) one,two,smallpi
+  real(8) half,one,two,smallpi
   real(8) aux,res
   real(8) :: epsilon = 1.d-10
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: CL0,CL1,CL2,VL
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2,CA,VG
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: u,u_old
+  real(8), dimension(0:Nl-1,1-ghost:Nrmax)   :: CL0,CL1,CL2,VL
+  real(8), dimension(0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2,CA,VG
+  real(8), dimension(0:Nl-1,1-ghost:Nrtotal) :: u,u_old
 
 ! u        Global solution of ODE.
 ! CL0,C0   Local and global coefficient of first derivative in ODE.
@@ -83,12 +89,25 @@
 ! VL,VG    Local and global potential.
 
 
+! Now declare arrays for using the Numerical Recipes routine "solvde".
+! The declarations I4B and DP are nrtypes.
+
+  integer(I4B) nb
+  integer(I4B), dimension(2) :: indexv
+
+  real(DP) slowc
+  real(DP), dimension(2) :: scalv
+  real(DP), dimension(1:Nrtotal) :: x    ! Radial position for solvde.
+  real(DP), dimension(5,1:Nrtotal) :: y  ! Solution vector for solvde.
+
+
 ! *******************
 ! ***   NUMBERS   ***
 ! *******************
 
-  one = 1.d0
-  two = 2.d0
+  half = 0.5d0
+  one  = 1.d0
+  two  = 2.d0
 
   smallpi = acos(-1.d0)
 
@@ -159,7 +178,7 @@
 ! constraint is linear in psi, so we can just solve
 ! it directly by matrix inversion.
 
-  if (scalarpotential=="none") then
+  if ((scalarpotential=="none").and.(.not.scalar_relax)) then
 
 !    Message to screen.
 
@@ -268,7 +287,7 @@
 ! is no longer linear. We solve this equation using
 ! Newton's iterative method.
 
-  else
+  else if (.not.scalar_relax) then
 
 !    Message to screen.
 
@@ -365,7 +384,7 @@
 
         iter = 0
 
-        do while ((res.gt.epsilon).and.(iter.lt.maxiter))
+        do while ((res>epsilon).and.(iter<maxiter))
 
            iter = iter + 1
 
@@ -450,6 +469,136 @@
 
      end if
 
+
+! **********************
+! ***   RELAXATION   ***
+! **********************
+
+! Here I use the routine "solvde" from Numerical Recipes,
+! which solves the equation with a relaxation that uses
+! Newton's method.
+!
+! The routine "solvde" calls the subroutine "difeq",
+! where one must define the equations to solve and
+! the derivatives for Newton's method.  Have a look
+! at it, it is in the directory "base".
+!
+! This section is just for testing, as it is only second order.
+! If you want to use it you must set "scalar_relax = .true."
+! in the parameter file.
+
+  else
+
+!    Message to screen.
+
+     if (rank==0) then
+        print *, 'Solving initial data for a scalar pulse using the "solvde" routine from Numerical Recipes ...'
+        print *
+     end if
+
+!    Find scalar field potential.
+
+     do l=0,Nl-1
+        call potential(l)
+     end do
+
+!    One boundary condition at left hand side (dpsi/dr=0).
+
+     nb = 1
+
+!    Set "solvde" parameters (slowc,scalv) to 1 (the default).
+
+     slowc = 1.d0
+     scalv = 1.d0
+
+!    Trivial ordering.
+
+     indexv(1) = 1
+     indexv(2) = 2
+
+!    The routine "solvde" is adapated to first order systems,
+!    so here I take:
+!
+!    y1 = dpsi/dr    (initialized to 0)
+!    y2 = psi        (initialized to 1)
+!
+!    Notice that the first index of y(j,i) refers to the unkown
+!    variables, and the second one to the grid point.
+!
+!    The reason for taking y1 as the derivative is the fact
+!    that the "solvde" routine expects the boundary conditions
+!    at the left hand side to correspond to the first variables
+!    in the array y. Here we only have 1 boundary condition at
+!    the origin, dpsi/dr=0, so the first array must correspond
+!    to dpsi/dr.
+!
+!    We solve from coarse to fine grid.  On the coarse grid we
+!    use the correct boundary condition at the last grid point,
+!    but on the fine grids we use Dirichlet boundary conditions
+!    interpolating results from the coarser grids. Since we need
+!    to know the current grid level I pass it to the Numerical Recipes
+!    routines as the last parameter.
+
+     do l=0,Nl-1
+
+!       Initialize y1 and y2.
+
+        y(1,:) = 0.d0
+        y(2,:) = 1.d0
+
+!       Call "solvde" routine.
+
+        write(*,"(A,I0)") ' Level ',l
+        print *
+
+        call solvde(maxiter,epsilon,slowc,scalv,indexv,nb,x,y,l)
+
+        print *
+
+!       Copy solution for conformal factor onto array u.
+
+        do i=1,Nrtotal
+           u(l,i) = y(2,i)
+           psi(l,i) = u(l,i)
+        end do
+
+!       Ghost zones.
+
+        do i=1,ghost
+           u(l,1-i) = u(l,i)
+        end do
+
+     end do
+
+!    Restrict solution from fine to coarse grid.
+!    We don't call the subroutine "restrict"
+!    since here we are running only on processor 0.
+!    We use cubic interpolation.
+
+     do l=Nl-1,1,-1
+
+!       Substract constant difference at edge of fine grid.
+
+        i0 = Nrtotal/2 - 1
+
+        aux = u(l-1,i0) - (9.d0*(u(l,2*i0)+u(l,2*i0-1)) - (u(l,2*i0-2)+u(l,2*i0+1)))/16.d0
+
+        u(l-1,:) = u(l-1,:) - aux
+
+!       Interpolate.
+
+        do i=1,Nrtotal-ghost,2
+           u(l-1,i/2+1) = (9.d0*(u(l,i)+u(l,i+1)) - (u(l,i-1)+u(l,i+2)))/16.d0
+        end do
+
+!       Fix symmetries.
+
+        do i=1,ghost
+           u(l-1,1-i) = u(l-1,i)
+        end do
+
+     end do
+
   end if
 
 
@@ -478,7 +627,7 @@
   phi = dlog(psi)
 
   if (chimethod) then
-     chi  = one/psi**chipower
+     chi = one/psi**chipower
   end if
 
 
