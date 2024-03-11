@@ -1,5 +1,5 @@
 
-#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/Makefile,v 1.27 2023/02/23 17:21:49 malcubi Exp $
+#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/Makefile,v 1.28 2024/02/27 18:29:03 malcubi Exp $
 
 ################################################
 ###   MAKEFILE FOR PROGRAM OLLINSPHERE-BIB   ###
@@ -26,7 +26,7 @@ ARCH := $(shell uname)
 # Directories where make will search for files.
 
 vpath %.pl  prl
-vpath %.f90 src:src/base:src/auto:src/geometry:src/matter:fakempi
+vpath %.f90 src:fakempi:src/base:src/auto:src/NumRecipes:src/geometry:src/matter
 vpath %.mod objs
 vpath %.o objs
 vpath .perl% objs
@@ -201,7 +201,7 @@ endif
 # Object files corresponding to Fortran modules. I separate
 # them from the rest to be sure they are compiled first.
 
-MODS = param.o arrays.o procinfo.o derivatives.o derivadvect.o integrals.o radialfunctions.o
+MODS = param.o arrays.o procinfo.o derivatives.o derivadvect.o integrals.o radialfunctions.o nrtype.o nrutil.o nr.o
 
 ifeq ($(MPI),nompi)
 MODS += mpi.o
