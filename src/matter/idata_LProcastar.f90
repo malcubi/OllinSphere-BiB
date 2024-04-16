@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.4 2024/02/02 17:32:56 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_LProcastar.f90,v 1.6 2024/04/16 21:06:50 malcubi Exp $
 
   subroutine idata_LProcastar
 
