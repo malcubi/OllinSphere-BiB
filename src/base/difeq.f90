@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/difeq.f90,v 1.3 2024/03/01 19:38:19 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/difeq.f90,v 1.4 2024/04/16 20:38:46 malcubi Exp $
 
   subroutine difeq(kk,kk1,kk2,jsf,is1,isf,indexv,ss,rr,yy,ll)
 
@@ -344,15 +344,15 @@
 !
 !       dA/dr  =  A [ (1 - A) / r + 4 pi r A ( 2 V + (omega/alpha)**2 phi**2 + xi**2 / A ) ]
 
-        ss(1,11) = yy(1,kk)-yy(1,kk-1)-4*dr(ll)*(yy(1,kk)/2.D0+yy(1,kk-1)/2.D0) &
-                 *(smallpi*((yy(3,kk)/2.D0+yy(3,kk-1)/2.D0)**2*(complex_mass**2 &
+        ss(1,11) = yy(1,kk)-yy(1,kk-1) - 4.d0*dr(ll)*(yy(1,kk)/2.D0+yy(1,kk-1)/2.D0) &
+                 *(smallpi*((yy(3,kk)/2.d0+yy(3,kk-1)/2.d0)**2*(complex_mass**2 &
                  +(yy(5,kk)+yy(5,kk-1))**2/(yy(2,kk)+yy(2,kk-1))**2) &
-                 *(yy(1,kk)/2.D0+yy(1,kk-1)/2.D0)+(yy(4,kk)/2.D0+yy(4,kk-1)/2.D0)**2)*r0**2 &
-                 -yy(1,kk)/8.D0-yy(1,kk-1)/8.D0+1.D0/4.D0)/r0
+                 *(yy(1,kk)/2.d0+yy(1,kk-1)/2.d0)+(yy(4,kk)/2.d0+yy(4,kk-1)/2.d0)**2)*r0**2 &
+                 -yy(1,kk)/8.d0-yy(1,kk-1)/8.d0+1.d0/4.d0)/r0
 
 !       Derivatives.
 
-        ss(1,1) = -1.D0-2.D0*dr(ll)*(smallpi*((yy(3,kk)/2+yy(3,kk-1)/2)**2 &
+        ss(1,1) = -1.d0-2.d0*dr(ll)*(smallpi*((yy(3,kk)/2+yy(3,kk-1)/2)**2 &
                 *(complex_mass**2+(yy(5,kk)+yy(5,kk-1))**2/(yy(2,kk)+yy(2,kk-1))**2) &
                 *(yy(1,kk)/2+yy(1,kk-1)/2)+(yy(4,kk)/2+yy(4,kk-1)/2)**2)*r0**2 &
                 -yy(1,kk)/8-yy(1,kk-1)/8+1.D0/4.D0)/r0-4*dr(ll)*(yy(1,kk)/2+yy(1,kk-1)/2) &
@@ -544,215 +544,10 @@
      end if
 
 
-! *******************************************
-! ***   L-PROCA STARS POLAR AREAL GAUGE   ***
-! *******************************************
+! *****************************************
+! ***   PROCA STARS POLAR AREAL GAUGE   ***
+! *****************************************
 
-! In this case we have 7 equations for 7 variables:
-!
-! y1  =  A
-! y2  =  alpha
-! y3  =  procaF
-! y4  =  procaA
-! y5  =  procaB
-! y6  =  procaG
-! y7  =  omega  (eigenvalue)
-!
-! The matrix SS is a 7x15 matrix.  The equations are in column 15
-! for each variable with all terms on the same size (that is EQ=0),
-! while the derivatives with respect to y(j,kk-1) are on columns 1-7,
-! and with respect to y(j,kk) on columns 8-14. The expressions below
-! are obtained with MAPLE, so they look nasty.
-
-  else if (idata=="l-procastar") then
-
-!    Initialize matrix S.
-
-     ss = 0.d0
-
-!    Case cproca_l=0.
-
-     if (cproca_l==0) then
-
-!       Boundary conditions at first point (6 conditions).
-!       For cproca_l=0 the boundary conditions correspond to:
-!
-!       A(r<<1)     -  ( 1 + A2 r^2)  =  0 
-!       alpha(r=0)  -  1     =  0
-!
-!       procaF(r=0) -  phi0  =  0
-!       procaA(r=0)          =  0
-!
-!       procaB(r=0)          =  0
-!       procaG(r=0)          =  0
-!
-!       The last two are there to guarantee that procaB and
-!       procaG remain 0 for l=0.  Notice that the value of
-!       (alpha,phi) are arbitrary at the first point.  For A
-!       we do a Taylor expansion to second order from the
-!       Hamiltonian constraint to find the value of A2:
-!
-!       A2  =  (1/3) m^2 rho0^2
-!
-!       At the moment the above conditions are only first
-!       order, will fix this later.
-!
-!       Remember that the boundary conditions at the left
-!       must involve the LAST rows of SS.
-
-        if (kk==kk1) then
-
-!          Equations at left boundary.
-
-           r0 = rr(kk1)
-
-           ss(2,15) = yy(1,1) - (1.d0 + (proca_mass*proca_phi0*r0)**2/3.d0)
-           ss(3,15) = yy(2,1) - 1.d0
-           ss(4,15) = yy(3,1) - proca_phi0
-           ss(5,15) = yy(4,1)
-           ss(6,15) = yy(5,1)
-           ss(7,15) = yy(6,1)
-
-!          Derivatives. Remember that the values of
-!          the variables at the first point correspond
-!          to the columns (ne+1,...) since there is
-!          no dependence on point kk-1.
-
-           ss(2,8)  = 1.d0
-           ss(3,9)  = 1.d0
-           ss(4,10) = 1.d0
-           ss(5,11) = 1.d0
-           ss(6,12) = 1.d0
-           ss(7,13) = 1.d0
- 
-!       Boundary conditions at last point (1 condition).
-!
-!       The boundary conditions here must correspond to the
-!       FIRST rows of SS.
-
-        else if (kk>kk2) then
-
-!          Equations at right boundary.
-
-           !ss(1,15) = yy(3,kk2)
-           ss(7,15) = yy(7,kk2) - 0.5d0*(omega_left + omega_right)
-
-!          Derivatives.
-
-           !ss(1,10) = 1.d0
-           ss(1,14) = 1.d0
-
-!       Interior points.
-
-        else
-
-!          Calculate average radius.
-
-           r0 = 0.5d0*(rr(kk) + rr(kk-1))
-
-!          Equation 1. This is the Hamiltonian constraint:
-!
-!          dA/dr  =  A [ (1-A)/r  +  8 pi r A rho ]
-!
-!          with rho the energy density given by:
-!
-!          rho  =  1/(8 pi) [ A E^2 + m^2 ( (procaF/alpha)^2 + procaA^2/A) ]
-!
-!          and E the "electric field":
-!
-!          E  =  - alpha / (omega A) [ m^2 procaA^2 ]
-
-
-!          Derivatives.
-
-
-!          Equation 2. This is the lapse condition:
-!
-!          dalpha/dr  =  alpha [ (1-A)/2r + 4 pi r A SA ]
-!
-!          with SA given by:
-!
-!          SA  =  1/(8 pi) [ - A E^2 + m^2 ( (procaF/alpha)^2 + procaA^2/A) ]
-
-
-           ss(2,15) = yy(2,kk) - yy(2,kk-1)
-
-!          Derivatives.
-
-           ss(2,2) = - 1.d0
-           ss(2,9) = + 1.d0
-
-!          Equation 3.  This is the equation for procaF:
-!
-!          dprocaF/dr  =   omega procaA [ (m alpha/omega)**2 - 1 ]
-
-           aux1 = proca_s0/proca_phi0
-           ss(3,15) = yy(3,kk) - proca_phi0*exp(-rr(kk)**2/aux1**2)
-
-!          Derivatives.
-
-           ss(3,10) = 1.d0
-
-!          Equation 4.  This is the equation for procaA:
-!
-!          dprocaA/dr  =  omega*F*A / alpha**2  -  a [ (A+1)/r + 4 pi r A (SA - rho) ]
-
-           aux1 = proca_s0/proca_phi0
-           ss(4,15) = yy(4,kk) + (2.d0*rr(kk)/aux1**2)*proca_phi0*exp(-rr(kk)**2/aux1**2) &
-                    /(proca_mass**2/proca_omega - proca_omega)
-
-!          Derivatives.
-
-           ss(4,11) = 1.d0
-
-!          Equation 5. This is the equation for procaB, which
-!          is just the definition for procaG:
-!
-!          dprocaB/dr  =  procaG
-
-           aux1 = 0.5d0*dr(ll)
-
-           ss(5,15) = yy(5,kk) - yy(5,kk-1) - aux1*(yy(6,kk) + yy(6,kk-1))
-
-!          Derivatives.
-
-           ss(5,5)  = - 1.d0
-           ss(5,6)  = - aux1
-
-           ss(5,12) = + 1.d0
-           ss(5,13) = - aux1
-
-!          Equation 6.  This is the equation for procaG, which
-!          for cproca_l=0 we just take to be:
-!
-!          dprocaG/dr  =  0
- 
-           ss(6,15) = yy(6,kk) - yy(6,kk-1)
-
-!          Derivatives.
-
-           ss(6,6 ) = - 1.d0
-           ss(6,13) = + 1.d0
-
-!          Equation 7. This is the equation for the eigenvalue,
-!          which is just:
-!
-!          domega/dr  =  0
-
-           ss(7,15) = yy(7,kk) - yy(7,kk-1)
-
-!          Derivatives.
-
-           ss(7,7 ) = - 1.d0
-           ss(7,14) = + 1.d0
-
-        end if
-
-!    Case cproca_l>0.
-
-     else
-
-     end if
 
   end if
 

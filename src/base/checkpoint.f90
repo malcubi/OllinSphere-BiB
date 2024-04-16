@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/checkpoint.f90,v 1.20 2021/06/29 16:41:31 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/checkpoint.f90,v 1.21 2024/04/16 20:33:32 malcubi Exp $
 
   subroutine checkpointsave
 
@@ -317,7 +317,7 @@
 
   if (.not.flag) then
      if (rank==0) then
-        print *, 'Checkpoint directory "',trim(checkpointfile),'" does not exist.'
+        print *, 'Directory "',trim(checkpointfile),'" does not exist.'
         print *, 'Aborting (subroutine checkpoint.f90)'
         print *
      end if

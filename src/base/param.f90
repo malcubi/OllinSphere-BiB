@@ -105,9 +105,9 @@
   integer :: Nt = 10
 
 
-! ******************
-! ***   OUTPUT   ***
-! ******************
+! *********************************
+! ***   OUTPUT AND CHECKPOINT   ***
+! *********************************
 
 ! directory:       Name of directory for output.
 ! checkpointfile:  Name of checkpoint directory.
@@ -732,20 +732,24 @@
   real(8) :: proca_phi0  = 0.d0
   real(8) :: proca_omega = 0.d0
 
-  character(1000) :: proca_factor = "harmonic" ! range=(physical,harmonic)
+  character(1000) :: proca_factor = "harmonic"    ! range=(physical,harmonic)
 
 ! Proca star perturbation.
 !
-! procagauss:        Do we add a initial profile to the boson star solution?
+! procagauss:        Do we add a initial profile to the proca star solution?
 ! proca_a0:          Amplitude of initial profile.
 ! proca_r0:          Center of initial profile.
 ! proca_s0:          Width of initial profile.
 
   logical :: procagauss = .false.
 
-  real(8) :: proca_phiR_a0 = 0.d0
-  real(8) :: proca_phiR_r0 = 0.d0
-  real(8) :: proca_phiR_s0 = 1.d0
+  real(8) :: proca_PhiR_a0 = 0.d0
+  real(8) :: proca_PhiR_r0 = 0.d0
+  real(8) :: proca_PhiR_s0 = 1.d0
+
+  real(8) :: proca_AI_a0 = 0.d0
+  real(8) :: proca_AI_r0 = 1.d0
+  real(8) :: proca_AI_s0 = 1.d0
 
 
 ! ***********************
