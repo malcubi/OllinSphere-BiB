@@ -50,7 +50,7 @@
 ! Notice that with this ansatz the total stress-energy tensor is both
 ! time-independent and spherically symmetric.  Also, at t=0 the
 ! scalar potential phi is purely real, while the components of
-! the vector potential A and B are purely imaginary. 
+! the vector potential A and B are purely imaginary.
 !
 ! The standard ansatz for the metric for l-Proca stars is:
 !
@@ -79,8 +79,6 @@
 !              
 !
 ! The last two equations are valid only for l different from 0.
-!
-!   
 ! Furthermore, the energy density rho is given by:
 !
 !                           2     2           2    2                  2    2 2                         2       2
@@ -424,12 +422,10 @@
               procaGres_g(l,imin-1) = 0
 
               if (cproca_l/=0) then 
-
                  procaBres_g(l,imin-1) = (9.d0*(procaBres_g(l+1,Nrtotal-2)+procaBres_g(l+1,Nrtotal-3)) &
                                        - (procaBres_g(l+1,Nrtotal-4)+procaBres_g(l+1,Nrtotal-1)))/16.d0
                  procaGres_g(l,imin-1) = (9.d0*(procaGres_g(l+1,Nrtotal-2)+procaGres_g(l+1,Nrtotal-3)) &
                                        - (procaGres_g(l+1,Nrtotal-4)+procaGres_g(l+1,Nrtotal-1)))/16.d0
-
               end if               
 
               procaF_g(l,imin-1) = procaFres_g(l,imin-1)*rr(l,imin-1)**cproca_l
@@ -661,7 +657,7 @@
               procaF_g(l,i) = procaFres_g(l,i)*rr(l,i)**cproca_l
               procaA_g(l,i) = procaAres_g(l,i)*rr(l,i)**(cproca_l+1)
               procaB_g(l,i) = procaBres_g(l,i)*rr(l,i)**(cproca_l+2)
-              procaG_g(l,i) = procaGres_g(l,i)*rr(l,i)**(cproca_l+1) 
+              procaG_g(l,i) = procaGres_g(l,i)*rr(l,i)**(cproca_l+1)
 
 !             Check if solution is blowing up. This helps to reduce
 !             the need for a very fine tuned initial guess.
@@ -726,13 +722,7 @@
 !
 !       F' + k F = 0
 !
-!       But in principle we don't know the value of k.  However, we can obtain
-!       it as: k = - log|F|/r.  So the final condition is:
-!
-!       F' - ( log|F| / r ) F = 0
-!
-!       Also, if the solution at the last two points is already smaller than
-!       the tolerance we just assume we have found the solution and jump out.
+!       Notice that far away we must have:  k = sqrt(m**2 - (omega/alpha)**2)
 
         res_old = res
 
@@ -740,8 +730,9 @@
            res = epsilon/2.d0
            goto 100
         else
-           res = (procaF_g(0,Nrtotal) - procaF_g(0,Nrtotal-1))/dr(0) &
-               - log(abs(procaF_g(0,Nrtotal)))/rr(0,Nrtotal)*procaF_g(0,Nrtotal)
+           aux = abs(cproca_mass**2 - (boson_omega/alpha_g(0,Nrtotal))**2)
+           res = (procaF_g(0,Nrtotal) - procaF_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaF_g(0,Nrtotal)
+           !res = (procaB_g(0,Nrtotal) - procaB_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaB_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega
@@ -935,8 +926,8 @@
 !    ***   L-PROCA STAR PERTURBATION   ***
 !    *************************************
 !     
-!    comming soon! ...   
-!
+!    Comming soon! ...
+
 
 ! *************************************
 ! ***   FINISHED FINDING SOLUTION   ***
@@ -982,6 +973,7 @@
      call distribute(0,Nl-1,cprocaA_I,procaA_g)
      call distribute(0,Nl-1,cprocaB_I,procaB_g)
      call distribute(0,Nl-1,cprocaG_I,procaG_g)
+
      call distribute(0,Nl-1,cprocaE_R,procaE_g)
      call distribute(0,Nl-1,cprocaXi_R,procaXi_g)
 
@@ -1042,12 +1034,12 @@
   real(8) procaF,procaA,procaB,procaG,procaE
   real(8) rho
 
-! Non-rescaled variables
+! Non-rescaled variables.
 
   procaF = procaFres*rm**cproca_l
   procaA = procaAres*rm**(cproca_l+1)
   procaB = procaBres*rm**(cproca_l+2)
-  procaG = procaGres*rm**(cproca_l+1) 
+  procaG = procaGres*rm**(cproca_l+1)
 
 ! Radial electric field:
 !
@@ -1101,7 +1093,7 @@
   real(8) procaF,procaA,procaB,procaG,procaE
   real(8) SA
 
-! Non-rescaled variables
+! Non-rescaled variables.
 
   procaF = procaFres*rm**cproca_l
   procaA = procaAres*rm**(cproca_l+1)
@@ -1196,7 +1188,7 @@
   real(8) procaF,procaA,procaB,procaG,procaE
   real(8) aux
 
-! Non-rescaled variables
+! Non-rescaled variables.
 
   procaF = procaFres*rm**cproca_l
   procaA = procaAres*rm**(cproca_l+1)
@@ -1207,25 +1199,24 @@
 !
 ! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
 
-  procaE = - alpha*( cproca_mass**2*procaA &
-
-                     + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2 )/(A*proca_omega)
+  procaE = - alpha*(cproca_mass**2*procaA &
+         + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2)/(A*proca_omega)
 
 !                            2           2 2   2
-! SA - rho  = - (1/4pi) { A E  + l(l+1) m b / r } 
+! SA - rho  = - (1/4pi) { A E  + l(l+1) m b / r }
 !
 ! Notice that we don't divide by 4*pi since it cancels.
 
   aux = - A*procaE**2 - dble(cproca_l)*(dble(cproca_l)+1.d0)*cproca_mass**2*procaB**2/rm**2
 
-!                             
-! da_res/dr  = [ (omega A/alpha**2) F_res - (l+2+A) a_res  + l(l+1) A b_res ]/r - 4pi r a_res  A (SA-rho) 
-!  
+!
+! da_res/dr  = [ (omega A/alpha**2) F_res - (l+2+A) a_res  + l(l+1) A b_res ]/r - 4pi r a_res  A (SA-rho)
+!
 ! Notice that we don't multiply the last term with 4*pi since
 ! it cancels.
 
-  J4_lproca = ( proca_omega*procaFres*A/alpha**2 - (dble(cproca_l)+2.d0+A)*procaAres &
-                + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres )/rm - rm*procaAres*A*aux
+  J4_lproca = (proca_omega*procaFres*A/alpha**2 - (dble(cproca_l)+2.d0+A)*procaAres &
+            + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres)/rm - rm*procaAres*A*aux
 
   end function J4_lproca
 
@@ -1250,7 +1241,7 @@
   real(8) J5_lproca
   real(8) procaBres,procaGres,rm
 
-! d b_res/dr = (G_res - (l+2) b_res)/r  
+! d b_res/dr = (G_res - (l+2) b_res)/r
 
   J5_lproca = (procaGres - (dble(cproca_l)+2.d0)*procaBres)/rm
 
@@ -1270,49 +1261,47 @@
 
   function J6_lproca(A,alpha,procaFres,procaAres,procaBres,procaGres,rm)
 
-   use param
- 
-   implicit none
- 
-   real(8) J6_lproca
-   real(8) A,alpha,procaFres,procaAres,procaBres,procaGres,rm
-   real(8) procaF,procaA,procaB,procaG,procaE
-   real(8) aux
- 
-! Non-rescaled variables
+  use param
 
-   procaF = procaFres*rm**cproca_l
-   procaA = procaAres*rm**(cproca_l+1)
-   procaB = procaBres*rm**(cproca_l+2)
-   procaG = procaGres*rm**(cproca_l+1) 
- 
- ! Radial electric field   
- ! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
- 
-   procaE = - alpha*( cproca_mass**2*procaA &
-                      + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2 )/(A*proca_omega)
- 
- !                            2           2 2   2
- ! SA - rho  = - (1/4pi) { A E  + l(l+1) m b / r } 
- !
- ! Notice that we don't divide by 4*pi since it cancels.
- 
-   aux = - A*procaE**2 - dble(cproca_l)*(dble(cproca_l)+1.d0)*cproca_mass**2*procaB**2/rm**2
- 
- !                
- ! dG_res/dr  =  [ -2 a_res - (l+A) G_res + l(l+1) A b_res ] /r
- !
- !                       2               2  
- !               + r[ ( m - (omega/alpha) ) A b_res - 4pi A G_res (SA-rho)  ] 
- !  
- ! Notice that we don't multiply the last term with 4*pi since
- ! it cancels.
- 
-   J6_lproca = ( -2*procaAres - (dble(cproca_l)+A)*procaGres + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres)/rm  &
-                 + rm*A*((cproca_mass**2-(proca_omega/alpha)**2)*procaBres - procaGres*aux )  
+  implicit none
 
-   end function J6_lproca
-  
+  real(8) J6_lproca
+  real(8) A,alpha,procaFres,procaAres,procaBres,procaGres,rm
+  real(8) procaF,procaA,procaB,procaG,procaE
+  real(8) aux
 
+! Non-rescaled variables.
 
+  procaF = procaFres*rm**cproca_l
+  procaA = procaAres*rm**(cproca_l+1)
+  procaB = procaBres*rm**(cproca_l+2)
+  procaG = procaGres*rm**(cproca_l+1)
+
+! Radial electric field:
+!
+! E  = - alpha [ m**2 a + l(l+1)(a-G)/r**2] / (A omega)
+
+  procaE = - alpha*(cproca_mass**2*procaA &
+         + dble(cproca_l)*(dble(cproca_l)+1.d0)*(procaA-procaG)/rm**2)/(A*proca_omega)
+ 
+!                            2           2 2   2
+! SA - rho  = - (1/4pi) { A E  + l(l+1) m b / r }
+!
+! Notice that we don't divide by 4*pi since it cancels.
+
+  aux = - A*procaE**2 - dble(cproca_l)*(dble(cproca_l)+1.d0)*cproca_mass**2*procaB**2/rm**2
+
+!
+! dG_res/dr  =  [ -2 a_res - (l+A) G_res + l(l+1) A b_res ] / r
+!
+!                       2               2
+!               + r[ ( m - (omega/alpha) ) A b_res - 4pi A G_res (SA-rho) ]
+!
+! Notice that we don't multiply the last term with 4*pi since
+! it cancels.
+
+  J6_lproca = (- 2*procaAres - (dble(cproca_l)+A)*procaGres + dble(cproca_l)*(dble(cproca_l)+1.d0)*A*procaBres)/rm  &
+            + rm*A*((cproca_mass**2-(proca_omega/alpha)**2)*procaBres - procaGres*aux)
+
+  end function J6_lproca
 
