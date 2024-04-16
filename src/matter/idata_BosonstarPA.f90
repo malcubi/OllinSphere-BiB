@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.117 2024/03/11 16:54:06 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.118 2024/04/16 21:04:21 malcubi Exp $
 
   subroutine idata_BosonstarPA
 
@@ -306,6 +306,10 @@
 ! order, while the relaxation routine is only second order.
 
   if (boson_relax) then
+     if (rank==0) then
+        print *, 'Switching to relaxation method instead of shooting ...'
+        print *
+     end if
      call BosonstarPArelax(rr,A_g,alpha_g,phi_g,xi_g)
      return
   end if
@@ -1666,7 +1670,7 @@
 
      V_PA = 0.5d0*complex_mass**2*phi**2
 
-! Phi^4 potential
+! Phi^4 potential.
 
   else if (complexpotential=="phi4") then
 
@@ -1721,7 +1725,7 @@
 
      DV_PA = complex_mass**2*phi
 
-! Phi^4 potential
+! Phi^4 potential.
 
   else if (complexpotential=="phi4") then
 
