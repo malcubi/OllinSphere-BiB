@@ -644,6 +644,30 @@
   end if
 
 
+! ******************************
+! ***   CHARGED PROCA STAR   ***
+! ******************************
+
+! Proca star initial data.
+
+  if (idata=="chargedproca")    then
+
+     if (contains(mattertype,"complexproca").and.contains(mattertype,"electric")) then
+
+       call idata_chargedprocastar
+
+     else
+
+        print *, 'Charged Proca star initial data needs "complexproca" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
+
+     end if
+
+  end if
+
+
 ! ************************
 ! ***   L-PROCA STAR   ***
 ! ************************
