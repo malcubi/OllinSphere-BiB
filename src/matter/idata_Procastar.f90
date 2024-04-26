@@ -559,7 +559,7 @@
 !
 !       F' + k F = 0
 !
-!       Notice that far away we must have:  k = m**2 - (omega/alpha)**2
+!       Notice that far away we must have:  k = sqrt(m**2 - (omega/alpha)**2)
 
         res_old = res
 
@@ -616,9 +616,7 @@
      if (iter>=maxiter) then
         print *
         print *, 'Maximum iteration number reached, initial data solver did not converge.'
-        print *, 'Aborting! (subroutine idata_Procastar)'
         print *
-        call die
      else
         print *
         print *, 'Done!'
@@ -1248,8 +1246,4 @@
   J5_proca = - procaE*(2.d0/rm + 0.5d0*aux) - cproca_mass**2*procaF/alpha
 
   end function J5_proca
-
-
-
-
 
