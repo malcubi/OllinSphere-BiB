@@ -839,9 +839,7 @@
      if (iter>=maxiter) then
         print *
         print *, 'Maximum iteration number reached, initial data solver did not converge.'
-        print *, 'Aborting! (subroutine idata_BosonstarPA)'
         print *
-        call die
      else
         print *
         print *, 'Done!'
