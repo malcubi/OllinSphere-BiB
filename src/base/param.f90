@@ -266,7 +266,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
 
 
 ! *********************
@@ -715,9 +715,12 @@
 ! *******************************
 
 ! cproca_mass:       Mass parameter for complex Proca field.
+! complex_q:         Charge of complex Proca field.
 ! cproca_l:          Total angular momentum for "rotating" case (azimuthal quantum number).
 
   real(8) :: cproca_mass = 1.d0
+  real(8) :: cproca_q = 0.d0
+
   integer :: cproca_l    = 0
 
 ! Proca star initial data (we use the same parameters omega_right
