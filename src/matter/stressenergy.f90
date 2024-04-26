@@ -305,7 +305,7 @@
 !
 ! NOTE FOR A CHARGED SCALAR FIELD:
 !
-! For a charged scaalr field we need to use the EM "covariant derivatives":
+! For a charged scalar field we need to use the EM "covariant derivatives":
 
 ! d -> D = d + iqA  (ommiting indexes)
 !
@@ -640,18 +640,21 @@
 
 !    Stress tensor.
 
-     SAA(l,:) = SAA(l,:) - (0.125d0/smallpi)*(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
+     SAA(l,:) = SAA(l,:) - (0.125d0/smallpi) &
+              *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               - proca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               + (cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2)))
 
-     SBB(l,:) = SBB(l,:) + (0.125d0/smallpi)*(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
+     SBB(l,:) = SBB(l,:) + (0.125d0/smallpi) &
+              *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               - proca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               - (cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2)))
 
 !    SLL = (SAA - SBB)/r**2.
 
      if (.not.nolambda) then
-        SLL(l,:) = SLL(l,:) - (0.25d0/smallpi)*(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
+        SLL(l,:) = SLL(l,:) - (0.25d0/smallpi) &
+                 *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
                  - proca_mass**2*(cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)))/r(l,:)**2
      end if
 
