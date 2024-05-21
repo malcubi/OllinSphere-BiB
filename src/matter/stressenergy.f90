@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.46 2024/02/27 18:36:01 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.47 2024/05/21 19:09:26 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -642,12 +642,12 @@
 
      SAA(l,:) = SAA(l,:) - (0.125d0/smallpi) &
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
-              - proca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
+              - cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               + (cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2)))
 
      SBB(l,:) = SBB(l,:) + (0.125d0/smallpi) &
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
-              - proca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
+              - cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               - (cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2)))
 
 !    SLL = (SAA - SBB)/r**2.
@@ -655,31 +655,32 @@
      if (.not.nolambda) then
         SLL(l,:) = SLL(l,:) - (0.25d0/smallpi) &
                  *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
-                 - proca_mass**2*(cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)))/r(l,:)**2
+                 - cproca_mass**2*(cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)))/r(l,:)**2
      end if
 
 !    Aditional terms added for non-zero angular momentum of constituent fields:
 !
-!                                                  2        2            2                    2
-!    rho  ->  rho +  1/(8 pi) l(l+1) [ + proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
+!                                                   2        2            2                    2
+!    rho  ->  rho +  1/(8 pi) l(l+1) [ + cproca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
 !
 !
 !    JA   ->   JA -  1/(4 pi) l(l+1) [ procaXi_R ( procaA_R - procaG_R ) + procaXi_I (procaA_I - procaG_I) ] / ( r^2 B psi^4)
 !
-!                                                  2        2            2                    2
-!    SAA  ->  SAA +  1/(8 pi) l(l+1) [ - proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
+!                                                   2        2            2                    2
+!    SAA  ->  SAA +  1/(8 pi) l(l+1) [ - cproca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^2 B psi^4)
 !
 !
 !    Notice that there is no extra term for SBB.
 !
-!                                                  2        2            2                    2
-!    SLL ->   SLL +  1/(8 pi) l(l+1) [ - proca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^4 B psi^4)
+!                                                   2        2            2                    2
+!    SLL ->   SLL +  1/(8 pi) l(l+1) [ - cproca_mass |ProcaB|  + |procaXi|  + |procaA - procaG| /(A psi^4) ] / ( r^4 B psi^4)
 
 
      if (cproca_l/=0) then
 
         rho(l,:) = rho(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
-                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 + proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 + cproca_mass**2*(cprocaB_R(l,:)**2 &
+                 + cprocaB_I(l,:)**2))/r(l,:)**2 &
                  + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
                  /(B(l,:)*psi4(l,:))
 
@@ -688,13 +689,15 @@
                  /(B(l,:)*psi4(l,:))
 
         SAA(l,:) = SAA(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
-                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                 *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - cproca_mass**2*(cprocaB_R(l,:)**2 &
+                 + cprocaB_I(l,:)**2))/r(l,:)**2 &
                  + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
                  /(B(l,:)*psi4(l,:))
 
         if (.not.nolambda) then
             SLL(l,:) = SLL(l,:) + (0.125d0/smallpi)*dble(cproca_l*(cproca_l+1)) &
-                     *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - proca_mass**2*(cprocaB_R(l,:)**2 + cprocaB_I(l,:)**2))/r(l,:)**2 &
+                     *((cprocaXi_R(l,:)**2 + cprocaXi_I(l,:)**2 - cproca_mass**2*(cprocaB_R(l,:)**2 &
+                     + cprocaB_I(l,:)**2))/r(l,:)**2 &
                      + r(l,:)**2*(cprocaL_R(l,:)**2 + cprocaL_I(l,:)**2)/(A(l,:)*psi4(l,:))) &
                      /(B(l,:)*psi4(l,:))
         end if
@@ -748,6 +751,13 @@
                        - dble(cproca_l*(cproca_l+1))*(cprocaB_R*(cprocaA_I-cprocaG_I) &
                        - cprocaB_I*(cprocaA_R-cprocaG_R))/(4.d0*smallpi)/(A*B*psi4**2)/r**2
 
+     end if
+
+!    Charge and current density.
+
+     if (contains(mattertype,"electric")) then
+        echarge  = echarge  + cproca_q*cproca_Qdens
+        ecurrent = ecurrent + cproca_q*cproca_Qflux
      end if
 
   end if
