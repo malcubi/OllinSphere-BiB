@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.13 2023/02/22 21:34:42 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.14 2024/05/21 19:11:06 malcubi Exp $
 
   subroutine sources_complexproca(l)
 
@@ -56,9 +56,9 @@
 ! These are essentially Maxwell's equations in vacuum but with a mass term.
 
   scprocaE_R(l,:) = alpha(l,:)*(trK(l,:)*cprocaE_R(l,:) &
-                  + proca_mass**2*cprocaA_R(l,:)/(A(l,:)*psi4(l,:)))
+                  + cproca_mass**2*cprocaA_R(l,:)/(A(l,:)*psi4(l,:)))
   scprocaE_I(l,:) = alpha(l,:)*(trK(l,:)*cprocaE_I(l,:) &
-                  + proca_mass**2*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)))
+                  + cproca_mass**2*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)))
 
 ! Shift terms (Lie derivative).
 
