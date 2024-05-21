@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.50 2023/09/26 16:41:17 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.51 2024/05/21 19:14:56 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -168,190 +168,6 @@
 
 
 ! ***********************
-! ***   DIRAC FIELD   ***
-! ***********************
-
-  if (contains(mattertype,"dirac")) then
-
-!    Scalar eigenfields.
-
-     if (allocated(wpR_dirac)) then
-        wpR_dirac = dirac_FR + dirac_GR
-     end if
-
-     if (allocated(wpI_dirac)) then
-        wpI_dirac = dirac_FI + dirac_GI
-     end if
-
-     if (allocated(wmR_dirac)) then
-        wmR_dirac = dirac_FR - dirac_GR
-     end if
-
-     if (allocated(wmI_dirac)) then
-        wmI_dirac = dirac_FI - dirac_GI
-     end if
-
-!    Total conserved charge.
-
-!    The total boson number (integrated boson charge) is then:
-!
-!                        /r             2
-!    dirac_Nint  =  4 pi |  dirac_dens R  dR
-!                        /0
-!
-!    with R the Schwarzschild radius.
-
-     if (allocated(dirac_Nint)) then
-
-        call diracintegral
-
-!       Output total binding energy, but only at t=0 and
-!       for certain type of initial data.
-
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (idata=="diracstar") then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
-           end if
-        end if
-
-     end if
-
-  end if
-
-
-! **************************
-! ***   ELECTRIC FIELD   ***
-! **************************
-
-  if (contains(mattertype,"electric")) then
-
-!    Call subroutine for integrated electric charge.
-
-     call chargeintegral
-
-!    Calculate electric charge from surface integral (divergence theorem).
-
-     eQ_surf = r**2*sqrt(A)*B*psi**6*electric
-
-     if (rank==0) then
-        do l=0,Nl-1
-           do i=1,ghost
-              eQ_surf(l,1-i) = eQ_surf(l,i)
-           end do
-        end do
-     end if
-
-!    Electric constraint (Gauss equation).
-
-     if (allocated(Celectric)) then
-        Celectric = D1_electric + electric*(half*D1_AB2/AB2 &
-                  + 6.d0*D1_phi + two/r) - 4.d0*smallpi*echarge
-     end if
-
-!    Electric eigenfields.
-
-     if (allocated(wp_electric)) then
-        wp_electric = ePhi + eAr/(sqrt(A)*psi2)
-     end if
-
-     if (allocated(wm_electric)) then
-        wm_electric = ePhi - eAr/(sqrt(A)*psi2)
-     end if
-
-
-!    ***********************************
-!    ***   REISSNER-NORDSTROM MASS   ***
-!    ***********************************
-
-!    This is the Reissner-Nordstrom mass.  It is obtained by noticing
-!    that for the Reissner-Nordstrom metric we have:
-!
-!    g   =  1 / (1 - 2M/R + (Q/R)^2)
-!     RR
-!
-!    with R=r_area the Schwarzschild or areal radius (see above).
-!    This implies:
-!
-!                                                         2       4
-!    M  =  R/2 ( 1 - 1/g  + Q^2/R^2)  =  R/2 ( 1 - (dR/dr) / A psi  + (Q/R)^2)
-!                       RR
-!
-!    with:
-!
-!               1/2    2
-!    dR/dr  =  B    psi  ( 1 + r d B / (2 B)  +  2 r d psi / psi )
-!                                 r                   r
-!
-!    So that finally:
-!
-!               2  1/2                                                  2
-!    M  =  r psi  B   / 2  [ 1 - (B/A) ( 1 + r d B / (2 B) + 2 r d phi )  + (Q/R)**2]
-!                                               r                 r
-
-     if (allocated(mass_rn)) then
-
-!       Check if eQ_int is allocated.
-
-        if (allocated(eQ_int)) then
-
-           mass_rn = half*r_area*(one - B/A*(one + r*(half*D1_B/B + two*D1_phi))**2 + (eQ_int/r_area)**2)
-
-!       If eQ_int is not allocated, check if the initial data
-!       is Reissner-Nordstrom for which Q is constant.
-
-        else if (idata=="reissnernordstrom") then
-
-           mass_rn = half*r_area*(one - B/A*(one + r*(half*D1_B/B + two*D1_phi))**2 + (BHcharge/r_area)**2)
-
-!       Otherwise stop.
-
-        else
-
-           print *, 'In order to calculate the Reissner-Nodstrom mass "mass_rn"'
-           print *, 'you also need to output the integrated charge "eQ_int".'
-           print *, 'Aborting!  (subroutine analysis_matter)'
-           print *
-           call die
-
-        end if
-
-!       Fix boundary.
-
-        mass_rn(:,Nr) = 2.d0*mass_rn(:,Nr-1) - mass_rn(:,Nr-2)
-
-!       Output total RN mass, but only at t=0 and
-!       for certain type of initial data.
-
-        if ((t(0)==0).and.(rank==0)) then
-           if ((idata=="reissnernordstrom").or.(idata=="chargedboson"))  then
-              write(*,'(A,E14.8)') ' Total Reissner-Nordstrom mass = ',mass_rn(0,Nr)
-              print *
-           end if
-        end if
-
-!       Output total binding energy, but only at t=0 and
-!       for certain type of initial data.
-
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (idata=="chargedboson")  then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_rn(0,Nr) - complex_mass*complex_NB(0,Nr)
-           end if
-        end if
-
-!       Restrict.
-
-        restrictvar => mass_rn
-
-        do l=Nl-1,1,-1
-           call restrict(l,.false.)
-        end do
-
-     end if
-
-  end if
-
-
-! ***********************
 ! ***   PROCA FIELD   ***
 ! ***********************
 
@@ -453,6 +269,201 @@
               write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
            end if
         end if
+
+     end if
+
+  end if
+
+
+! ***********************
+! ***   DIRAC FIELD   ***
+! ***********************
+
+  if (contains(mattertype,"dirac")) then
+
+!    Scalar eigenfields.
+
+     if (allocated(wpR_dirac)) then
+        wpR_dirac = dirac_FR + dirac_GR
+     end if
+
+     if (allocated(wpI_dirac)) then
+        wpI_dirac = dirac_FI + dirac_GI
+     end if
+
+     if (allocated(wmR_dirac)) then
+        wmR_dirac = dirac_FR - dirac_GR
+     end if
+
+     if (allocated(wmI_dirac)) then
+        wmI_dirac = dirac_FI - dirac_GI
+     end if
+
+!    Total conserved charge.
+
+!    The total boson number (integrated boson charge) is then:
+!
+!                        /r             2
+!    dirac_Nint  =  4 pi |  dirac_dens R  dR
+!                        /0
+!
+!    with R the Schwarzschild radius.
+
+     if (allocated(dirac_Nint)) then
+
+        call diracintegral
+
+!       Output total binding energy, but only at t=0 and
+!       for certain type of initial data.
+
+        if ((t(0)==0.d0).and.(rank==0)) then
+           if (idata=="diracstar") then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
+           end if
+        end if
+
+     end if
+
+  end if
+
+
+! **************************
+! ***   ELECTRIC FIELD   ***
+! **************************
+
+! Calculation of quantities related to the electric field.
+!
+! Note:  This section must always be AFTER any type of field
+! (scalar, complex, Proca, Dirac, etc.) that might have an
+! electric charge.
+
+  if (contains(mattertype,"electric")) then
+
+!    Call subroutine for integrated electric charge.
+
+     call chargeintegral
+
+!    Calculate electric charge from surface integral (divergence theorem).
+
+     eQ_surf = r**2*sqrt(A)*B*psi**6*electric
+
+     if (rank==0) then
+        do l=0,Nl-1
+           do i=1,ghost
+              eQ_surf(l,1-i) = eQ_surf(l,i)
+           end do
+        end do
+     end if
+
+!    Electric constraint (Gauss equation).
+
+     if (allocated(Celectric)) then
+        Celectric = D1_electric + electric*(half*D1_AB2/AB2 &
+                  + 6.d0*D1_phi + two/r) - 4.d0*smallpi*echarge
+     end if
+
+!    Electric eigenfields.
+
+     if (allocated(wp_electric)) then
+        wp_electric = ePhi + eAr/(sqrt(A)*psi2)
+     end if
+
+     if (allocated(wm_electric)) then
+        wm_electric = ePhi - eAr/(sqrt(A)*psi2)
+     end if
+
+
+!    ***********************************
+!    ***   REISSNER-NORDSTROM MASS   ***
+!    ***********************************
+
+!    This is the Reissner-Nordstrom mass.  It is obtained by noticing
+!    that for the Reissner-Nordstrom metric we have:
+!
+!    g   =  1 / (1 - 2M/R + (Q/R)^2)
+!     RR
+!
+!    with R=r_area the Schwarzschild or areal radius (see above).
+!    This implies:
+!
+!                                                         2       4
+!    M  =  R/2 ( 1 - 1/g  + Q^2/R^2)  =  R/2 ( 1 - (dR/dr) / A psi  + (Q/R)^2)
+!                       RR
+!
+!    with:
+!
+!               1/2    2
+!    dR/dr  =  B    psi  ( 1 + r d B / (2 B)  +  2 r d psi / psi )
+!                                 r                   r
+!
+!    So that finally:
+!
+!               2  1/2                                                  2
+!    M  =  r psi  B   / 2  [ 1 - (B/A) ( 1 + r d B / (2 B) + 2 r d phi )  + (Q/R)**2]
+!                                               r                 r
+!
+!    Note:  This must ALWAYS be after the section for the elecgric field.
+
+     if (allocated(mass_rn)) then
+
+
+!       Check if eQ_int is allocated.
+
+        if (allocated(eQ_int)) then
+
+           mass_rn = half*r_area*(one - B/A*(one + r*(half*D1_B/B + two*D1_phi))**2 + (eQ_int/r_area)**2)
+
+!       If eQ_int is not allocated, check if the initial data
+!       is Reissner-Nordstrom for which Q is constant.
+
+        else if (idata=="reissnernordstrom") then
+
+           mass_rn = half*r_area*(one - B/A*(one + r*(half*D1_B/B + two*D1_phi))**2 + (BHcharge/r_area)**2)
+
+!       Otherwise stop.
+
+        else
+
+           print *, 'In order to calculate the Reissner-Nodstrom mass "mass_rn"'
+           print *, 'you also need to output the integrated charge "eQ_int".'
+           print *, 'Aborting!  (subroutine analysis_matter)'
+           print *
+           call die
+
+        end if
+
+!       Fix boundary.
+
+        mass_rn(:,Nr) = 2.d0*mass_rn(:,Nr-1) - mass_rn(:,Nr-2)
+
+!       Output total RN mass, but only at t=0 and
+!       for certain type of initial data.
+
+        if ((t(0)==0).and.(rank==0)) then
+           if ((idata=="reissnernordstrom").or.(idata=="chargedboson").or.(idata=="chargedproca"))  then
+              write(*,'(A,E14.8)') ' Total Reissner-Nordstrom mass = ',mass_rn(0,Nr)
+              print *
+           end if
+        end if
+
+!       Output total binding energy, but only at t=0 and
+!       for certain type of initial data.
+
+        if ((t(0)==0.d0).and.(rank==0)) then
+           if (idata=="chargedboson") then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_rn(0,Nr) - complex_mass*complex_NB(0,Nr)
+           else if (idata=="chargedproca") then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_rn(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+           end if
+        end if
+
+!       Restrict.
+
+        restrictvar => mass_rn
+
+        do l=Nl-1,1,-1
+           call restrict(l,.false.)
+        end do
 
      end if
 
