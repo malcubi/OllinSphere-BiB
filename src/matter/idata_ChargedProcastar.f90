@@ -1,4 +1,4 @@
-!$Header: $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.1 2024/05/21 19:11:55 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -601,7 +601,7 @@
            procaF_g(l-1,iaux) = (9.d0*(procaF_g(l,i)+procaF_g(l,i+1)) - (procaF_g(l,i-1)+procaF_g(l,i+2)))/16.d0
            procaA_g(l-1,iaux) = (9.d0*(procaA_g(l,i)+procaA_g(l,i+1)) - (procaA_g(l,i-1)+procaA_g(l,i+2)))/16.d0
 
-           maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+procaF_g(l,i+1)) - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
+           maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
            maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
 
         end do
@@ -659,9 +659,8 @@
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', proca_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
-        print *
+        write(*,'(A,E22.16)') ' Omega (not-rescaled)      = ', proca_omega
+        write(*,'(A,E22.16)') ' Omega (rescaled)          = ', omega_new
      end if
 
 !    Rescale procaF and maxwellF.
@@ -687,9 +686,99 @@
      procaE_g = - cproca_mass**2*alpha_g*procaA_g/(A_g*(omega_new + cproca_q*maxwellF_g))
 
 
+!    *********************************************
+!    ***  OUTPUT GAUGE TRANSFORMED FREQUENCY   ***
+!    *********************************************
+
+!    Here we output the gauge transformed frequency.
+!    But we don't really do the gauge transformation
+!    since that should be done AFTER the perturbation
+!    if there is one.
+
+!    Figure out asymtotic value of F.
+
+     if (order=="two") then
+        Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
+             *(3.d0*maxwellF_g(0,Nrtotal) - 4.d0*maxwellF_g(0,Nrtotal-1) &
+             + maxwellF_g(0,Nrtotal-2))
+     else
+        Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.25d0/dr(0) &
+             *(25.d0*maxwellF_g(0,Nrtotal) - 48.d0*maxwellF_g(0,Nrtotal-1) &
+             + 36.d0*maxwellF_g(0,Nrtotal-2) - 16.d0*maxwellF_g(0,Nrtotal-3) &
+             + 3.d0*maxwellF_g(0,Nrtotal-4))/3.d0
+     end if
+
+!    Output transformed frequency.
+
+     omega_new = omega_new + cproca_q*Ffac
+
+     if (rank==0) then
+        write(*,'(A,E22.16)') ' Omega (gauge transformed) = ', omega_new
+        print *
+     end if
+
+
 !    ***********************************
 !    ***   PROCA STAR PERTURBATION   ***
 !    ***********************************
+
+
+
+!    ********************************
+!    ***   GAUGE TRANSFORMATION   ***
+!    ********************************
+
+!    In a similar way to the lapse, we integrated taking maxwellF(r=0)=0,
+!    but we really want maxwellF=0 at infinity.  We can fix this by making
+!    a gauge transformation of the form:
+!
+!    Fm -> Fm - F_infty ,   omega ->  omega + q F_infty
+!
+!    with F_infty the asymptotic value of F.  This leaves the
+!    combination (omega - qF) unchanged. We find F_infty in
+!    exactly the same way as we did it for the lapse above.
+!
+!    Notice that this in in fact a true gauge transformation.
+!    The general form of the gauge transformation is:
+!
+!    a    ->  a   +  d  h
+!     mu       mu     mu
+!
+!                  i h t
+!    phi  ->  phi e
+!
+!              i h t
+!    x  ->  X e
+!
+!    with "a_mu" the potential 1-form of the electromagnetic field
+!    "phi" the complex scalar field, and "h" an arbitrary scalar function
+!    of spacetime.  In this case we only have a_0 different from
+!    zero, and we take h=kt, with k some constant. This reduces
+!    to the transformation we wrote above for k=-F_infty.
+
+     if (order=="two") then
+        Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
+             *(3.d0*maxwellF_g(0,Nrtotal) - 4.d0*maxwellF_g(0,Nrtotal-1) &
+             + maxwellF_g(0,Nrtotal-2))
+     else
+        Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.25d0/dr(0) &
+             *(25.d0*maxwellF_g(0,Nrtotal) - 48.d0*maxwellF_g(0,Nrtotal-1) &
+             + 36.d0*maxwellF_g(0,Nrtotal-2) - 16.d0*maxwellF_g(0,Nrtotal-3) &
+             + 3.d0*maxwellF_g(0,Nrtotal-4))/3.d0
+     end if
+
+!    Gauge transformation.
+
+     maxwellF_g = maxwellF_g - Ffac
+
+
+!    ***************************************************
+!    ***   RECONSTRUCT SCALAR POTENTIAL maxwellPhi   ***
+!    ***************************************************
+
+!    Reconstruct ePhi in terms of F:  ePhi = F/alpha.
+
+     maxwellPhi_g = maxwellF_g/alpha_g
 
 
 ! *************************************
@@ -836,9 +925,9 @@
 ! dalpha/dr  =  alpha [ (A - 1)/(2r) + 4 pi r A SA ]
 ! 
 ! Notice that we don't multiply the last term with 4*pi*A since
-! it cancels (we are left only with 1/2).
+! it cancels (we are left only with 1/2 which we factor out).
 
-  J2_CPS = alpha*(0.5d0*(A-1.d0)/rm + 0.5d0*rm*A*SA)
+  J2_CPS = 0.5d0*alpha*((A - 1.d0)/rm + rm*A*SA)
 
   end function J2_CPS
 
@@ -865,7 +954,7 @@
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
   real(8) W
 
-! dprocaF/dr = procaA W { [(m alpha/ W)**2 ] - 1 }
+! dprocaF/dr = procaA W [ (m alpha/ W)**2 - 1 ]
 !
 ! where:  W  :=  omega + q maxwellF
 
@@ -896,25 +985,25 @@
   
   real(8) J4_CPS
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
-  real(8) aux,W,correc
+  real(8) aux,W
   
-!                         2            2
-! SA - rho  = -  (A procaE + A maxwellE ) / 4 pi
+!                        2          2
+! SA - rho  = - A (procaE + maxwellE ) / 4 pi
 ! 
 ! Notice that we don't divide by 4*pi since it cancels.
  
   aux = - A*(procaE**2 + maxwellE**2)
               
-! dprocaA/dr =  W F A /alpha**2  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
+! dprocaA/dr =  W procaF A /alpha**2  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
 !
 !            - (q alpha A maxwellE procaA) / W
 !
 ! where:  W  :=  omega + q maxwellF
 
   W = proca_omega + cproca_q*maxwellF
-  correc = cproca_q*alpha*A*maxwellE*procaA/W
 
-  J4_CPS = W*procaF*A/alpha**2 - procaA*((A + 1.d0)/rm + rm*A*aux) - correc
+  J4_CPS = W*procaF*A/alpha**2 - procaA*((A + 1.d0)/rm + rm*A*aux) &
+         -  cproca_q*alpha*A*maxwellE*procaA/W
 
   end function J4_CPS
 
@@ -951,16 +1040,16 @@
 
   rho = A*(procaE**2 + maxwellE**2) + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A)
 
-! dmaxwellE/dr =  -  2 q alpha m**2 procaA**2 / (A W)  -  maxwellE [ (5-A) / 2r + 4 pi A rho ]
+! dmaxwellE/dr =  - q alpha m**2 procaA**2 / (A W)  -  maxwellE [ (5-A) / 2r + 4 pi r A rho ]
 !
 ! where:  W  :=  omega + q maxwellF
 
-  W = proca_omega + cproca_q*procaF
+  W = proca_omega + cproca_q*maxwellF
 
 ! Notice that we don't multiply the last term with 4*pi*A since
 ! it cancels.
 
-  J5_CPS = - 2.d0*cproca_q*alpha*cproca_mass**2*procaA**2/(A*W) &
+  J5_CPS = - cproca_q*alpha*cproca_mass**2*procaA**2/(A*W) &
          - maxwellE*((5.d0-A)/(2.d0*rm) + 0.5d0*rm*A*rho)
 
   end function J5_CPS
