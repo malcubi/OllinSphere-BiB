@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.1 2024/05/21 19:11:55 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.2 2024/06/06 20:34:47 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -20,6 +20,129 @@
 ! Charged Proca stars are self-gravitating solutions of a complex
 ! massive vector field (Proca field) such that the spacetime
 ! is static and the Proca field has a harmonic time dependence.
+!
+! To obtain the initial data we assume that spacetime is
+! static (K_ij=0), and also that the complex scalar and
+! vector potentials (Phi,A) have the form:
+!
+! procaPhi(t,r) = phi(r) exp(-i omega t)
+! procaA(t,r)   = i a(r) exp(-i omega t)
+!
+! In particular, at t=0 procaPhi is purely real while procaA is
+! purely imaginary.
+!
+! Notice that with this ansatz the stress-energy tensor
+! is time-independent so the metric can be static.
+! The eletric field is also time-independent and real,
+! so we are in electrostatics and we can take the
+! vector potential equal to zero, eAr=0.
+!
+! The standard ansatz for the metric for boson stars is:
+!
+!   2          2   2        2     2      2
+! ds  = - alpha  dt  +  A dr  +  r dOmega
+!
+! In other words, we are assuming psi=B=1, beta=0, and
+! the radial coordinate is the area radius.
+!
+! We substitute the above ansatz into the Hamiltonian
+! constraint to find:
+!
+! dA/dr  =  A [ (1 - A)/r + 8 pi r A rho ]
+!
+! where the energy density is now given by:
+!
+!                              2           2        2                   2          2  
+! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
+!
+!
+! with procaE the Proca electric field, maxwellE the Maxwell
+! electric field, and procaF = alpha*procaPhi.
+! Notice that this is very similar to the uncharged case, except
+! for the contribution from the Maxwell electric field.
+!
+! For the lapse we use the polar slicing condition
+! K_{theta,theta}=0, which when combined with the
+! Hamiltonian constraint above takes the form:
+!
+! dalpha/dr  =  alpha [ (A - 1)/(2r) + 4 pi r A SA ]
+!
+! where now:
+!
+!                              2           2        2                   2          2
+! SA  = - 1/(8 pi) { A ( procaE  + maxwellE  )  -  m  [ (procaF / alpha)  +  procaA / A ] }
+!
+!
+! Again, this is the same as the uncharged case except for
+! the contribution from maxwellE. In the above equations
+! procaE is found explicitely to be:
+!
+!             2
+! procaE = - m  alpha procaA/ W A
+!
+!
+! where:  W := omega + q maxwellF
+!
+! On the other hand, from the Proca field equations we find 
+! the following equations for procaF and procaA:
+!
+!                                     2
+! dprocaF/dr = procaA W [ (m alpha/ W) - 1 ]
+!
+!                                2
+! dprocaA/dr =  W procaF A /alpha  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
+!
+! These two equations are identical to those in the uncharged
+! case, only with W (defined above) instead of omega.  In particular
+! notice that we now have:
+!
+!                        2          2
+! SA - rho  = - A (procaE + maxwellE ) / 4 pi
+!
+!
+! The equation for Maxwell electric field comes from the Gauss
+! constraint, and takes the form:
+!
+!                            2      2
+! dmaxwellE/dr =  - q alpha m procaA / (A W)  -  maxwellE [ (5-A) / 2r + 4 pi r A rho ]
+!
+!
+! Finally, for the Maxwell scalar potential maxwellF := alpha ePhi
+! we have:
+!
+! dmaxwellF/dr  =  - alpha A maxwellE
+!
+!
+!  For the boundary conditions at the origin we take:
+!
+! A(r=0)        = 1,     d A(r=0)     = 0
+!                         r
+!
+! alpha(r=0)    = 1,     d alpha(r=0) = 0
+!                         r
+!
+! procaF(r=0)   = proca_phi0
+!     
+!
+! procaA(r=0)   = 0
+!
+!
+! maxwellF(r=0) = 0
+!
+!
+! maxwellE(r=0) = 0
+
+! Notice that in the final solution we don't want alpha(r=0)=1,
+! but rather alpha=1 at infinity.  But this is no problem as the
+! slicing condition above is linear in alpha so we can always
+! just rescale the lapse at the end, but in order not to affect
+! the solution we must also rescale the final value of the frequency
+! omega and both procaF and maxwellF by the same factor.
+!
+! Also, we don't really want maxwellF(r=0)=0, but rather maxwellF=0
+! at infinity. We can fix this by making a gauge transformation of
+! the field once we found the solution that also changes the frequency
+! (see comment in the code below for a detailed explanation).
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
