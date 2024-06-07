@@ -1,0 +1,45 @@
+# Test parameter file:
+#
+# Test parameter file for charged Proca star initial data,
+# 1+log slicing, no shift.
+
+dr0 = 0.01		     # Grid spacing
+dtfac = 0.5		     # Courant parameter
+
+Nrtotal = 4000		     # Number of grid points
+Nt = 0   		     # Number of time steps
+
+Nl = 1                       # Number of refinement levels
+
+slicing = 1+log 	     # Type of slicing condition
+gauge_f = 2.0	             # Coefficient for harmonic slicing
+
+integrator = rk4	     # Type of integration method (icn,rk4)
+order = four  		     # Order for spatial finite differencing (two,four)
+
+boundtype = constraint       # Constraint preserving boundary condition
+
+mattertype = complexproca,electric    # Complex Proca field
+cproca_mass = 1.0            # Mass of Proca field
+
+cproca_q = 0.7071            # Charge of Proca field
+
+idata = chargedproca         # Type of initial data
+proca_factor = physical      # Normalization factor for Proca star (physical,harmonic)
+proca_phi0 = 0.1             # Central value of scalar field
+omega_left  = 1.13665099     # First trial omega
+omega_right = 1.13665100     # Second trial omega
+
+geodiss    = 0.05            # Dissipation coefficient for geometry
+scalardiss = 0.05            # Dissipation coefficient for scalar field
+procadiss  = 0.05            # Dissipation coefficient fpr Proca field
+
+directory = chargedproca     # Name of output directory
+Ninfo = 100		     # How often do we want to output information to screen?
+Noutput0D = 10		     # How often do we want 0D output?
+Noutput1D = 100		     # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
+
+
