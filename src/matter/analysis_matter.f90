@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.51 2024/05/21 19:14:56 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.52 2024/06/07 16:53:42 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -200,6 +200,7 @@
   if (contains(mattertype,"complexproca")) then
 
 !    Complex Proca Gauss constraint:  Div(E) + m^2 Phi = 0.
+!    Real part.
 
      if (allocated(Ccomplexproca_R)) then
 
@@ -213,6 +214,8 @@
          end if     
 
      end if
+
+!    Imaginary part.
 
      if (allocated(Ccomplexproca_I)) then
 
