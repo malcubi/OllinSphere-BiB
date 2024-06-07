@@ -28,9 +28,9 @@ omega_left  = 1.20190897194  # First trial omega
 omega_right = 1.20190897195  # Second trial omega
 
 procagauss = .true.     # Add perturbation to proca star
-proca_phiR_a0 = 0.05	# Amplitude of gaussian perturbation for phiR
-proca_phiR_r0 = 0.0	# Center of gaussian perturbation for phiR
-proca_phiR_s0 = 1.0	# Width of gaussian perturbation for phiR
+proca_PhiR_a0 = 0.05	# Amplitude of gaussian perturbation for phiR
+proca_PhiR_r0 = 0.0	# Center of gaussian perturbation for phiR
+proca_PhiR_s0 = 1.0	# Width of gaussian perturbation for phiR
 
 geodiss    = 0.05       # Dissipation coefficient for geometry
 scalardiss = 0.05       # Dissipation coefficient for scalar field
