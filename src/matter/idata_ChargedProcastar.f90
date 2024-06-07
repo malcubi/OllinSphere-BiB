@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.2 2024/06/06 20:34:47 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.3 2024/06/07 17:20:08 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -83,6 +83,12 @@
 !
 ! where:  W := omega + q maxwellF
 !
+! Notice that procaE is defined in such a way that it already
+! includes the charge contributions.  This means in particular
+! that the Gauss constraint does not have explicit terms
+! proportional to the charge (they have been absorved in the
+! definition of procaE).
+!
 ! On the other hand, from the Proca field equations we find 
 ! the following equations for procaF and procaA:
 !
@@ -91,6 +97,7 @@
 !
 !                                2
 ! dprocaA/dr =  W procaF A /alpha  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
+!
 !
 ! These two equations are identical to those in the uncharged
 ! case, only with W (defined above) instead of omega.  In particular
@@ -109,6 +116,7 @@
 !
 ! Finally, for the Maxwell scalar potential maxwellF := alpha ePhi
 ! we have:
+!
 !
 ! dmaxwellF/dr  =  - alpha A maxwellE
 !
@@ -171,7 +179,7 @@
 
   real(8) r0,delta                       ! Local radius and grid spacing.
   real(8) A0,alpha0                      ! Initial values of (A,alpha).
-  real(8) procaF0,procaA0                ! Initial values of Proca variables.
+  real(8) procaF0,procaA0,procaE0        ! Initial values of Proca variables.
   real(8) maxwellF0,maxwellE0            ! Initial values of Maxwell variables. 
 
   real(8) k11,k12,k13,k14                ! Runge-Kutta sources for A.
@@ -180,13 +188,14 @@
   real(8) k41,k42,k43,k44                ! Runge-Kutta sources for procaA.
   real(8) k51,k52,k53,k54                ! Runge-Kutta sources for maxwellE.
   real(8) k61,k62,k63,k64                ! Runge-Kutta sources for maxwellF.
+  real(8) k71,k72,k73,k74                ! Runge-Kutta sources for procaE.
 
   real(8) A_rk,alpha_rk                  ! Runge-Kutta values of (A,alpha).
   real(8) procaF_rk,procaA_rk,procaE_rk  ! Runge-Kutta values of Proca variables.
   real(8) maxwellF_rk,maxwellE_rk        ! Runge-Kutta values of Maxwell variables.
   real(8) cps_omega_rk                   ! Modified frequency value 
   real(8) J1_CPS,J2_CPS,J3_CPS           ! Functions for sources of differential equations.
-  real(8) J4_CPS,J5_CPS,J6_CPS           ! Functions for sources of differential equations.
+  real(8) J4_CPS,J5_CPS,J6_CPS,J7_CPS    ! Functions for sources of differential equations.
 
   real(8) res,res_old                    ! Residual.
   real(8) omega_new,omega_old,domega     ! Trial frequency and frequency interval. 
@@ -845,6 +854,257 @@
 !    ***   PROCA STAR PERTURBATION   ***
 !    ***********************************
 
+!    Here we add a gaussian perturbation to the solution for the
+!    Proca scalar potential procaPhi leaving procaA unchanged.
+!    We then solve again the hamiltonian constraint for the radial
+!    metric A, and the Gauss constraint for the electric field procaE.
+!    We also solve again the polar slicing condition for the lapse.
+!    
+!    The perturbation should be small, and since it must
+!    be even we take the sum of two symmetric gaussians.
+
+     if ((procagauss).and.(proca_phiR_a0/=0.d0)) then
+
+!       Message to screen.
+
+        print *, 'Adding gaussian perturbation to Proca star ...'
+        print *
+
+!       Rescale the amplitude of the gaussian with max(phi).
+
+        aux = maxval(abs(procaPhi_g))
+        proca_phiR_a0 = aux*proca_phiR_a0
+
+!       Initialize again A, alpha, E.
+
+        A_g      = 1.d0
+        alpha_g  = 1.d0
+        procaE_g = 0.d0
+
+!       Rescale back procaF (otherwise it won't be consistent any more).
+
+        procaF_g = procaF_g*alphafac
+
+!       Add perturbation to proca_Phi.
+
+        if (proca_phiR_r0==0.d0) then
+           print *, 'hola',proca_PhiR_a0
+           procaF_g = procaF_g + proca_PhiR_a0*exp(-rr**2/proca_phiR_s0**2)
+        else
+           procaF_g = procaF_g + proca_PhiR_a0 &
+                    *(exp(-(rr-proca_PhiR_r0)**2/proca_PhiR_s0**2) &
+                    + exp(-(rr+proca_PhiR_r0)**2/proca_PhiR_s0**2))
+        end if
+
+!       Loop over grid levels. We solve from fine to coarse grid.
+
+        do l=Nl-1,0,-1
+
+!          For coarse grids we interpolate the initial point.
+
+           if (l<Nl-1) then
+
+              A_g(l,imin-1) = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
+                            - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
+              alpha_g(l,imin-1) = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
+                            - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
+
+              procaE_g(l,imin-1) = (9.d0*(procaE_g(l+1,Nrtotal-2)+procaE_g(l+1,Nrtotal-3)) &
+                                 - (procaE_g(l+1,Nrtotal-4)+procaE_g(l+1,Nrtotal-1)))/16.d0
+
+           end if
+
+!          Fourth order Runge-Kutta.
+
+           do i=imin,Nrtotal
+
+!             Grid spacing and values at first point
+!             if we start from the origin (finer grid).
+
+              if (i==1) then
+
+!                For the first point we use dr/2.
+
+                 delta = half*dr(l)
+                 r0    = 0.d0
+
+!                Values of (alpha,A) at origin.
+
+                 A0     = 1.d0
+                 alpha0 = 1.d0           
+
+!                Values of (procaF,procaA,procaE) at origin.
+
+                 procaF0 = (9.d0*(procaF_g(l,0)+procaF_g(l,1)) - (procaF_g(l,-1)+procaF_g(l,2)))/16.d0
+                 procaA0 = 0.d0
+                 procaE0 = 0.d0
+
+!             Grid spacing and values at previous grid point.
+
+              else
+
+                 delta = dr(l)
+                 r0    = rr(l,i-1)
+
+                 A0     = A_g(l,i-1)
+                 alpha0 = alpha_g(l,i-1)
+
+                 procaF0 = procaF_g(l,i-1)
+                 procaA0 = procaA_g(l,i-1)
+                 procaE0 = procaE_g(l,i-1)
+
+              end if
+
+!             I) First Runge-Kutta step.
+
+              if (i==1) then
+
+!                At the origin we have:  A' = alpha' = 0.
+
+                 k11 = 0.d0
+                 k21 = 0.d0
+
+!                If we take E ~ k r with k constant close to
+!                the origin we find from the Gauss constraint:
+!
+!                k = - m^2 Phi(r=0) / 3.
+
+                 k71 = - delta*cproca_mass**2*procaF0/3.d0
+
+!             Sources at previous grid point.
+
+              else
+
+                 rm = r0
+
+                 A_rk     = A0
+                 alpha_rk = alpha0
+
+                 procaF_rk = procaF0
+                 procaA_rk = procaA0
+                 procaE_rk = procaE0
+
+!                Sources.
+
+                 k11 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+                 k21 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+                 k71 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+
+              end if
+
+!             II) Second Runge-Kutta step.
+
+              rm = r0 + half*delta
+
+              A_rk      = A0      + half*k11
+              alpha_rk  = alpha0  + half*k21
+              procaE_rk = procaE0 + half*k71
+
+              if (i==1) then  ! Linear interpolation for first point.
+                 procaF_rk = 0.5d0*(procaF0 + procaF_g(l,1))
+                 procaA_rk = 0.5d0*(procaA0 + procaA_g(l,1))
+              else            ! Cubic interpolation for the rest.
+                 procaF_rk = (9.d0*(procaF_g(l,i)+procaF_g(l,i-1)) - (procaF_g(l,i-2)+procaF_g(l,i+1)))/16.d0
+                 procaA_rk = (9.d0*(procaA_g(l,i)+procaA_g(l,i-1)) - (procaA_g(l,i-2)+procaA_g(l,i+1)))/16.d0
+              end if
+
+!             Sources.
+
+              k12 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k22 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k72 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+
+!             III) Third Runge-Kutta step.
+
+              A_rk      = A0      + half*k12
+              alpha_rk  = alpha0  + half*k22
+              procaE_rk = procaE0 + half*k72
+
+!             Sources.
+
+              k13 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k23 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k73 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+
+!             IV) Fourth Runge-Kutta step.
+
+              rm = r0 + delta
+
+              A_rk      = A0      + k13
+              alpha_rk  = alpha0  + k23
+              procaE_rk = procaE0 + k73
+
+              procaF_rk = procaF_g(l,i)
+              procaA_rk = procaA_g(l,i)
+
+!             Sources.
+
+              k14 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k24 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k74 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+
+!             Advance variables to next grid point.
+
+              A_g(l,i)      = A0      + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
+              alpha_g(l,i)  = alpha0  + (k21 + 2.d0*(k22 + k23) + k24)/6.d0
+              procaE_g(l,i) = procaE0 + (k71 + 2.d0*(k72 + k73) + k74)/6.d0
+
+           end do
+
+!          Fix ghost zones.
+
+           do i=1,ghost
+              A_g(l,1-i)      = + A_g(l,i)
+              alpha_g(l,1-i)  = + alpha_g(l,i)
+              procaE_g(l,1-i) = - procaE_g(l,i)
+           end do
+
+        end do
+
+!       Restrict solution from fine to coarse grid.
+
+        do l=Nl-1,1,-1
+
+           do i=1,Nrtotal-ghost,2
+
+              iaux = i/2 + 1
+              rm = rr(l-1,iaux)
+
+              A_g(l-1,iaux)      = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
+              alpha_g(l-1,iaux)  = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
+              procaE_g(l-1,iaux) = (9.d0*(procaE_g(l,i)+procaE_g(l,i+1)) - (procaE_g(l,i-1)+procaE_g(l,i+2)))/16.d0
+
+           end do
+
+!          Fix ghost zones.
+
+           do i=1,ghost
+              A_g(l-1,1-i)      = + A_g(l-1,i)
+              alpha_g(l-1,1-i)  = + alpha_g(l-1,i)
+              procaE_g(l-1,1-i) = - procaE_g(l-1,i)
+           end do
+
+        end do
+
+!       Rescale lapse and F again.
+
+        if (order=="two") then
+           alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
+               *(3.d0*alpha_g(0,Nrtotal) - 4.d0*alpha_g(0,Nrtotal-1) + alpha_g(0,Nrtotal-2))
+        else
+           alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.25d0/dr(0) &
+               *(25.d0*alpha_g(0,Nrtotal) - 48.d0*alpha_g(0,Nrtotal-1) &
+               + 36.d0*alpha_g(0,Nrtotal-2) - 16.d0*alpha_g(0,Nrtotal-3) + 3.d0*alpha_g(0,Nrtotal-4))/3.d0
+        end if
+
+        alpha_g  = alpha_g/alphafac
+        procaF_g = procaF_g/alphafac
+
+!       Find perturbed Phi = F/alpha.
+
+        procaPhi_g = procaF_g/alpha_g
+
+     end if
 
 
 !    ********************************
@@ -1000,6 +1260,8 @@
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
   real(8) rho
 
+! For the energy density we have:
+!
 !                              2           2        2                   2          2  
 ! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
 !
@@ -1038,6 +1300,8 @@
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
   real(8) SA
 
+! For SA we have:
+!
 !                              2           2        2                   2          2
 ! SA  = - 1/(8 pi) { A ( procaE  + maxwellE  )  -  m  [ (procaF / alpha)  +  procaA / A ] }
 !
@@ -1204,6 +1468,53 @@
   J6_CPS = - alpha*A*maxwellE
 
   end function J6_CPS
+
+
+
+
+
+
+
+! ***************************************
+! ***   RADIAL DERIVATIVE OF procaE   ***
+! ***************************************
+
+! THIS IS NOT YET IMPLEMENTED!!!
+
+! The radial derivative of procaA from the Proca
+! evolution equations.
+
+  function J7_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
+
+  use param
+  
+  implicit none
+  
+  real(8) J7_CPS
+  real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
+  real(8) rho,aux
+
+! We use the fact that:
+!
+! dA/dr  =  A [ (1 - A)/r + 8 pi r A rho ]
+!
+! with rho given by:
+!                              2           2        2                   2          2  
+! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
+!
+! Notice that we don't divide by 8*pi since it cancels.
+
+  rho = A*(procaE**2 + maxwellE**2) + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A)
+  aux = (1.d0-A)/rm + rm*A*rho
+
+! Proca Gauss constraint:
+!
+!                                                  2
+! dprocE/dr  =  - procaE [ 2/r + (1/2A) dA/dr ] - m  Phi
+
+  J7_CPS = - procaE*(2.d0/rm + 0.5d0*aux) - cproca_mass**2*procaF/alpha
+
+  end function J7_CPS
 
 
 
