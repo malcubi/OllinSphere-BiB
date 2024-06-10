@@ -1,4 +1,4 @@
-%$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/doc/usermanual.tex,v 1.49 2022/06/02 18:28:47 malcubi Exp $
+%$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/doc/usermanual.tex,v 1.50 2024/06/10 18:24:14 malcubi Exp $
 
 %-----------------------------------------------------------------------
 %
@@ -85,8 +85,11 @@ basics. If you find something wrong please let me know! \\
 If you are reading this it means you probably already downloaded the
 code.  But if for some reason you need to download it here is how. \\
 
+\subsection{From CVS}
+
 The easiest way to obtain the code is to download it from the CVS
-server of the Ollin group (dulcinea.nucleares.unam.mx).  In order to
+server of the Ollin group (unfortunately, since CVS is rather old, now
+this only works from within my own Institute's network). In order to
 obtain a username and password for this sever you need to contact
 Miguel Alcubierre (malcubi@nucleares.unam.mx). Once you have a
 username and password you first need to log into the repository by
@@ -107,7 +110,15 @@ download the code by typing: \\
 This will create a directory \texttt{Codes} and inside it directory
 \texttt{OllinSphere-BiB}. This is the main directory for the code.
 
-\pagebreak
+\subsection{From GIT}
+
+Another way to dowload the code is from the public GIT repository.
+This is in fact easier than CVS: \\
+
+\texttt{\footnotesize git clone https://github.com/malcubi/OllinSphere-BiB} \\
+
+Once you hacve the code, you can get updated versions by just doing
+``git pull'' inside the code main directory.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -181,7 +192,7 @@ routines. These sub-directories are:
   declarations, the parameter parser, the output routines, the main
   evolution controllers, and generic routines for calculating
   derivatives, dissipation, etc.  The code in fact starts execution at
-  the routine \texttt{main.f90} contained in this directory.
+  the routine \texttt{src/base/main.f90} contained in this directory.
 
 \item[\texttt{geometry}] Contains routines related to initial data,
   evolution and analysis of the spacetime geometric variables,
@@ -298,7 +309,7 @@ accept several types of matter at once (see Section~\ref{sec:matter}
 below).\\
 
 Parameters that do not appear in the parfile get the default values
-given in the file \texttt{param.f90}.  Examples of parameter files can
+given in the file \texttt{src/base/param.f90}.  Examples of parameter files can
 be found in the subdirectory \texttt{par}. \\
 
 IMPORTANT: Even though \texttt{FORTRAN} does not distinguish between
@@ -753,7 +764,7 @@ The main evolution variables (arrays) are:
 
 \item[\texttt{A}] The conformal radial metric component $\texttt{A}:=\tilde{g}_{rr}$.
 
-\item[\texttt{B}] The conformal radial metric component $\texttt{B}:=\tilde{g}_{\theta \theta}/r^2$.
+\item[\texttt{B}] The conformal radial angular component $\texttt{B}:=\tilde{g}_{\theta \theta}/r^2$.
 
 \item[\texttt{phi}] The conformal factor $\texttt{phi}=\phi$ (see equation~\ref{eq:metric}).
 
@@ -953,7 +964,7 @@ the following values:
 \begin{list}{}{
 \setlength{\leftmargin}{35mm}
 \setlength{\labelsep}{10mm}
-\setlength{\labelwidth}{20mm}}
+\setlength{\labelwidth}{30mm}}
 
 \item[\texttt{vacuum}] There is no matter (this is the default).
 
@@ -989,14 +1000,20 @@ the following values:
 \item[\texttt{nonmin}] Non-minimally coupled scalar field (Note: I
   need to explain this).
 
-\item[\texttt{electric}] Electric field.
-
-\item[\texttt{proca}] real Proca field. This is essentially
+\item[\texttt{proca}] Real Proca field. This is essentially
 a massive electromagnetic field, with mass given by the
 parameter \texttt{proca\_mass}.
 
-\item[\texttt{complexproca}] complex Proca field. This is a complex
+\item[\texttt{complexproca}] Complex Proca field. This is a complex
   Proca field, with mass given by the parameter \texttt{cproca\_mass}.
+
+\item[\texttt{dirac}] Dirac spinor field.
+
+\item[\texttt{electric}] Electric field.
+
+\item[\texttt{fluid}] Perfect fluid.
+
+\item[\texttt{dust}] Dust (perfect fluid with zero pressure).
 
 \end{list}
 
@@ -1009,6 +1026,10 @@ complex scalar field evolving together you can add the following line
 to the parameter file: \\
 
 \texttt{mattertype = scalar,complex} \\
+
+Similarly, for a charged complex scalar field you must have: \\
+
+\texttt{mattertype = complex,electric} \\
 
 \vspace{3mm}
 
@@ -1121,6 +1142,15 @@ where again $f$ is a positive real number controlled by the same
 parameter \texttt{gauge\_f}.  Standard 1+log slicing corresponds to 
 \texttt{gauge\_f=2} (though as mentioned above the default value is 1).
 
+
+\item[\texttt{shockavoid}] This corresponds to the family of shock
+  avoiding slicing conditions, which is similar to the 1+log
+  condition above but with $f(\alpha)$ a function given by (see
+    comments in file \texttt{src/geometry/auxiliary\_geometry.f90}):
+\begin{equation}
+f(\alpha) = 1 + k/\alpha^2 \; .
+\end{equation}
+
 \item[\texttt{maximal}] This is maximal slicing which corresponds to
   the condition that the trace of the extrinsic curvature remains
   equal to zero during evolution (which guarantees that the spatial
@@ -1135,12 +1165,14 @@ In spherical symmetry the Laplacian operator reduces to:
 + \frac{\partial_r B}{B} + 2 \: \partial_r \phi \right) \partial_r \; .
 \end{equation}
 
+
 \end{list}
 
 \vspace{3mm}
 
-Notice that the choices \texttt{harmionic} and \texttt{1+log} are special cases
-of the Bona-Masso family of slicing conditions that has the general form:
+Notice that the choices \texttt{harmonic}, \texttt{1+log} and
+\texttt{shockavoid} are special cases of the Bona-Masso family of
+slicing conditions that has the general form:
 \begin{equation}
 \partial_t \alpha = - \alpha^2 f(\alpha) {\rm trK} + \beta^r \partial_r \alpha\; .
 \end{equation}
@@ -1548,12 +1580,14 @@ appended to the list of allowed values for this parameter in the file
 to your initial data routine in the file
 \texttt{src/base/initial.f90}. \\
 
-There are in fact more initial data types than the ones discussed
-here. Have a look at the file \texttt{src/base/param.f90} to see the
-values allowed by \texttt{idata}, and the corresponding routines that
-calculate them (routines with names that typically start with
-\texttt{idata\_} and can be found in the directories
-\texttt{src/geometry} and \texttt{src/matter}). \\
+There are in fact many more initial data types than the ones discussed
+here that have been added through the years (like charged boson stars,
+Proca stars, Dirac stars, etc.). Have a look at the file
+\texttt{src/base/param.f90} to see the values allowed by
+\texttt{idata}, and the corresponding routines that calculate them
+(routines with names that typically start with \texttt{idata\_} and
+can be found in the directories \texttt{src/geometry} and
+\texttt{src/matter}). \\
 
 Simple types of vacuum initial data already there are:
 
@@ -1579,7 +1613,7 @@ Simple types of vacuum initial data already there are:
   data is not analytic and must be solved numerically.
 
 \item[\texttt{idata=reissnernordstrom}] The initial data corresponds
-to a Reissner-Nordstrom chargeb black hole.
+to a Reissner-Nordstrom charged black hole.
 
 \end{list}
 
@@ -1671,6 +1705,30 @@ of the horizon, so the code also outputs this value in the file
 \texttt{ah\_alpha.tl}. \\
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%   ANALYSIS TOOLS   %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{equation}{0}
+\section{Other analysis tools}
+\label{sec:analysis}
+
+The code can also calculate many other quantities for analysis that
+are not listed here, such as for example the total Schwarzschild-like
+mass (\texttt{mass\_sch}), the total integrated mass
+(\texttt{mass\_int}), the areal radial coordinate (\texttt{r\_area}),
+the expansion of null geodesics, the Weyl tensor, the 4D Ricci scalar,
+the curvature invariants $I$ and $J$, total conserved charges for
+different types of fields, etc. \\
+
+I will not enlist all those quantities here as they continue to grow
+all the time, but have a look at the files
+\texttt{src/geometry/analysis\_geometry.f90} and
+\texttt{src/matter/matter\_geometry.f90}. In order to calculate any
+such quantities you MUST ask for output of them in the parameter file.
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%   NUMERICAL METHODS   %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1718,10 +1776,12 @@ The choice of the integration method is done through the parameter
 \subsection{Spatial differencing}
 
 For spatial differentiation we can use either second or fourth order
-differencing.  Close to the outer boundaries we in fact reduce the
-differencing always to second order.  The choice of the differencing
-order is controlled by the parameter \texttt{order} which can take the
-values \{\texttt{two,four}\}. \\
+differencing (I have also added sixth and eight order, but this is
+ussually not needed as the time integration is at most fourth order).
+Close to the outer boundaries we in fact reduce the differencing
+always to second order.  The choice of the differencing order is
+controlled by the parameter \texttt{order} which can take the values
+\{\texttt{two,four}\}. \\
 
 
 \subsection{Dissipation}
@@ -2119,8 +2179,10 @@ the examples already in the code). \\
 
 \subsection{Adding new matter models}
 
-The code currently has the following matter models: \texttt{scalar,complex}.
-If you want to add a new type of matter you need to edit a few things. \\
+The code currently has the following matter models: \texttt{scalar,
+  complex ,ghost, proca, \linebreak complexproca, dirac, fluid, dust}.
+If you want to add a new type of matter you need to edit a few
+things. \\
 
 First, you must name you matter model and add it to the list of
 allowed values of the parameter \texttt{mattertype} in the file
@@ -2135,9 +2197,10 @@ make sure this routines are called by modifying the files
 \texttt{src/matter/sources\_matter.f90}. \\
 
 Finally, don't forget to add the expressions for the BSSN matter terms
-(energy density, momentum density and stress tensor) for your new
-matter model to the file \texttt{src/matter/matter.f90} (see the
-examples already there). \\
+(energy density, momentum density, stress tensor, charge density,
+etc.) for your new matter model to the file
+\texttt{src/matter/stresstensor.f90} (see the examples already
+there). \\
 
 
 \subsection{CVS}
@@ -2169,12 +2232,11 @@ ask Miguel Alcubierre if you need access to the repository
 \label{sec:ollingraph}
 
 The code includes a simple visualization package called
-\texttt{ollingraph}.  It is written in Python and uses Matplotlib to plot
-simple line plots and animations.  At the moment it should work fine
-under python 2.7, but is seems to have problems with python 3 (I will
-try to fix this later). It is supposed to have similar functionality to
-the old xgraph and ygraph packages, and expects the data files in the
-same format (see below). \\
+\texttt{ollingraph}.  It is written in Python and uses Matplotlib to
+plot simple line plots and animations.  At the moment it should work
+fine under python 3.11. It is supposed to have similar functionality
+to the old xgraph and ygraph packages, and expects the data files in
+the same format (see below). \\
 
 The plots are quite simple, and meant for quick/dirty interactive
 visualization.  These plots are not supposed to be used for figures
@@ -2197,16 +2259,6 @@ Before using it make sure that \texttt{ollingraph} has execution
 permission: \\
 
 \texttt{chmod +x ollingraph} \\
-
-There is also a package for simple plots of 2D arrays called
-\texttt{ollingraph2D}. It is called in a similar way:
-
-\texttt{ollingraph2D  file} \\
-
-But in this case the file to be plotted must have extension
-\texttt{.2D}.
-
-\vspace{5mm}
 
 The data files are expected to have the following format:
 
