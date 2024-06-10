@@ -39,7 +39,7 @@ Ninfo = 100		     # How often do we want to output information to screen?
 Noutput0D = 10		     # How often do we want 0D output?
 Noutput1D = 100		     # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int,echarge,ecurrent,Celectric
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int,echarge,ecurrent,Celectric
 
 

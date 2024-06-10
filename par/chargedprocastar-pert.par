@@ -3,10 +3,10 @@
 # Test parameter file for charged Proca star initial data,
 # 1+log slicing, no shift.
 
-dr0 = 0.005		     # Grid spacing
+dr0 = 0.01		     # Grid spacing
 dtfac = 0.5		     # Courant parameter
 
-Nrtotal = 8000		     # Number of grid points
+Nrtotal = 4000		     # Number of grid points
 Nt = 0   		     # Number of time steps
 
 Nl = 1                       # Number of refinement levels
@@ -39,12 +39,12 @@ geodiss    = 0.05            # Dissipation coefficient for geometry
 scalardiss = 0.05            # Dissipation coefficient for scalar field
 procadiss  = 0.05            # Dissipation coefficient fpr Proca field
 
-directory = chargedproca-pert-h     # Name of output directory
+directory = chargedproca-pert     # Name of output directory
 Ninfo = 100		     # How often do we want to output information to screen?
 Noutput0D = 10		     # How often do we want 0D output?
 Noutput1D = 100		     # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int,echarge,ecurrent,Celectric
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,electric,ePhi,eAr,cprocaPhi_R,cprocaPhi_I,cprocaA_R,cprocaA_I,cprocaE_R,cprocaE_I,cprocaPhi_norm,cprocaA_norm,cprocaE_norm,Ccomplexproca_R,Ccomplexproca_I,mass_sch,mass_int,mass_rn,cproca_Qdens,cproca_Qint,eQ_int,echarge,ecurrent,Celectric
 
 
