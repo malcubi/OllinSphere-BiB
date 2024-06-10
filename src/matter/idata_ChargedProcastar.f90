@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.3 2024/06/07 17:20:08 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.4 2024/06/10 17:05:30 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -472,7 +472,7 @@
 
                  k41 = delta*(proca_omega*procaF0/3.d0)
                  
-!                For maxwellE and maxwellF we have we have:  maxwellE' = maxwellF' = 0
+!                For maxwellE and maxwellF we have:  maxwellE' = maxwellF' = 0
 
                  k51 = 0.d0
                  k61 = 0.d0
@@ -808,10 +808,10 @@
 !    Having found the solution, the scalar potential
 !    is recovered as: phi = F/alpha.
 
-     procaPhi_g   = procaF_g/alpha_g
      maxwellPhi_g = maxwellF_g/alpha_g
+     procaPhi_g   = procaF_g/alpha_g
 
-!    The Proca electric field is given by:
+!    The Proca electric field is given by (for an unperturbed star):
 ! 
 !    E = - m**2 alpha procaA / [A (omega + q*maxwellF)]
 
@@ -854,11 +854,11 @@
 !    ***   PROCA STAR PERTURBATION   ***
 !    ***********************************
 
+!    THIS IS NOT YET WORKING, I NEED TO CHECK IT!
+
 !    Here we add a gaussian perturbation to the solution for the
-!    Proca scalar potential procaPhi leaving procaA unchanged.
-!    We then solve again the hamiltonian constraint for the radial
-!    metric A, and the Gauss constraint for the electric field procaE.
-!    We also solve again the polar slicing condition for the lapse.
+!    Proca scalar potential procaF, leaving procaA unchanged.
+!    We then solve again for (A,alpha,maxwellF,maxwellE,procaE).
 !    
 !    The perturbation should be small, and since it must
 !    be even we take the sum of two symmetric gaussians.
@@ -875,10 +875,14 @@
         aux = maxval(abs(procaPhi_g))
         proca_phiR_a0 = aux*proca_phiR_a0
 
-!       Initialize again A, alpha, E.
+!       Initialize again (A,alpha,maxwellF,maxwellE,procaE).
 
         A_g      = 1.d0
         alpha_g  = 1.d0
+
+        maxwellF_g = 0.d0
+        maxwellE_g = 0.d0
+
         procaE_g = 0.d0
 
 !       Rescale back procaF (otherwise it won't be consistent any more).
@@ -888,7 +892,6 @@
 !       Add perturbation to proca_Phi.
 
         if (proca_phiR_r0==0.d0) then
-           print *, 'hola',proca_PhiR_a0
            procaF_g = procaF_g + proca_PhiR_a0*exp(-rr**2/proca_phiR_s0**2)
         else
            procaF_g = procaF_g + proca_PhiR_a0 &
@@ -908,6 +911,11 @@
                             - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
               alpha_g(l,imin-1) = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
                             - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
+
+              maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) &
+                                   - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
+              maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) &
+                                   - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
 
               procaE_g(l,imin-1) = (9.d0*(procaE_g(l+1,Nrtotal-2)+procaE_g(l+1,Nrtotal-3)) &
                                  - (procaE_g(l+1,Nrtotal-4)+procaE_g(l+1,Nrtotal-1)))/16.d0
@@ -931,7 +939,12 @@
 !                Values of (alpha,A) at origin.
 
                  A0     = 1.d0
-                 alpha0 = 1.d0           
+                 alpha0 = 1.d0
+
+!                Values of (maxwellF,maxwellE) at origin.
+
+                 maxwellF0 = 0.d0
+                 maxwellE0 = 0.d0
 
 !                Values of (procaF,procaA,procaE) at origin.
 
@@ -946,12 +959,15 @@
                  delta = dr(l)
                  r0    = rr(l,i-1)
 
-                 A0     = A_g(l,i-1)
-                 alpha0 = alpha_g(l,i-1)
+                 A0        = A_g(l,i-1)
+                 alpha0    = alpha_g(l,i-1)
 
-                 procaF0 = procaF_g(l,i-1)
-                 procaA0 = procaA_g(l,i-1)
-                 procaE0 = procaE_g(l,i-1)
+                 maxwellF0 = maxwellF_g(l,i-1)
+                 maxwellE0 = maxwellE_g(l,i-1)
+
+                 procaF0   = procaF_g(l,i-1)
+                 procaA0   = procaA_g(l,i-1)
+                 procaE0   = procaE_g(l,i-1)
 
               end if
 
@@ -963,6 +979,11 @@
 
                  k11 = 0.d0
                  k21 = 0.d0
+
+!                For maxwellE and maxwellF we have:  maxwellE' = maxwellF' = 0
+
+                 k51 = 0.d0
+                 k61 = 0.d0
 
 !                If we take E ~ k r with k constant close to
 !                the origin we find from the Gauss constraint:
@@ -977,17 +998,22 @@
 
                  rm = r0
 
-                 A_rk     = A0
-                 alpha_rk = alpha0
+                 A_rk        = A0
+                 alpha_rk    = alpha0
 
-                 procaF_rk = procaF0
-                 procaA_rk = procaA0
-                 procaE_rk = procaE0
+                 maxwellF_rk = maxwellF0
+                 maxwellE_rk = maxwellE0
+
+                 procaF_rk   = procaF0
+                 procaA_rk   = procaA0
+                 procaE_rk   = procaE0
 
 !                Sources.
 
                  k11 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
                  k21 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+                 k51 = delta*J5_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+                 k61 = delta*J6_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
                  k71 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
 
               end if
@@ -996,9 +1022,11 @@
 
               rm = r0 + half*delta
 
-              A_rk      = A0      + half*k11
-              alpha_rk  = alpha0  + half*k21
-              procaE_rk = procaE0 + half*k71
+              A_rk        = A0        + half*k11
+              alpha_rk    = alpha0    + half*k21
+              maxwellE_rk = maxwellE0 + half*k51
+              maxwellF_rk = maxwellF0 + half*k61
+              procaE_rk   = procaE0   + half*k71
 
               if (i==1) then  ! Linear interpolation for first point.
                  procaF_rk = 0.5d0*(procaF0 + procaF_g(l,1))
@@ -1012,27 +1040,35 @@
 
               k12 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k22 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k52 = delta*J5_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k62 = delta*J6_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k72 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
 
 !             III) Third Runge-Kutta step.
 
-              A_rk      = A0      + half*k12
-              alpha_rk  = alpha0  + half*k22
-              procaE_rk = procaE0 + half*k72
+              A_rk        = A0        + half*k12
+              alpha_rk    = alpha0    + half*k22
+              maxwellE_rk = maxwellE0 + half*k52
+              maxwellF_rk = maxwellF0 + half*k62
+              procaE_rk   = procaE0   + half*k72
 
 !             Sources.
 
               k13 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k23 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k53 = delta*J5_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k63 = delta*J6_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k73 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
 
 !             IV) Fourth Runge-Kutta step.
 
               rm = r0 + delta
 
-              A_rk      = A0      + k13
-              alpha_rk  = alpha0  + k23
-              procaE_rk = procaE0 + k73
+              A_rk        = A0        + k13
+              alpha_rk    = alpha0    + k23
+              maxwellE_rk = maxwellE0 + k53
+              maxwellF_rk = maxwellF0 + k63
+              procaE_rk   = procaE0   + k73
 
               procaF_rk = procaF_g(l,i)
               procaA_rk = procaA_g(l,i)
@@ -1041,22 +1077,28 @@
 
               k14 = delta*J1_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k24 = delta*J2_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k54 = delta*J5_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
+              k64 = delta*J6_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
               k74 = delta*J7_CPS(A_rk,alpha_rk,procaF_rk,procaA_rk,maxwellE_rk,maxwellF_rk,procaE_rk,rm)
 
 !             Advance variables to next grid point.
 
-              A_g(l,i)      = A0      + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
-              alpha_g(l,i)  = alpha0  + (k21 + 2.d0*(k22 + k23) + k24)/6.d0
-              procaE_g(l,i) = procaE0 + (k71 + 2.d0*(k72 + k73) + k74)/6.d0
+              A_g(l,i)        = A0        + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
+              alpha_g(l,i)    = alpha0    + (k21 + 2.d0*(k22 + k23) + k24)/6.d0
+              maxwellE_g(l,i) = maxwellE0 + (k51 + 2.d0*(k52 + k53) + k54)/6.d0
+              maxwellF_g(l,i) = maxwellF0 + (k61 + 2.d0*(k62 + k63) + k64)/6.d0
+              procaE_g(l,i)   = procaE0   + (k71 + 2.d0*(k72 + k73) + k74)/6.d0
 
            end do
 
 !          Fix ghost zones.
 
            do i=1,ghost
-              A_g(l,1-i)      = + A_g(l,i)
-              alpha_g(l,1-i)  = + alpha_g(l,i)
-              procaE_g(l,1-i) = - procaE_g(l,i)
+              A_g(l,1-i)        = + A_g(l,i)
+              alpha_g(l,1-i)    = + alpha_g(l,i)
+              maxwellF_g(l,1-i) = + maxwellF_g(l,i)      
+              maxwellE_g(l,1-i) = - maxwellE_g(l,i)
+              procaE_g(l,1-i)   = - procaE_g(l,i)
            end do
 
         end do
@@ -1070,23 +1112,29 @@
               iaux = i/2 + 1
               rm = rr(l-1,iaux)
 
-              A_g(l-1,iaux)      = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
-              alpha_g(l-1,iaux)  = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
-              procaE_g(l-1,iaux) = (9.d0*(procaE_g(l,i)+procaE_g(l,i+1)) - (procaE_g(l,i-1)+procaE_g(l,i+2)))/16.d0
+              A_g(l-1,iaux)        = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
+              alpha_g(l-1,iaux)    = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
+
+              maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
+              maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
+
+              procaE_g(l-1,iaux)   = (9.d0*(procaE_g(l,i)+procaE_g(l,i+1)) - (procaE_g(l,i-1)+procaE_g(l,i+2)))/16.d0
 
            end do
 
 !          Fix ghost zones.
 
            do i=1,ghost
-              A_g(l-1,1-i)      = + A_g(l-1,i)
-              alpha_g(l-1,1-i)  = + alpha_g(l-1,i)
-              procaE_g(l-1,1-i) = - procaE_g(l-1,i)
+              A_g(l-1,1-i)        = + A_g(l-1,i)
+              alpha_g(l-1,1-i)    = + alpha_g(l-1,i)
+              maxwellF_g(l-1,1-i) = + maxwellF_g(l-1,i)
+              maxwellE_g(l-1,1-i) = - maxwellE_g(l-1,i)
+              procaE_g(l-1,1-i)   = - procaE_g(l-1,i)
            end do
 
         end do
 
-!       Rescale lapse and F again.
+!       Rescale lapse, maxwellF and procaF again.
 
         if (order=="two") then
            alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
@@ -1098,11 +1146,14 @@
         end if
 
         alpha_g  = alpha_g/alphafac
+
+        maxwellF_g = maxwellF_g/alphafac
         procaF_g = procaF_g/alphafac
 
-!       Find perturbed Phi = F/alpha.
+!       Reconstruct maxwellPhi and procaPhi.
 
-        procaPhi_g = procaF_g/alpha_g
+        maxwellPhi_g = maxwellF_g/alpha_g
+        procaPhi_g   = procaF_g/alpha_g
 
      end if
 
@@ -1328,8 +1379,8 @@
 ! ***   RADIAL DERIVATIVE OF procaF   ***
 ! ***************************************
 
-! The radial derivative of procaF from the
-! Proca evolution equations.
+! The radial derivative of procaF comes from the
+! Proca equations.
 
   function J3_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1361,8 +1412,8 @@
 ! ***   RADIAL DERIVATIVE OF procaA   ***
 ! ***************************************
 
-! The radial derivative of procaA from
-! the Procan evolution equations.
+! The radial derivative of procaA from the
+! Proca equations.
 
   function J4_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1407,8 +1458,8 @@
 ! ***   RADIAL DERIVATIVE OF maxwellE   ***
 ! *****************************************
 
-! The radial derivative of maxwellF comes from
-! Maxwell's equations.
+! The radial derivative of maxwellE comes from
+! the Maxwell equations (the Gauss constraint).
 
   function J5_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1418,26 +1469,37 @@
   
   real(8) J5_CPS
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
-  real(8) W,rho
+  real(8) rho,ecurrent
 
+! The radial derivative of maxwellE comes from the Gauss constraint
+! and takes the form:
+!
+! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi ecurrent
+!
+!              =  -  maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi ecurrent
+!
+! where in the second equality we used the Hamiltonian constraint
+! to elimnate dA/dr, and with "ecurrent" the electric current of
+! the Proca field.
+!
+! For the energy density we have:
+!
 !                              2           2        2                   2          2  
 ! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
 !
-! Notice that we don't divide by 8*pi since it cancels.
+!
+! And for the electric current we have:
+!
+! ecurrent = (q / 4 pi) procaA procaE
 
   rho = A*(procaE**2 + maxwellE**2) + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A)
 
-! dmaxwellE/dr =  - q alpha m**2 procaA**2 / (A W)  -  maxwellE [ (5-A) / 2r + 4 pi r A rho ]
-!
-! where:  W  :=  omega + q maxwellF
+  ecurrent = cproca_q*procaA*procaE
 
-  W = proca_omega + cproca_q*maxwellF
+! Notice that we don't divide by the factors of 8*pi and 4*pi
+! in the last expressions since they cancel.
 
-! Notice that we don't multiply the last term with 4*pi*A since
-! it cancels.
-
-  J5_CPS = - cproca_q*alpha*cproca_mass**2*procaA**2/(A*W) &
-         - maxwellE*((5.d0-A)/(2.d0*rm) + 0.5d0*rm*A*rho)
+  J5_CPS = - maxwellE*((5.d0-A)/(2.d0*rm) + 0.5d0*rm*A*rho) + ecurrent
 
   end function J5_CPS
 
@@ -1451,8 +1513,8 @@
 ! ***   RADIAL DERIVATIVE OF maxwellF   ***
 ! *****************************************
 
-! The radial derivative of procaA from the Proca
-! evolution equations.
+! The radial derivative of maxwellF comes from
+! the Maxwell equations.
 
   function J6_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1479,10 +1541,8 @@
 ! ***   RADIAL DERIVATIVE OF procaE   ***
 ! ***************************************
 
-! THIS IS NOT YET IMPLEMENTED!!!
-
-! The radial derivative of procaA from the Proca
-! evolution equations.
+! The radial derivative of procaE comes from the
+! Proca equations.
 
   function J7_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1510,7 +1570,7 @@
 ! Proca Gauss constraint:
 !
 !                                                  2
-! dprocE/dr  =  - procaE [ 2/r + (1/2A) dA/dr ] - m  Phi
+! dprocE/dr  =  - procaE [ 2/r + (1/2A) dA/dr ] - m  procaF/alpha
 
   J7_CPS = - procaE*(2.d0/rm + 0.5d0*aux) - cproca_mass**2*procaF/alpha
 
