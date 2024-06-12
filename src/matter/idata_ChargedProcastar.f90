@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.4 2024/06/10 17:05:30 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.5 2024/06/12 19:48:24 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -34,7 +34,7 @@
 ! Notice that with this ansatz the stress-energy tensor
 ! is time-independent so the metric can be static.
 ! The eletric field is also time-independent and real,
-! so we are in electrostatics and we can take the
+! so we are in electrostatics and we can take the Maxwell
 ! vector potential equal to zero, eAr=0.
 !
 ! The standard ansatz for the metric for boson stars is:
@@ -98,10 +98,10 @@
 !                                2
 ! dprocaA/dr =  W procaF A /alpha  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
 !
+!                 2                   2
+!            + q A maxwellE procaE / m
 !
-! These two equations are identical to those in the uncharged
-! case, only with W (defined above) instead of omega.  In particular
-! notice that we now have:
+! In particular notice that we now have:
 !
 !                        2          2
 ! SA - rho  = - A (procaE + maxwellE ) / 4 pi
@@ -1434,14 +1434,17 @@
               
 ! dprocaA/dr =  W procaF A /alpha**2  -  procaA [ (A+1)/r + 4 pi r A (SA - rho) ]
 !
-!            - (q alpha A maxwellE procaA) / W
+!                 2                   2
+!            + q A maxwellE procaE / m
+!
 !
 ! where:  W  :=  omega + q maxwellF
 
   W = proca_omega + cproca_q*maxwellF
 
   J4_CPS = W*procaF*A/alpha**2 - procaA*((A + 1.d0)/rm + rm*A*aux) &
-         -  cproca_q*alpha*A*maxwellE*procaA/W
+         + cproca_q*A**2*maxwellE*procaE/cproca_mass**2
+
 
   end function J4_CPS
 
@@ -1476,7 +1479,7 @@
 !
 ! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi ecurrent
 !
-!              =  -  maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi ecurrent
+!              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi ecurrent
 !
 ! where in the second equality we used the Hamiltonian constraint
 ! to elimnate dA/dr, and with "ecurrent" the electric current of
