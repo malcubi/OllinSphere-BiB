@@ -67,6 +67,13 @@
      scprocaE_I(l,:) = scprocaE_I(l,:) + beta(l,:)*DA_cprocaE_I(l,:) - cprocaE_I(l,:)*D1_beta(l,:)
   end if
 
+! Charge terms if needed.
+
+  if (cproca_q/=0.d0) then
+     scprocaE_R(l,:) = scprocaE_R(l,:) - cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_I(l,:)
+     scprocaE_I(l,:) = scprocaE_I(l,:) + cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_R(l,:)
+  end if
+
 ! Dissipation.
 
   if (procadiss/=0.d0) then
@@ -119,6 +126,17 @@
      scprocaPhi_I(l,:) = scprocaPhi_I(l,:) + beta(l,:)*DA_cprocaPhi_I(l,:)
   end if
 
+! Charge terms if needed.
+
+  if (cproca_q/=0.d0) then
+     scprocaPhi_R(l,:) = scprocaPhi_R(l,:) - cproca_q*alpha(l,:) &
+        *(ePhi(l,:)*cprocaPhi_I(l,:) + eAr(l,:)*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)) &
+        + A(l,:)*psi4(l,:)/cproca_mass**2*electric(l,:)*cprocaE_I(l,:))
+     scprocaPhi_I(l,:) = scprocaPhi_I(l,:) + cproca_q*alpha(l,:) &
+        *(ePhi(l,:)*cprocaPhi_R(l,:) + eAr(l,:)*cprocaA_R(l,:)/(A(l,:)*psi4(l,:)) &
+        + A(l,:)*psi4(l,:)/cproca_mass**2*electric(l,:)*cprocaE_R(l,:))
+  end if
+
 ! Dissipation.
 
   if (procadiss/=0.d0) then
@@ -159,6 +177,15 @@
   if (shift/="none") then
      scprocaA_R(l,:) = scprocaA_R(l,:) + beta(l,:)*DA_cprocaA_R(l,:) + cprocaA_R(l,:)*D1_beta(l,:)
      scprocaA_I(l,:) = scprocaA_I(l,:) + beta(l,:)*DA_cprocaA_I(l,:) + cprocaA_I(l,:)*D1_beta(l,:)
+  end if
+
+! Charge terms if needed.
+
+  if (cproca_q/=0.d0) then
+     scprocaA_R(l,:) = scprocaA_R(l,:) - cproca_q*alpha(l,:) &
+                     *(ePhi(l,:)*cprocaA_I(l,:) - eAr(l,:)*cprocaPhi_I(l,:))
+     scprocaA_I(l,:) = scprocaA_I(l,:) + cproca_q*alpha(l,:) &
+                     *(ePhi(l,:)*cprocaA_R(l,:) - eAr(l,:)*cprocaPhi_R(l,:))
   end if
 
 ! Dissipation.
