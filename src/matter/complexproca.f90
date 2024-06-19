@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.14 2024/05/21 19:11:06 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.15 2024/06/19 18:23:55 malcubi Exp $
 
   subroutine sources_complexproca(l)
 
