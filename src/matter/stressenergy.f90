@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.48 2024/06/10 17:05:06 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.49 2024/06/19 20:00:33 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -754,9 +754,9 @@
      end if
 
 !    Charge and current density. Notice that here I multiply with -q.
-!    The reson for the negative sign is that we used an opposite
-!    convention of the charge sign in the initial data for the
-!    charged Proca stars.
+!    The reason for the negative sign is that we used an opposite
+!    convention of the charge sign in the definition of the gauge
+!    covariant derivative.
 
      if (contains(mattertype,"electric")) then
         echarge  = echarge  - cproca_q*cproca_Qdens
