@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.11 2023/03/24 18:00:08 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.12 2024/06/25 18:07:24 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -16,8 +16,8 @@
 ! at the old time level).  From this we calculate first the fluid
 ! velocity from:
 !
-!  r                                4 phi
-! v   =  S / (E + D + p + q) / ( A e     )
+!  r                                 4 phi
+! v   =  S  / (E + D + p + q) / ( A e     )
 !         r
 !
 ! where the geometric factor is there in order to raise the index
@@ -54,7 +54,7 @@
 ! Having found these variables, we find the difference between
 ! the trial value of the pressure and the one obtained from
 ! the equation of state, and iterate until this difference
-! becomes zero.
+! is smaller than a tolerance set by "epsilon".
 
 ! Include modules.
 
@@ -80,12 +80,15 @@
 
   maxiter = 500
 
-! Find atmosphere values (from polytropic equation of state).
+! Find atmosphere values.  We set both rho0 and e to a small value,
+! and obtain the pressure from the ideal gas equation of state.
+! Notice that we can't just set e=p=0, since in that case the speed of
+! sound vanishes and the routine that calculates the fluid sources fails.
 
   rhoatmos = fluid_atmos
+  Eatmos   = fluid_atmos
 
-  patmos = fluid_kappa*rhoatmos**fluid_gamma
-  Eatmos = fluid_kappa/(fluid_gamma-1.0)*rhoatmos**(fluid_gamma-1.0)
+  patmos = (fluid_gamma-1.d0)*rhoatmos*Eatmos
 
 ! Loop over grid points.
 
@@ -95,35 +98,33 @@
 !    by a very small quantity to recover the fluid speed, which will
 !    introduce very large round-off errors.  In order to avoid this
 !    we set the conserved mass density D to a small value and the
-!    momentum density S to 0. For the conserved energy density we
-!    use the polytropic equation of state, which implies:
-!
-!    E  =  rho0 e  =  kappa rho0**gamma / (gamma - 1)
-!
-!    We then set all other variables to their values consistent with
-!    this and we jump out of here.
+!    momentum density S to 0. For the conserved energy density we have
+!    E = rho0 e. We then set all other variables to their values consistent
+!    with this and we jump out of here.
 
      if ((fluid_cD(l,i)<=1.5d0*rhoatmos).or.(fluid_p(l,i)<=1.5d0*patmos)) then
 
 !       Primitive variables.
 
         fluid_rho(l,i) = rhoatmos
-
-        fluid_p(l,i) = patmos
-        fluid_e(l,i) = Eatmos
-
+        fluid_e(l,i)   = Eatmos
+        fluid_p(l,i)   = patmos
+ 
 !       Fluid speed and Lorentz factor.
 
-        fluid_v(l,i)  = 0.d0
-        fluid_W(l,i)  = 1.d0
+        fluid_v(l,i) = 0.d0
+        fluid_W(l,i) = 1.d0
 
 !       Enthalpy.
 
         fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
 
-!       Speed of sound (assuming a polytropic relation):  vs^2 = gamma p / rho0 h
+!       Speed of sound, assuming an ideal gas equation of state:
+!
+!         2
+!       vs  =  gamma (gamma - 1) e / (1 + gamma e)
 
-        fluid_vs(l,i) = sqrt(abs(fluid_gamma*fluid_p(l,i)/(fluid_rho(l,i)*fluid_h(l,i))))
+        fluid_vs(l,i) = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*Eatmos/(1.d0 + fluid_gamma*Eatmos)))
 
 !       Conserved quantities (D,E,S).
 
@@ -167,7 +168,7 @@
 
         if (aux<=0.d0) then
            W = 1.d10
-        !   print *, "Fluid speed is larger than 1"
+           !print *, "Fluid speed is larger than 1"
         else
            W = 1.d0/sqrt(abs(aux))
         end if

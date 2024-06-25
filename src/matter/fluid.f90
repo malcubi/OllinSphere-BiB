@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.12 2023/05/17 19:04:17 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.13 2024/06/25 18:06:47 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -212,7 +212,7 @@
 !
 ! Just as the "uwpind" method above, we only take into account the
 ! fluid speed and not the characteristic speeds.  This method is
-! second order, but it is not very accurate nor very stable.
+! second order, but it is not very accurate, nor very stable.
 ! It is only here as a quick and dirty way to test things.
 
   else if (fluid_method=="limiter") then
