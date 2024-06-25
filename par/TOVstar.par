@@ -6,7 +6,7 @@ dr0 = 0.01		  # Grid spacing
 dtfac = 0.7		  # Courant parameter
 
 Nrtotal = 4000		  # Number of grid points
-Nt = 5000		  # Number of time steps
+Nt = 50000		  # Number of time steps
 
 Nl = 1                    # Number of refinement levels
 
@@ -20,9 +20,10 @@ boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = fluid        # Perfect fluid
 fluid_method = hlle       # Numerical method for fluid
-fluid_limiter = minmod    # Type of limiter
+fluid_limiter = vanleer   # Type of limiter
 fluid_gamma = 1.666666666 # Adiabatic index (5/3 for a monoatomic non-relativistic gas)
 fluid_kappa = 1.0         # Polytropic constant
+fluid_atmos = 1.d-8       # Artificial atmosphere value
 
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 0.001	  # Central density for TOV star
@@ -30,12 +31,13 @@ TOV_rho0 = 0.001	  # Central density for TOV star
 fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
 
-geodiss = 0.05            # Dissipation coefficient for geometry
+geodiss   = 0.05          # Dissipation coefficient for geometry
+fluiddiss = 0.05          # Dissipation coefficient for fluid
 
 directory = TOVstar       # Name of output directory
-Ninfo = 200		  # How often do we want to output information to screen?
-Noutput0D = 10		  # How often do we want 0D output?
-Noutput1D = 200           # How often do we want 1D output?
+Ninfo = 500		  # How often do we want to output information to screen?
+Noutput0D = 50		  # How often do we want 0D output?
+Noutput1D = 500           # How often do we want 1D output?
 
 outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness
 outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,rho,mass_sch,mass_int,compactness
