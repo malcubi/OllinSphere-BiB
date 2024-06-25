@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/electric.f90,v 1.15 2023/02/22 21:28:38 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/electric.f90,v 1.16 2024/06/25 18:06:27 malcubi Exp $
 
   subroutine sources_electric(l)
 
@@ -151,13 +151,13 @@
 ! For the potentials we do need a boundary condition.
 
 ! Boundary conditions for ePhi:  We assume a simple outgoing
-! spherical wave.  We also add a contribution to the source (-E/2).
-! This term comes from expressing ePhi in terms of incoming and
-! outgoing eigenfields, and then assuming the incoming eigenfield
-! is very small.
+! spherical wave. Notice that for a localized charge
+! distribution that does not extend all the way to the boundary
+! the right hand side below should vanish since we expect
+! to have sPhi ~ 1/r (of courdse this is only exactly true
+! for Minkowski).
 
-  sePhi(l,Nr) = - (D1_ePhi(l,Nr) + ePhi(l,Nr)/r(l,Nr)) &
-              - 0.5d0*electric(l,Nr)
+  sePhi(l,Nr) = - (D1_ePhi(l,Nr) + ePhi(l,Nr)/r(l,Nr))
 
 ! The variable eAr in fact does not need a boundary condition,
 ! but ... it turns out that for this type of first order system
@@ -165,30 +165,34 @@
 ! so here I recalculate the sources close to the boundary to
 ! fourth order.
 
-  do i=Nr-ghost+2,Nr-1
+  if ((order/="two").or.(order/="four")) then
 
-     aux = (3.d0*eH(l,i+1) + 10.d0*eH(l,i) - 18.d0*eH(l,i-1) + 6.d0*eH(l,i-2) - eH(l,i-3))/12.d0/dr(l)
+     do i=Nr-ghost+2,Nr-1
 
-     sePhi(l,i) = one/(A(l,i)*psi4(l,i))*(eH(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                - 2.d0*D1_phi(l,i) - 2.d0/r(l,i)) - aux) + trK(l,i)*eF(l,i)
+        aux = (3.d0*eH(l,i+1) + 10.d0*eH(l,i) - 18.d0*eH(l,i-1) + 6.d0*eH(l,i-2) - eH(l,i-3))/12.d0/dr(l)
 
-     aux = (3.d0*eF(l,i+1) + 10.d0*eF(l,i) - 18.d0*eF(l,i-1) + 6.d0*eF(l,i-2) - eF(l,i-3))/12.d0/dr(l)
+        sePhi(l,i) = one/(A(l,i)*psi4(l,i))*(eH(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
+                   - 2.d0*D1_phi(l,i) - 2.d0/r(l,i)) - aux) + trK(l,i)*eF(l,i)
 
-     seAr(l,i) = - alpha(l,i)*A(l,i)*psi4(l,i)*electric(l,i) - aux
+        aux = (3.d0*eF(l,i+1) + 10.d0*eF(l,i) - 18.d0*eF(l,i-1) + 6.d0*eF(l,i-2) - eF(l,i-3))/12.d0/dr(l)
+
+        seAr(l,i) = - alpha(l,i)*A(l,i)*psi4(l,i)*electric(l,i) - aux
+
+        if (shift/="none") then
+           sePhi(l,i) = sePhi(l,i) + beta(l,i)*DA_ePhi(l,i)
+           seAr(l,i)  = seAr(l,i) + beta(l,i)*DA_eAr(l,i) + eAr(l,i)*D1_beta(l,i)
+        end if
+
+     end do
+
+!    Source for eAr at last point.
+
+     seAr(l,Nr) = - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*electric(l,Nr) - D1_eF(l,Nr)
 
      if (shift/="none") then
-        sePhi(l,i) = sePhi(l,i) + beta(l,i)*DA_ePhi(l,i)
-        seAr(l,i)  = seAr(l,i) + beta(l,i)*DA_eAr(l,i) + eAr(l,i)*D1_beta(l,i)
+        seAr(l,Nr) = seAr(l,Nr) + beta(l,Nr)*DA_eAr(l,Nr) + eAr(l,Nr)*D1_beta(l,Nr)
      end if
 
-  end do
-
-! Source for eAr at last point.
-
-  seAr(l,Nr) = - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*electric(l,Nr) - D1_eF(l,Nr)
-
-  if (shift/="none") then
-     seAr(l,Nr) = seAr(l,Nr) + beta(l,Nr)*DA_eAr(l,Nr) + eAr(l,Nr)*D1_beta(l,Nr)
   end if
 
 
