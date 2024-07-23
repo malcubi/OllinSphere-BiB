@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.15 2024/06/19 18:23:55 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.16 2024/07/23 20:12:18 malcubi Exp $
 
   subroutine sources_complexproca(l)
 
@@ -67,7 +67,12 @@
      scprocaE_I(l,:) = scprocaE_I(l,:) + beta(l,:)*DA_cprocaE_I(l,:) - cprocaE_I(l,:)*D1_beta(l,:)
   end if
 
-! Charge terms if needed.
+! Charge terms if needed. In the case of a charged Proca field we need
+! to add the following term to the source:
+!
+! scprocaE_R  =  scprocaE_R - q alpha ePhi cprocaE_I
+!
+! scprocaE_I  =  scprocaE_R + q alpha ePhi cprocaE_R
 
   if (cproca_q/=0.d0) then
      scprocaE_R(l,:) = scprocaE_R(l,:) - cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_I(l,:)
@@ -126,14 +131,21 @@
      scprocaPhi_I(l,:) = scprocaPhi_I(l,:) + beta(l,:)*DA_cprocaPhi_I(l,:)
   end if
 
-! Charge terms if needed.
+! Charge terms if needed.  In the case of a charged Proca field we need
+! to add the following term to the source:
+!
+! scprocaPhi_R  =  scprocaPhi_R - q alpha [ ePhi cprocaPhi_I - eAr cprocaA_I /(A psi4)
+!               + (A psi4 / cproca_mass**2) electric cprocaE_I ]
+!
+! scprocaPhi_I  =  scprocaPhi_R + q alpha [ ePhi cprocaPhi_R - eAr cprocaA_R /(A psi4)
+!               + (A psi4 / cproca_mass**2) electric cprocaE_R ]
 
   if (cproca_q/=0.d0) then
      scprocaPhi_R(l,:) = scprocaPhi_R(l,:) - cproca_q*alpha(l,:) &
-        *(ePhi(l,:)*cprocaPhi_I(l,:) + eAr(l,:)*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)) &
+        *(ePhi(l,:)*cprocaPhi_I(l,:) - eAr(l,:)*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)) &
         + A(l,:)*psi4(l,:)/cproca_mass**2*electric(l,:)*cprocaE_I(l,:))
      scprocaPhi_I(l,:) = scprocaPhi_I(l,:) + cproca_q*alpha(l,:) &
-        *(ePhi(l,:)*cprocaPhi_R(l,:) + eAr(l,:)*cprocaA_R(l,:)/(A(l,:)*psi4(l,:)) &
+        *(ePhi(l,:)*cprocaPhi_R(l,:) - eAr(l,:)*cprocaA_R(l,:)/(A(l,:)*psi4(l,:)) &
         + A(l,:)*psi4(l,:)/cproca_mass**2*electric(l,:)*cprocaE_R(l,:))
   end if
 
@@ -179,7 +191,12 @@
      scprocaA_I(l,:) = scprocaA_I(l,:) + beta(l,:)*DA_cprocaA_I(l,:) + cprocaA_I(l,:)*D1_beta(l,:)
   end if
 
-! Charge terms if needed.
+! Charge terms if needed. In the case of a charged Proca field we need
+! to add the following term to the source:
+!
+! scprocaA_R  =  scprocaA_R - q alpha ( ePhi cprocaA_I - eAr cprocaPhi_I )
+!
+! scprocaA_I  =  scprocaA_I + q alpha ( ePhi cprocaA_R - eAr cprocaPhi_R )
 
   if (cproca_q/=0.d0) then
      scprocaA_R(l,:) = scprocaA_R(l,:) - cproca_q*alpha(l,:) &
