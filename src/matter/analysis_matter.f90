@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.52 2024/06/07 16:53:42 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.53 2024/07/23 20:11:51 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -39,7 +39,7 @@
 ! ***   INTEGRATED MASS AND DENSITY TIMES r**2   ***
 ! **************************************************
 
-! Density times r*2.
+! Density times r**2.
 
   if (allocated(rho_r2)) then
      rho_r2 = rho*r**2
@@ -120,7 +120,7 @@
         complex_phi_norm = sqrt(complex_phiR**2 + complex_phiI**2)
      end if
 
-!    Boson density times r*2.
+!    Boson density times r**2.
 
      if (allocated(complex_Bdens_r2)) then
         complex_Bdens_r2 = complex_Bdens*r**2
@@ -208,10 +208,19 @@
                + 6.d0*D1_phi + two/r) + cproca_mass**2*cprocaPhi_R
 
 !        Aditional term added for non-zero angular momentum of constituent fields.
-        
-         if (cproca_l/=0) then 
-             Ccomplexproca_R = Ccomplexproca_R - dble(cproca_l*(cproca_l+1))*cprocaXi_R/(B*psi4)/r**2   
-         end if     
+
+         if (cproca_l/=0) then
+             Ccomplexproca_R = Ccomplexproca_R - dble(cproca_l*(cproca_l+1))*cprocaXi_R/(B*psi4)/r**2
+         end if
+
+!        Charge terms if needed.  For a charged Proca field we need
+!        to add a term of the form:
+!
+!        Ccomplexproca_R = Ccomplexproca_R - q eAr cprocaE_I
+
+         if (cproca_q/=0.d0) then
+            Ccomplexproca_R = Ccomplexproca_R - cproca_q*eAr*cprocaE_I
+         end if
 
      end if
 
@@ -224,12 +233,21 @@
                
 !        Aditional term added for non-zero angular momentum of constituent fields.
 
-         if (cproca_l/=0) then 
-             Ccomplexproca_I = Ccomplexproca_I - dble(cproca_l*(cproca_l+1))*cprocaXi_I/(B*psi4)/r**2 
-         end if 
-               
+         if (cproca_l/=0) then
+             Ccomplexproca_I = Ccomplexproca_I - dble(cproca_l*(cproca_l+1))*cprocaXi_I/(B*psi4)/r**2
+         end if
+
+!        Charge terms if needed.  For a charged Proca field we need
+!        to add a term of the form:
+!
+!        Ccomplexproca_I = Ccomplexproca_I + q eAr cprocaE_R
+
+         if (cproca_q/=0.d0) then
+             Ccomplexproca_I = Ccomplexproca_I + cproca_q*eAr*cprocaE_R
+         end if
+
      end if
-   
+
 !    Norms.
 
      if (allocated(cprocaPhi_norm)) then
@@ -252,7 +270,7 @@
         cprocaE_norm = sqrt(cprocaXi_R**2 + cprocaXi_I**2)
      end if
 
-!    Proca charge density times r*2.
+!    Proca charge density times r**2.
 
      if (allocated(cproca_Qdens_r2)) then
         cproca_Qdens_r2 = cproca_Qdens*r**2
