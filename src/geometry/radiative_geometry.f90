@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/radiative_geometry.f90,v 1.49 2023/10/04 19:42:33 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/radiative_geometry.f90,v 1.50 2024/08/28 17:26:21 malcubi Exp $
 
   subroutine radiative_geometry(l)
 
@@ -280,7 +280,7 @@
 !
 !          This expression works fine in many cases, but causes a drift
 !          when the final lapse is non-trivial. We can find a better
-!          expression  if we assume that the incoming slicing eigenfield
+!          expression if we assume that the incoming slicing eigenfield
 !          is very small, which implies:  D1_alpha ~ sqrt(gauge_f) trK.
 !
 !          Notice that for travelling waves both expressions should give

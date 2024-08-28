@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.53 2024/07/23 20:11:51 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.54 2024/08/28 17:26:58 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -348,6 +348,27 @@
   end if
 
 
+! *************************
+! ***   PERFECT FLUID   ***
+! *************************
+
+  if (contains(mattertype,"fluid")) then
+
+!    Barotropic index, using both the rest mass energy density
+!    and the total energy density.
+
+     if (allocated(fluid_wb_rest)) then
+        fluid_wb_rest = fluid_p/fluid_rho
+     end if
+
+     if (allocated(fluid_wb_tot)) then
+        fluid_wb_tot = fluid_p/((1.d0 + fluid_e)*fluid_rho)
+        !fluid_wb_tot = fluid_p/(fluid_e*fluid_rho)
+     end if
+
+  end if
+
+
 ! **************************
 ! ***   ELECTRIC FIELD   ***
 ! **************************
@@ -423,7 +444,7 @@
 !    M  =  r psi  B   / 2  [ 1 - (B/A) ( 1 + r d B / (2 B) + 2 r d phi )  + (Q/R)**2]
 !                                               r                 r
 !
-!    Note:  This must ALWAYS be after the section for the elecgric field.
+!    Note:  This must ALWAYS be after the section for the electric field.
 
      if (allocated(mass_rn)) then
 

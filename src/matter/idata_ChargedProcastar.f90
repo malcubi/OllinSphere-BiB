@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.5 2024/06/12 19:48:24 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.6 2024/08/28 17:27:18 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -854,8 +854,6 @@
 !    ***   PROCA STAR PERTURBATION   ***
 !    ***********************************
 
-!    THIS IS NOT YET WORKING, I NEED TO CHECK IT!
-
 !    Here we add a gaussian perturbation to the solution for the
 !    Proca scalar potential procaF, leaving procaA unchanged.
 !    We then solve again for (A,alpha,maxwellF,maxwellE,procaE).
@@ -1445,7 +1443,6 @@
   J4_CPS = W*procaF*A/alpha**2 - procaA*((A + 1.d0)/rm + rm*A*aux) &
          + cproca_q*A**2*maxwellE*procaE/cproca_mass**2
 
-
   end function J4_CPS
 
 
@@ -1482,7 +1479,7 @@
 !              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi ecurrent
 !
 ! where in the second equality we used the Hamiltonian constraint
-! to elimnate dA/dr, and with "ecurrent" the electric current of
+! to eliminate dA/dr, and with "ecurrent" the electric current of
 ! the Proca field.
 !
 ! For the energy density we have:
