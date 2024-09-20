@@ -961,6 +961,15 @@
   real(8) :: rtmax = 0.d0    ! Not a real parameter, DO NOT set in parameter file.
 
 
+! ****************************************
+! ***   TRACKING ANALYTIC SPACETIMES   ***
+! ****************************************
+
+! Minkowski.
+
+  logical :: TrackMinkowski = .false.
+
+
 ! ***************
 ! ***   END   ***
 ! ***************
