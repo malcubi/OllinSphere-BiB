@@ -24,9 +24,13 @@
 ! ***   GEOMETRY   ***
 ! ********************
 
-! Update auxiliary geometric variables.
+! Update auxiliary geometric variables.  For initial
+! data we always have to do it, even if we are evolving
+! on a background spacetime, since we need to calculate
+! things like "psi" and spatial dervatives of geometric
+! quantities, etc.
 
-  if (spacetime=="dynamic") then
+  if ((spacetime=="dynamic").or.(t(0)==0.d0)) then
      call auxiliary_geometry(l)
   end if
 
