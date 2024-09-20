@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/onestep.f90,v 1.79 2021/06/18 19:07:11 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/onestep.f90,v 1.80 2024/09/03 17:11:40 malcubi Exp $
 
   recursive subroutine onestep(l)
 
@@ -403,6 +403,17 @@
 
   s(l) = s(l) + 1
   t(l) = t(l) + dt(l)
+
+
+! *************************************
+! ***   TRACK ANALYTIC SPACETIMES   ***
+! *************************************
+
+! Minkowski.
+
+  if (TrackMinkowski) then
+     call trackmink(l)
+  end if
 
 
 ! **********************************
