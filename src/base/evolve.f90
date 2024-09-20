@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/evolve.f90,v 1.52 2022/08/05 01:23:13 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/evolve.f90,v 1.53 2024/09/03 17:11:16 malcubi Exp $
 
   subroutine evolve
 
@@ -166,6 +166,32 @@
   end if
 
 
+! *************************************
+! ***   TRACK ANALYTIC SPACETIMES   ***
+! *************************************
+
+! Minkowski.
+
+  if (TrackMinkowski) then
+
+     if (idata=="minkowski") then
+
+        do l=0,Nl-1
+           call trackmink(l)
+        end do
+
+     else
+
+        print *, 'Tracking Minkowski requires idata=minkowski ...'
+        print *, 'Aborting! (subroutine base/onestep.f90)'
+        print *
+        call die
+
+     end if
+
+  end if
+
+
 ! ************************
 ! ***   FIND SOURCES   ***
 ! ************************
@@ -311,9 +337,9 @@
      end if
 
 
-!    *****************************
-!    ***   SAVE DATA TO FILE   ***
-!    *****************************
+!    ******************************
+!    ***   SAVE DATA TO FILES   ***
+!    ******************************
 
 !    Save 0D data (only every Noutput0D time steps).
 
