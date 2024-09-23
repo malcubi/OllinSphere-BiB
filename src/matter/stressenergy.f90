@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.49 2024/06/19 20:00:33 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.50 2024/09/23 18:51:52 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -951,19 +951,21 @@
 
   if (contains(mattertype,"fluid")) then
 
+!    Set up atmosphere values (remember not to take into
+!    account the artificial atmosphere).
+
      rhoatmos = fluid_atmos
 
-     if (fluid_EOS=="ideal") then
-        Eatmos = fluid_kappa/(fluid_gamma-1.d0)*rhoatmos**fluid_gamma
-        patmos = (fluid_gamma - 1.d0)*rhoatmos*Eatmos
-     else
-        Eatmos = 0.d0
-        patmos = 0.d0
-     end if
+     patmos = fluid_kappa*rhoatmos**fluid_gamma
+     Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
 
 !    Energy density.
 
-     rho(l,:) = rho(l,:) + (fluid_cE(l,:) - Eatmos) + (fluid_cD(l,:) - rhoatmos)
+     do i=1-ghost,Nr
+        if (fluid_cD(l,i)>rhoatmos) then
+           rho(l,i) = rho(l,i) + fluid_cE(l,i) + fluid_cD(l,i)
+        end if
+     end do
 
 !    Momentum density.
 

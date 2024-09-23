@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.12 2024/06/25 18:07:24 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.13 2024/09/23 18:51:52 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -81,14 +81,15 @@
   maxiter = 500
 
 ! Find atmosphere values.  We set both rho0 and e to a small value,
-! and obtain the pressure from the ideal gas equation of state.
+! and obtain the pressure from the polytropic equation of state.
+!
 ! Notice that we can't just set e=p=0, since in that case the speed of
 ! sound vanishes and the routine that calculates the fluid sources fails.
 
   rhoatmos = fluid_atmos
-  Eatmos   = fluid_atmos
 
-  patmos = (fluid_gamma-1.d0)*rhoatmos*Eatmos
+  patmos = fluid_kappa*rhoatmos**fluid_gamma
+  Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
 
 ! Loop over grid points.
 
@@ -97,18 +98,24 @@
 !    Atmosphere: If the density is too low we run the risk of dividing
 !    by a very small quantity to recover the fluid speed, which will
 !    introduce very large round-off errors.  In order to avoid this
-!    we set the conserved mass density D to a small value and the
-!    momentum density S to 0. For the conserved energy density we have
+!    we set the conserved mass density to a small value and the
+!    momentum density to 0. For the conserved energy density we have
 !    E = rho0 e. We then set all other variables to their values consistent
 !    with this and we jump out of here.
 
-     if ((fluid_cD(l,i)<=1.5d0*rhoatmos).or.(fluid_p(l,i)<=1.5d0*patmos)) then
+     if ((fluid_cD(l,i)<=rhoatmos).or.(fluid_rho(l,i)<=rhoatmos)) then
 
 !       Primitive variables.
 
         fluid_rho(l,i) = rhoatmos
         fluid_e(l,i)   = Eatmos
         fluid_p(l,i)   = patmos
+
+!       Conserved quantities (D,E,S).
+
+        fluid_cD(l,i) = rhoatmos
+        fluid_cE(l,i) = rhoatmos*Eatmos
+        fluid_cS(l,i) = 0.d0
  
 !       Fluid speed and Lorentz factor.
 
@@ -119,18 +126,12 @@
 
         fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
 
-!       Speed of sound, assuming an ideal gas equation of state:
+!       Speed of sound, assuming a polytropic equation of state:
 !
 !         2
 !       vs  =  gamma (gamma - 1) e / (1 + gamma e)
 
-        fluid_vs(l,i) = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*Eatmos/(1.d0 + fluid_gamma*Eatmos)))
-
-!       Conserved quantities (D,E,S).
-
-        fluid_cD(l,i) = fluid_rho(l,i)
-        fluid_cE(l,i) = fluid_rho(l,i)*fluid_e(l,i)
-        fluid_cS(l,i) = 0.d0
+        fluid_vs(l,i) = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*Eatmos/(1.d0+fluid_gamma*Eatmos)))
 
         goto 10
 
@@ -173,8 +174,11 @@
            W = 1.d0/sqrt(abs(aux))
         end if
 
-        W = 1.d0/sqrt(abs(aux))
         fluid_W(l,i) = W
+
+!       Find rest-mass density.
+
+        fluid_rho(l,i) = fluid_cD(l,i)/W
 
 !       Find specific internal energy (it should be positive).
 
@@ -186,10 +190,6 @@
            fluid_cE(l,i) = aux
            fluid_e(l,i)  = 0.d0
         end if
-
-!       Find rest-mass density.
-
-        fluid_rho(l,i) = fluid_cD(l,i)/W
 
 !       Find enthalpy.
 

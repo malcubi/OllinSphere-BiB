@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.6 2022/08/05 20:23:56 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.7 2024/09/23 18:51:52 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -409,7 +409,114 @@
 !    density as a perturbation and solve the Hamiltonian
 !    constraint again.
 
-!    PERTURBATION NOT YET IMPLEMENTED!
+     if (TOVgauss) then
+
+!       Message to screen.
+
+        print *, 'Adding gaussian perturbation to TOV star ...'
+
+!       Rescale the amplitude of the gaussian with max(rho)
+
+        aux = maxval(rho0_g)
+        TOV_a0 = aux*TOV_a0
+
+!       Add gaussian perturbation to density.
+
+        if (boson_phiR_r0==0.d0) then
+           rho0_g = rho0_g + TOV_a0*exp(-rr**2/TOV_s0**2)
+        else
+           rho0_g = rho0_g + TOV_a0 &
+                  *(exp(-(rr-TOV_r0)**2/TOV_s0**2) &
+                  + exp(-(rr+TOV_r0)**2/TOV_s0**2))
+        end if
+
+!       Solve again hamiltonian constraint.
+
+        print *, 'Solving hamiltonian constraint again ... NOT YET IMPLEMENTED'
+        print *
+
+!       Loop over grid levels. We solve from fine to coarse grid.
+
+        do l=Nl-1,0,-1
+
+!          Find initial point. Only the finest grid
+!          integrates from the origin.
+
+           if (l==Nl-1) then
+              imin = 1
+           else
+              imin = Nrtotal/2
+           end if
+
+!          For coarse grids we interpolate the initial point.
+
+           if (l<Nl-1) then
+              A_g(l,imin-1) = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
+                            - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
+           end if
+
+!          Fourth order Runge-Kutta.
+
+           do i=imin,Nrtotal
+
+!             Grid spacing and values at first point
+!             if we start from the origin (finer grid).
+
+              if (i==1) then
+
+                 delta = half*dr(l)
+                 r0 = 0.d0
+                 A0 = 1.d0
+
+!             Grid spacing and values at previous grid point.
+
+              else
+
+                 delta = dr(l)
+                 r0 = rr(l,i-1)
+                 A0 = A_g(l,i-1)
+
+              end if
+
+!             I) First Runge-Kutta step.
+
+!             II) Second Runge-Kutta step.
+
+!             III) Third Runge-Kutta step.
+
+!             IV) Fourth Runge-Kutta step.
+
+!             Advance to next grid point.
+
+           end do
+
+!          Ghost zones.
+
+           do i=1,ghost
+              A_g(l,1-i) = A_g(l,i)
+           end do
+
+        end do
+
+!       Restrict solution from fine to coarse grid.
+
+        do l=Nl-1,1,-1
+
+           do i=1,Nrtotal-ghost,2
+
+           end do
+
+!          Fix ghost zones.
+
+           do i=1,ghost
+              A_g(l-1,1-i) = A_g(l-1,i)
+           end do
+
+        end do
+
+!       Fix ghost zones.
+
+     end if
 
 
 !    ************************************
@@ -476,9 +583,17 @@
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
 
-! Add atmosphere (we just add it everywhere).
+! Add atmosphere.  We just add it everywhere since
+! we will subtract it latter when we calculate the
+! stress-energy tensor.
 
-  fluid_rho = fluid_rho + fluid_atmos
+  do l=Nl-1,0,-1
+     do i=1-ghost,Nrtotal
+        if (fluid_rho(l,i)<=fluid_atmos) then
+           fluid_rho(l,i) = fluid_rho(l,i) + fluid_atmos
+        end if
+     end do
+  end do
 
 ! Find pressure and internal energy.
 
