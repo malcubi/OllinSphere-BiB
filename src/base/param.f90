@@ -904,6 +904,19 @@
   real(8) :: TOV_rho0 = 0.001d0
   real(8) :: TOV_rad  = 0.d0
 
+! TOV star perturbation.
+!
+! TOV_gauss:         Do we add an initial profile to the TOV star solution?
+! TOV_a0:            Amplitude of initial profile.
+! TOV_r0:            Center of initial profile.
+! TOV_s0:            Width of initial profile.
+
+  logical :: TOVgauss = .false.
+
+  real(8) :: TOV_a0 = 0.d0
+  real(8) :: TOV_r0 = 0.d0
+  real(8) :: TOV_s0 = 1.d0
+
 ! Blast wave initial data:
 !
 ! blast_R            Initial radius of inner region.
