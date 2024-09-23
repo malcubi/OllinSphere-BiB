@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.54 2024/08/28 17:26:58 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.55 2024/09/23 18:50:53 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -126,7 +126,7 @@
         complex_Bdens_r2 = complex_Bdens*r**2
      end if
 
-!    The total boson number (integrated boson charge) is then:
+!    The total boson number (integrated boson charge) is:
 !
 !                        /r                2
 !    complex_NB  =  4 pi |  complex_Bdens R  dR
@@ -320,9 +320,7 @@
         wmI_dirac = dirac_FI - dirac_GI
      end if
 
-!    Total conserved charge.
-
-!    The total boson number (integrated boson charge) is then:
+!    The total particle number (integrated particle number) is:
 !
 !                        /r             2
 !    dirac_Nint  =  4 pi |  dirac_dens R  dR
@@ -364,6 +362,29 @@
      if (allocated(fluid_wb_tot)) then
         fluid_wb_tot = fluid_p/((1.d0 + fluid_e)*fluid_rho)
         !fluid_wb_tot = fluid_p/(fluid_e*fluid_rho)
+     end if
+
+!    The total baryon rest mass is:
+!
+!                      /r             2
+!    fluid_Nb  =  4 pi |  fluid_rho0 R  dR
+!                      /0
+!
+!    with R the Schwarzschild radius.
+
+     if (allocated(fluid_Nb)) then
+
+        call fluidintegral
+
+!       Output total binding energy, but only at t=0 and
+!       for certain type of initial data.
+
+        if ((t(0)==0.d0).and.(rank==0)) then
+           if (idata=="TOVstar") then
+              write(*,'(A,E19.12)') ' Binding energy (M-Nb) = ',mass_int(0,Nr) - fluid_Nb(0,Nr)
+           end if
+        end if
+
      end if
 
   end if
