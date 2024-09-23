@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/diracintegral.f90,v 1.1 2023/09/26 16:42:03 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/diracintegral.f90,v 1.2 2024/09/23 18:50:17 malcubi Exp $
 
   subroutine diracintegral
 
@@ -28,8 +28,9 @@
 
   implicit none
 
-  integer i,l
+  integer i,l,i0
 
+  real(8) delta
   real(8) R99,NTOT
   real(8) aux,smallpi
 
@@ -72,7 +73,41 @@
 
   do l=Nl-1,1,-1
 
+!    Substract constant difference at edge of fine grid. Since the
+!    integrals are done independently at each grid level, we find that
+!    after restriction there will be small jumps due to accumulated
+!    numerical error when we pass from the end on a fine grid to the
+!    next coarse grid. Here we correct for that.
+
+     i0 = Nr/2
+
+     if (size==1) then
+
+!       Find difference between the value at the edge of the fine grid, 
+!       and the value in the coarse grid.
+
+        delta = dirac_Nint(l-1,i0) - 0.5d0*(dirac_Nint(l,2*i0) + dirac_Nint(l,2*i0-1))
+
+     else
+
+!       NOT YET IMPLEMENTED.
+
+     end if
+
+!    Restrict.
+
+     call restrict(l,.false.)
+
+!    Fix symmetries.
+
+     if (rank==0) then
+        do i=1,ghost
+           dirac_Nint(l-1,1-i) = dirac_Nint(l-1,i)
+        end do
+     end if
+
   end do
+
 
 ! *********************************************
 ! ***   OUTPUT TOTAL DIRAC CHARGE AND R99   ***
