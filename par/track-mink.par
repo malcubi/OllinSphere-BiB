@@ -1,0 +1,49 @@
+# Test parameter file:
+#
+# Tracking Minkowski spacetime, 1+log lapse, Gammadriver1 shift
+
+adjuststep = .true.     # Adjust time step
+
+dr0 = 0.05       	# Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 1200	        # Number of grid points
+Nt = 10000	        # Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+slicing = 1+log         # Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+shift = Gammadriver1    # Shift condition
+drivercsi = 0.75        # Coefficient of Gammadriver shift
+drivereta = 2.0         # Damping term for Gammadriver shift
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+idata = minkowski       # Type of initial data
+TrackMinkowski = .true. # Track Minkowski spacetime
+
+lapsepert = tophat      # Gaussian perturbation to initial lapse
+lapse_a0 = 0.05          # Amplitude of perturbation
+lapse_r0 = 30.0	        # Center of perturbation
+lapse_s0 = 5.0	        # Width of tophat perturbation
+lapse_t0 = 1.0          # Width of tophat transition
+
+shiftpert = tophat      # Gaussian perturbation to initial shift
+shift_a0 = 0.05		# Amplitude of perturbation
+shift_r0 = 15.0	        # Center of perturbation
+shift_s0 = 5.0	        # Width of tophat perturbation
+shift_t0 = 1.0          # Width of tophat transition
+
+directory = track-mink  # Name of output directory
+Ninfo = 100  	        # How often do we want to output information to screen?
+Noutput0D = 10	        # How often do we want 0D output?
+Noutput1D = 100	        # How often do we want 1D output?
+
+outvars0D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,T_MINK,T_MINK_S,R_MINK,R_MINK_S
+outvars1D = alpha,beta,phi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,T_MINK,T_MINK_S,R_MINK,R_MINK_S
+
