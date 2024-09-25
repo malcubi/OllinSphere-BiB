@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.7 2024/09/23 18:51:52 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.8 2024/09/25 16:36:58 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -374,7 +374,7 @@
 !                Find star radius using linear extrapolation from
 !                previous two points.
 
-                 TOV_rad = rr(l,irad-1) + dr(l)*rho0_g(l,irad-i)/(rho0_g(l,irad) - rho0_g(l,irad-1))
+                 TOV_rad = rr(l,irad-1) - dr(l)*rho0_g(l,irad-1)/(rho0_g(l,irad) - rho0_g(l,irad-1))
 
                  write(*,'(A,E19.12)') ' Radius of TOV star    = ',TOV_rad
 
@@ -421,18 +421,25 @@
         TOV_a0 = aux*TOV_a0
 
 !       Add gaussian perturbation to density.
+!       But only add it inside the star!
 
         if (boson_phiR_r0==0.d0) then
-           rho0_g = rho0_g + TOV_a0*exp(-rr**2/TOV_s0**2)
+           do i=1-ghost,irad
+              rho0_g(:,i) = rho0_g(:,i) + TOV_a0*exp(-rr(:,i)**2/TOV_s0**2)
+           end do
         else
-           rho0_g = rho0_g + TOV_a0 &
-                  *(exp(-(rr-TOV_r0)**2/TOV_s0**2) &
-                  + exp(-(rr+TOV_r0)**2/TOV_s0**2))
+           do i=1-ghost,irad
+              rho0_g(:,i) = rho0_g(:,i) + TOV_a0 &
+                          *(exp(-(rr(:,i)-TOV_r0)**2/TOV_s0**2) &
+                          + exp(-(rr(:,i)+TOV_r0)**2/TOV_s0**2))
+           end do
         end if
 
 !       Solve again hamiltonian constraint.
 
-        print *, 'Solving hamiltonian constraint again ... NOT YET IMPLEMENTED'
+        print *, 'Solving hamiltonian constraint again'
+        print *
+        print *, 'THIS IS NOT YET IMPLEMENTED, THE HAMILTONIAN CONSTRAINT WILL BE VIOLATED!'
         print *
 
 !       Loop over grid levels. We solve from fine to coarse grid.
@@ -590,7 +597,7 @@
   do l=Nl-1,0,-1
      do i=1-ghost,Nrtotal
         if (fluid_rho(l,i)<=fluid_atmos) then
-           fluid_rho(l,i) = fluid_rho(l,i) + fluid_atmos
+           fluid_rho(l,i) = fluid_atmos
         end if
      end do
   end do
