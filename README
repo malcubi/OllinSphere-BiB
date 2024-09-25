@@ -22,20 +22,6 @@ the subdirectory "doc". If something is not there, try looking at the
 source files directly, they are extensively commented.
 
 
-These are instructions to add new users to the CVS repository (obsolete)
-------------------------------------------------------------------------
-
-Adding users to the cvs repository:
-
-1) Log into dulcinea.nucleares.unam.mx
-2) Add new user: sudo useradd 'username'
-3) add user to cvs and mail groups:  sudo usermod -a -G cvs mail
-4) Check that you did this right by lokng at the files:  /etc/passwd y /etc/group
-5) Goto /usr/local/ollincvs/CVSROOT
-6) Run perl script to generate password for user:  sudo ./cvs_passwd.pl 'username' 'password' cvs
-7) Check by looking at file passwd.
-
-
 Downloading the code
 --------------------
 
@@ -109,6 +95,8 @@ several subdirectories inside this main directory:
 
 * src:	      Contains the source files for all the code routines.
 
+* tools:      At the moment only contains a Fast Fourier Transform standalone
+              code that is often useful.
 
 The directory "src" is itself divided into a series of subdirectories
 in order to better classify the different routines. These
@@ -117,11 +105,11 @@ subdirectories are:
 * CVS:        Contains information about the CVS root and server.
 
 * auto:	      Contains FORTRAN files that are automatically generated
-  	      at compile time by the perl scripts.  These files should
+  	      at compile time by perl scripts.  These files should
   	      not be edited manually!
 
 * base:	      Contains the routines that control the basic execution of
-  	      the code, including the parameter and array declarations,
+  	      the code, including parameter and array declarations,
   	      the parameter parser, the output routines, the main
   	      evolution controllers, and generic routines for
   	      calculating derivatives, dissipation, etc.  The code in
@@ -136,8 +124,8 @@ subdirectories are:
 * matter:     Contains routines related to the initial data, evolution
 	      and analysis of the different matter models, including a
 	      generic routine for calculating the basic matter
-	      variables, and routines for evolving scalar fields,
-	      electric fields, fluids, etc.
+	      stress-energy variables, and routines for evolving scalar
+              fields, electric fields, fluids, etc.
 
 
 
