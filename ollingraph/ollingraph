@@ -24,7 +24,7 @@
 #
 # 12/4/23:       Modified the way lines are deleted, it was no longer working.
 #
-# 26/9/24        Added button for first derivative, plus fixed a few minor details.
+# 26/9/24:       Added button for first derivative, plus fixed a few minor details.
 
 
 #######################
