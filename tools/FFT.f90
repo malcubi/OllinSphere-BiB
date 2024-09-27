@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/tools/FFT.f90,v 1.8 2020/10/07 19:23:50 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/tools/FFT.f90,v 1.9 2024/09/27 18:32:03 malcubi Exp $
 
   program FFT
 
@@ -25,6 +25,10 @@
 
   real(8) x                   ! Auxiliary variables.
   real(8) smallpi,twopi       ! Pi and 2*Pi.
+  real(8) fac                 ! Factor used for rescaling the Power.
+
+  real(8) G,c,h,hbar          ! Newtons´s constant, speed of light and Planck's constant in SI.
+  real(8) Msol                ! Solar mass in SI.
 
   real(8), allocatable, dimension (:) :: t,data  ! Data arrays for time and function f(t).
   real(8), allocatable, dimension (:) :: cr,ci   ! Real and Imaginary Fourier coefficients.
@@ -43,6 +47,15 @@
 
   smallpi = acos(-1.d0)
   twopi = 2.d0*smallpi
+
+! Physical constants (useful for rescaling to SI units).
+
+  G = 6.6743d-11
+  c = 2.99792458d8
+  h = 6.62607015d-34
+
+  hbar = h/twopi
+  Msol = 1.988475d30
 
 
 ! *********************
@@ -119,8 +132,8 @@
 
   do while(i<N)
 
-!    Read data first as text and ignore,
-!    comments then convert to real numbers.
+!    Read data first as text and ignore
+!    comments, then convert to real numbers.
 
      read(1,'(a)',END=10) line
      line = adjustl(line)
@@ -191,8 +204,8 @@
 ! We call again realft for the inverse
 ! transform.
 
-  !call realft(data,N,-1)
-  !rdata = 2.d0*data/dble(N)
+  call realft(data,N,-1)
+  rdata = 2.d0*data/dble(N)
 
 
 ! ******************
@@ -241,12 +254,21 @@
 
   close(1)
 
+! Define rescaling factor for output of power spectrum.
+
+  fac = 1.d0                   ! Physical (cycles per second)
+  !fac = twopi                 ! Angular (radians per second).
+  !fac = c**3/(G*Msol)         ! Physical, rescaled from units such that c=G=Msol=1.
+  !fac = sqrt(c**5/(hbar*G))   ! Physical, rescaled from Planck units c=G=hbar=1.
+
+  !print *, fac
+
 ! Save power spectrum.
 
   open(1,file='Power.dat',form='formatted',status='replace')
 
   do i=0,N/2
-     write(1,"(2ES25.15)") twopi*dble(i)/(t(N)-t(1)),p(i)
+     write(1,"(2ES25.15)") fac*dble(i)/(t(N)-t(1)),p(i)
      !write(1,"(2ES20.10)") dble(i),p(i)
   end do
 
@@ -254,13 +276,13 @@
 
 ! Save reconstructed data.
 
-  !open(1,file='rdata.dat',form='formatted',status='replace')
+  open(1,file='rdata.dat',form='formatted',status='replace')
 
-  !do i=1,N
-  !   write(1,"(2ES20.10)") t(i),rdata(i)
-  !end do
+  do i=1,N
+     write(1,"(2ES20.10)") t(i),rdata(i)
+  end do
 
-  !close(1)
+  close(1)
 
 
 ! ***************
