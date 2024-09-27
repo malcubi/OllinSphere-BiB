@@ -23,6 +23,8 @@
 # 22/10/20:      It now works with python 3.
 #
 # 12/4/23:       Modified the way lines are deleted, it was no longer working.
+#
+# 26/9/24        Added button for first derivative, plus fixed a few minor details.
 
 
 #######################
@@ -534,6 +536,7 @@ styleFlag  = False    # Flag to indicate if "style" popoup window is active.
 saveFlag   = False    # Flag to indicate if "save"  popoup window is active.
 
 logFlag    = False    # Flag to indicate if we are doing a log plot.
+derivFlag  = False    # Flag to indicate if we are plotting the derivative.
 polFlag    = False    # Flag to indicate if we are doing a polar plot.
 
 
@@ -929,11 +932,11 @@ class Actions:
 
             input_box = [tk.StringVar(popup_axis) for i in range(4)]
 
-            input_box[0].set(round(xmin,4))
-            input_box[1].set(round(xmax,4))
+            input_box[0].set("%.3g"%xmin)
+            input_box[1].set("%.3g"%xmax)
 
-            input_box[2].set(round(yb,4))
-            input_box[3].set(round(yt,4))
+            input_box[2].set("%.3g"%yb)
+            input_box[3].set("%.3g"%yt)
 
             box_entry = [tk.Entry(frame1,width=15,textvariable=input_box[i]) for i in range(4)]
             box_entry[0].grid(column=2,row=0)
@@ -943,10 +946,10 @@ class Actions:
 
             # Plot text and create boxes.
 
-            tk.Label(frame1,width=15,text="xmin").grid(column=1,row=0)
-            tk.Label(frame1,width=15,text="xmax").grid(column=1,row=1)
-            tk.Label(frame1,width=15,text="ymin").grid(column=1,row=2)
-            tk.Label(frame1,width=15,text="ymax").grid(column=1,row=3)
+            tk.Label(frame1,width=20,text="xmin").grid(column=1,row=0)
+            tk.Label(frame1,width=20,text="xmax").grid(column=1,row=1)
+            tk.Label(frame1,width=20,text="ymin").grid(column=1,row=2)
+            tk.Label(frame1,width=20,text="ymax").grid(column=1,row=3)
 
             # Create 'apply' and 'back' buttons.
 
@@ -958,9 +961,9 @@ class Actions:
             box_entry[0].focus()
 
 
-    ##############################
-    ###   SCALE POPUP WINDOW   ###
-    ##############################
+    ################################
+    ###   RESCALE POPUP WINDOW   ###
+    ################################
 
     def scale(self,event):
 
@@ -1053,13 +1056,13 @@ class Actions:
 
             # Define entry variables and boxes.
 
-            input_box = [tk.StringVar(popup_scale,scale[i+1]) for i in range(nf)]
+            input_box = [tk.StringVar(popup_scale,"%.3g"%scale[i+1]) for i in range(nf)]
             box_entry = [tk.Entry(frame1,width=15,textvariable=input_box[i]) for i in range(nf)]
 
             # Plot text and create boxes.
 
             for i in range(1,nf+1):
-                tk.Label(frame1,width=15,text=filen[i]).grid(column=1,row=i-1)
+                tk.Label(frame1,width=20,text=filen[i]).grid(column=1,row=i-1)
                 box_entry[i-1].grid(column=2,row=i-1)
 
             # Create 'apply' and 'back' buttons.
@@ -1424,6 +1427,112 @@ class Actions:
 
 
     ########################
+    ###   DERIV BUTTON   ###
+    ########################
+
+    def deriv(self,event):
+
+        global derivFlag
+        global xmin0,xmax0
+        global yb0,yt0,ybaux,ytaux,rlist,slist1
+
+        # If derivFlag = false
+
+        if ((not derivFlag) and (not polFlag)):
+
+            # Set deriv flag to true.
+
+            derivFlag = True
+
+            # Change label on button.
+
+            blog.label.set_text('Original')
+
+            if (polar):
+                bpol.label.set_text('DISABLED')
+
+            # Save old data to slist1.
+
+            slist1 = [x[:] for x in rlist]
+
+            # Now set rlist to first derivative using second
+            # order finite differencing. But be careful
+            # with data files that have no time stamp.
+
+            for i in range(1,nf+1):
+                if (ntmax==0):
+                    yprime = np.gradient(rlist[i][0],xlist[i][0])
+                    rlist[i][0] = yprime.tolist()
+                else:
+                    for k in range(0,ntmax):
+                        yprime = np.gradient(rlist[i][k],xlist[i][0])
+                        rlist[i][k] = yprime.tolist()
+
+            # Save old plot boundaries.
+
+            ybaux = yb0
+            ytaux = yt0
+
+            # Set plot boundaries for derivative plot.
+
+            ymin = +1.e10
+            ymax = -1.e10
+
+            if (ntmax>0):
+                for i in range(1,nf+1):
+                    for k in range(0,ntmax):
+                        yarr = np.array(rlist[i][k])
+                        ym = np.nanmin(yarr)
+                        yx = np.nanmax(yarr)
+                        if (ym<ymin): ymin=ym
+                        if (yx>ymax): ymax=yx
+            else:
+                for i in range(1,nf+1):
+                    yarr = np.array(rlist[i][0])
+                    ym = np.nanmin(yarr)
+                    yx = np.nanmax(yarr)
+                    if (ym<ymin): ymin=ym
+                    if (yx>ymax): ymax=yx
+
+            ymed = 0.5*(ymin+ymax)
+
+            yb0 = ymed + 1.5*(ymin-ymed)
+            yt0 = ymed + 1.5*(ymax-ymed)
+
+            # Call reset.
+
+            callback.reset(event)
+
+        # If derivFlag = false
+
+        elif (not polFlag):
+
+            # Set deriv flag to false.
+
+            derivFlag = False
+
+            # Change label on button.
+
+            blog.label.set_text('Derivative')
+
+            if (polar):
+                bpol.label.set_text('Polar')
+
+            # Copy back original data.
+
+            rlist = [x[:] for x in slist1]
+
+            # Reset old plot boundaries.
+
+            yb0 = ybaux
+            yt0 = ytaux
+
+            # Call reset.
+
+            callback.reset(event)
+
+
+    ########################
     ###   POLAR BUTTON   ###
     ########################
 
@@ -1520,7 +1629,7 @@ class Actions:
             bpol.label.set_text('Polar')
             blog.label.set_text('Log10 Plot')
 
-            # Copy back originakl data.
+            # Copy back original data.
 
             xlist = [x[:] for x in slist1]
             rlist = [x[:] for x in slist2]
@@ -1556,7 +1665,7 @@ bquit   = Button(axquit,'Quit',color='red',hovercolor='lightcoral')
 bquit.on_clicked(callback.quit)
 
 axaxis  = plt.axes([0.86,0.76,0.12,0.07])
-baxis   = Button(axaxis,'Axis',color='gold',hovercolor='lightyellow')
+baxis   = Button(axaxis,'Axis limits',color='gold',hovercolor='lightyellow')
 baxis.on_clicked(callback.axis)
 
 axscale = plt.axes([0.86,0.66,0.12,0.07])
@@ -1564,12 +1673,16 @@ bscale  = Button(axscale,'Rescale',color='gold',hovercolor='lightyellow')
 bscale.on_clicked(callback.scale)
 
 axstyle = plt.axes([0.86,0.56,0.12,0.07])
-bstyle  = Button(axstyle,'Style',color='gold',hovercolor='lightyellow')
+bstyle  = Button(axstyle,'Line style',color='gold',hovercolor='lightyellow')
 bstyle.on_clicked(callback.style)
 
 axlog   = plt.axes([0.86,0.46,0.12,0.07])
 blog    = Button(axlog,'Log10 plot',color='gold',hovercolor='lightyellow')
 blog.on_clicked(callback.log)
+
+axlog   = plt.axes([0.86,0.36,0.12,0.07])
+blog    = Button(axlog,'Derivative',color='gold',hovercolor='lightyellow')
+blog.on_clicked(callback.deriv)
 
 axreset = plt.axes([0.86,0.225,0.12,0.07])
 breset  = Button(axreset,'Reset',color='gray',hovercolor='silver')
