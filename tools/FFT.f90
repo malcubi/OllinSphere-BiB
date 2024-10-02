@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/tools/FFT.f90,v 1.9 2024/09/27 18:32:03 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/tools/FFT.f90,v 1.11 2024/10/02 18:20:10 malcubi Exp $
 
   program FFT
 
@@ -22,6 +22,7 @@
   integer i                   ! Counters.
   integer N                   ! Total number of data points.
   integer NMAX                ! Maximum number of data points.
+  integer units               ! Units used for output.
 
   real(8) x                   ! Auxiliary variables.
   real(8) smallpi,twopi       ! Pi and 2*Pi.
@@ -73,6 +74,32 @@
      print *
      print *, 'Missing datafile name.'
      print *, 'Aborting!'
+     print *
+     stop
+  end if
+
+! Normalization.
+
+  print *
+  print *, 'Choose normalization for power spectrum output:'
+  print *, '1. Direct (cycles per second).'
+  print *, '2. Angular (radians per second).'
+  print *, '3. Convert from Planck units to physical units (cycles per second).'
+  print *, '4. Convert from units c=G=Msol=1 to physical units (cycles per sencond).'
+
+  read(*,*) units
+
+  if (units==1) then
+     fac = 1.d0
+  else if (units==2) then
+     fac = twopi
+  else if (units==3) then
+     fac = sqrt(c**5/(hbar*G))
+  else if (units==4) then
+     fac = c**3/(G*Msol) 
+  else
+     print *
+     print *, 'Choice of normalization out of range, aborting.'
      print *
      stop
   end if
@@ -253,15 +280,6 @@
   end do
 
   close(1)
-
-! Define rescaling factor for output of power spectrum.
-
-  fac = 1.d0                   ! Physical (cycles per second)
-  !fac = twopi                 ! Angular (radians per second).
-  !fac = c**3/(G*Msol)         ! Physical, rescaled from units such that c=G=Msol=1.
-  !fac = sqrt(c**5/(hbar*G))   ! Physical, rescaled from Planck units c=G=hbar=1.
-
-  !print *, fac
 
 ! Save power spectrum.
 
