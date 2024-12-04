@@ -1,7 +1,7 @@
 # Test parameter file:
 #
 # Simple blast-wave initial data.
-# Requires spactime=background.
+# Requires spacetime=background.
 
 spacetime = background    # Static spacetime
 
