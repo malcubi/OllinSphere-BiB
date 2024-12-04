@@ -210,6 +210,7 @@
 !                condition in order to avoid gauge shocks.
 
   character(30) :: slicing = "harmonic"    ! range = (static,maximal,harmonic,1+log,shockavoid,alphaminus2,cosmocf-harmonic,cosmocf-1+log,cosmocf-shockavoid,cosmosync-harmonic,cosmosync-1+log,cosmosync-shockavoid)
+
   character(30) :: ilapse  = "none"        ! range = (none,one,isotropic,psiminus2,psiminus4,psi2,psi4,maximal)
   character(30) :: maximalbound = "robin"  ! range = (robin,dirichlet,conformal)
 
@@ -266,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
 
 
 ! *********************
@@ -892,8 +893,15 @@
 
   character(1000) :: fluidprofile  = "gaussian" ! range=(gaussian,tophat)
   character(1000) :: fluid_EOS     = "ideal"    ! range=(none,ideal)
-  character(1000) :: fluid_method  = "hlle"     ! range=(center,upwind,limiter,hlle)
+  character(1000) :: fluid_method  = "hlle"     ! range=(center,upwind,limiter,llf,hlle)
   character(1000) :: fluid_limiter = "minmod"   ! range=(minmod,vanleer)
+
+! Do we use the sound speed for the fluid methods?
+! using the sound speed is more accurate, but for
+! some equations if state it is difficult, so we
+! can use the speed of light instead.
+
+  logical :: fluid_usesoundspeed = .true.
 
 ! TOV initial data:
 !
