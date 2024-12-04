@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.13 2024/06/25 18:06:47 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.14 2024/12/04 16:54:44 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -128,7 +128,10 @@
 !              (averaged) or extrapolated from the upwind side using
 !              a minmod limiter (second order).
 !
-! 4) HLLE:     Approximate Riemann solver of Harten, Lax, van Leer
+! 4) LLF:      Local Lax-Friedrichs.  First order scheme that should
+!              work reasonably well.
+!
+! 5) HLLE:     Approximate Riemann solver of Harten, Lax, van Leer
 !              and Einfeldt.
 
 ! Initialize fluxes to zero.
@@ -374,6 +377,17 @@
      end do
 
 
+! **********************
+! ***   LLF METHOD   ***
+! **********************
+
+! Local Lax-Friedrichs method.  This is only first order.
+
+  else if (fluid_method=="llf") then
+
+!    NOT YET IMPLEMENTED
+
+
 ! **************************************
 ! ***   HLLE METHOD (SECOND ORDER)   ***
 ! **************************************
@@ -411,28 +425,53 @@
 
 !    Reconstruct characteristic speeds at cell boundaries.
 
-     call reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),limiter,+1)
-     call reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),limiter,+1)
+     if (fluid_usesoundspeed) then
+        call reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),limiter,+1)
+        call reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),limiter,+1)
+     end if
 
 !    Find fluxes.
 
      do i=0,Nr-1
 
-!       Find maximum and minimum speeds.
+!       Find maximum and minimum speeds using the
+!       characteristic speeds coming from the speed
+!       of sound.
 
-        vpp = max(0.d0,vp_L(i),vp_R(i))
-        vmm = min(0.d0,vm_L(i),vm_R(i))
+        if (fluid_usesoundspeed) then
 
-        if (vpp-vmm==0.d0) then
-           print *
-           print *, 'Problem in HLLE: Maximum and minimum speeds (vmm,vpp) are equal: ',vmm,vpp
-           print *, 'at point: ', i
-           print *, 'Aborting! (subroutine fluid.f90)'
-           print *
-           call die
+           vpp = max(0.d0,vp_L(i),vp_R(i))
+           vmm = min(0.d0,vm_L(i),vm_R(i))
+
+           if (vpp-vmm==0.d0) then
+              print *
+              print *, 'Problem in HLLE: Maximum and minimum speeds (vmm,vpp) are equal: ',vmm,vpp
+              print *, 'at point: ', i
+              print *, 'Aborting! (subroutine fluid.f90)'
+              print *
+              call die
+           end if
+
+!       If we don't know the speed of sound, we can use
+!       the local speed of light instead.  This works just
+!       fine, though it is less accurate (more dissipative).
+
+        else
+
+           aux = 0.5d0*(alpha(l,i  )/sqrt(abs(A(l,i  )))/psi(l,i  )**2 &
+                      + alpha(l,i+1)/sqrt(abs(A(l,i+1)))/psi(l,i+1)**2)
+
+           if (shift=="none") then
+              vpp = max(0.d0,+aux)
+              vmm = min(0.d0,-aux)
+           else
+              vpp = max(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1))+aux)
+              vmm = min(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1))-aux)
+           end if
+
         end if
 
-!       HLLE fluxes.
+!       Calculate HLLE fluxes.
 
         flux_D(i) = (vpp*flux_DL(i) - vmm*flux_DR(i) + vpp*vmm*(D_R(i) - D_L(i)))/(vpp - vmm)
         flux_E(i) = (vpp*flux_EL(i) - vmm*flux_ER(i) + vpp*vmm*(E_R(i) - E_L(i)))/(vpp - vmm)
