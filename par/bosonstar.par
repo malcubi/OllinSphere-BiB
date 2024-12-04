@@ -5,7 +5,7 @@
 dr0 = 0.02		# Grid spacing
 dtfac = 0.5		# Courant parameter
 
-Nrtotal = 1000		# Number of grid points
+Nrtotal = 1500		# Number of grid points
 Nt = 500   		# Number of time steps
 
 Nl = 4                  # Number of refinement levels
@@ -28,9 +28,9 @@ scalardiss = 0.01       # Dissipation coefficient
 idata = bosonstar	# Type of initial data
 boson_gauge = PA        # Gauge for boson star data (PA=polar-areal,CF=conformally flat)
 boson_factor = physical # Normalization factor for boson star (physical,harmonic)
-boson_phi0 =  0.2       # Central value of scalar field
-omega_left   =  2.2595  # First trial omega
-omega_right  =  2.2596  # Second trial omega
+boson_phi0 =  0.05       # Central value of scalar field
+omega_left   =  1.141266  # First trial omega
+omega_right  =  1.141267  # Second trial omega
 
 directory = bosonstar	# Name of output directory
 Ninfo = 25		# How often do we want to output information to screen?
