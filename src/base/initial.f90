@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.90 2024/05/21 19:08:09 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.91 2024/12/04 16:55:53 malcubi Exp $
 
   subroutine initial
 
@@ -22,7 +22,7 @@
 
   integer i,l
 
-  real(8) zero,half,one,two
+  real(8) zero,half,third,one,two
   real(8) smallpi
 
 
@@ -30,10 +30,11 @@
 ! ***   NUMBERS   ***
 ! *******************
 
-  zero = 0.d0
-  half = 0.5d0
-  one  = 1.d0
-  two  = 2.d0
+  zero  = 0.d0
+  half  = 0.5d0
+  third = 1.d0/3.d0
+  one   = 1.d0
+  two   = 2.d0
 
   smallpi = acos(-one)
 
@@ -206,6 +207,90 @@
         end if
 
      end if
+
+  end if
+
+
+! ****************************************************
+! ***   SCHWARZSCHILD IN KERR-SCHILD COORDINATES   ***
+! ****************************************************
+
+! Initial data for a Schwarzschild black hole
+! in Kerr-Schild horizon penetrating coordinates.
+!
+! These coordinates reach the central singularity,
+! so we will not get convergence at the origin,
+! but we should get it everywhere else.
+!
+! Also, since quantities are singular at the origin
+! I don't know what will happen suring evolution,
+! I need to rethink the regularization for this
+! case.  At the moment I am juist checking that
+! the initial data is correct and converges.
+!
+! In these coordinates the lapse and shift are given by:
+!
+! alpha  =  1/sqrt(1 + 2M/r)
+!
+! beta   =  2M/(r + 2M)
+!
+! The spatial metric is:
+!
+! A  =  1 + 2M/r
+!
+! B  =  1
+!
+! The conformal factor is:
+!
+! phi = 0 (psi = 1)
+! 
+! The trace of the extrinsic curvature is:
+!
+! trK  =  (2M/r) (3M + r) sqrt(1 + 2M/r) / (r + 2M)**2
+!
+! And the traceless components of the extrinsic
+! curvature with mixed indices are:
+!
+! KTA = - (4M/3r)*(3M + 2r) sqrt(1 + 2M/r) / (r + 2M)**2
+!
+! KTB = + (2M/3r)*(3M + 2r) sqrt(1 + 2M/r) / (r + 2M)**2
+!
+! Notice that the initial metric is NOT such that  A*B**2=1
+
+  if (idata=="schwarzschildKS") then
+
+!    Lapse.
+
+     alpha = 1.d0/sqrt(1.d0 + 2.d0*BHmass/r)
+
+!    Shift.
+
+     beta = 2.d0*BHmass/(r + 2.d0*BHmass)
+
+!    Conformal factor.
+
+     phi = 0.d0
+     psi = 1.d0
+
+!    Spatial metric.
+
+     A = 1.d0 + 2.d0*BHmass/r
+     B = 1.d0
+
+!    Metric determinant.
+
+     AB2 = A*B**2
+
+!    Extrinsic curvature.
+
+     trK = 2.d0*BHmass*(3.d0*BHmass + r) &
+         *sqrt(1.d0 + 2.d0*BHmass/r)/r/(r + 2.d0*BHmass)**2
+
+     KTA = - (4.d0*BHmass/3.d0)*(3.d0*BHmass + 2.d0*r) &
+         *sqrt(1.d0 + 2.d0*BHmass/r)/r/(r + 2.d0*BHmass)**2
+
+     KTB = + (2.d0*BHmass/3.d0)*(3.d0*BHmass + 2.d0*r) &
+         *sqrt(1.d0 + 2.d0*BHmass/r)/r/(r + 2.d0*BHmass)**2
 
   end if
 
