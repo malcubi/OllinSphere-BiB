@@ -97,11 +97,12 @@
 
 !    Atmosphere: If the density is too low we run the risk of dividing
 !    by a very small quantity to recover the fluid speed, which will
-!    introduce very large round-off errors.  In order to avoid this
-!    we set the conserved mass density to a small value and the
-!    momentum density to 0. For the conserved energy density we have
-!    E = rho0 e. We then set all other variables to their values consistent
-!    with this and we jump out of here.
+!    introduce very large round-off errors.
+!
+!    In order to avoid this we set the conserved mass density to a small
+!    value and the momentum density to zero. For the conserved energy
+!    density we take E = rho0*e. We then set all other variables to values 
+!    consistent with this and we jump out of here.
 
      if ((fluid_cD(l,i)<=rhoatmos).or.(fluid_rho(l,i)<=rhoatmos)) then
 
