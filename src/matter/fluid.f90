@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.14 2024/12/04 16:54:44 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.15 2025/02/26 17:23:22 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -11,36 +11,32 @@
 !
 ! These equations take the general form:
 !
-!                                                          1/2
-! d D  =  beta d D  -  d [ alpha v D ]  -  alpha v D d ln g
-!  t            r       r                             r
+!                                                                         1/2
+! d D  =  beta d D  -  d [ alpha v D ] +  alpha trK D  -  alpha v D d ln g
+!  t            r       r                                            r
 !
-!      +  alpha trK D
 !
-!                                                                      1/2
-! d E  =  beta d E  -  d [ alpha v (E + p) ]  -  alpha v (E + p) d ln g
-!  t            r       r                                         r
+! d E  =  beta d E  -  d [ alpha v (E + p) ]  +  alpha trK (E + p)
+!  t            r       r  
 !                              2    4 phi
 !      +  (E + p + D) [ alpha v  A e     (KTA + trK/3) - v d alpha ]
 !                                                           r
+!                               1/2
+!      -  alpha v (E + p) d ln g
+!                          r
 !
-!      +  alpha trK (E + p)
+! d S  =  beta d S  +  S d beta  -  d [ alpha v S ]  -  d [ alpha p ]  +  alpha trK S
+!  t            r         r          r                   r 
 !
+!      -  alpha v S [ d B / B  +  4 d phi  +  2/r ]  -  (E + D) d alpha
+!                      r             r                           r
 !
-! d S  =  beta d S  +  S d beta  -  d [ alpha ( v S + p ) ]
-!  t            r         r          r
-!
-!      -  alpha v S [ d B / B  +  4 d phi  +  2/r ]
-!                      r             r
-!
-!      -  (E + D) d alpha  +  alpha trK S
-!                  r
 !
 ! where g is the determinant of the spatial metric and:
 !
 !       1/2
-! d ln g   = d g / 2g = d A / 2A + d B / B + 6 d phi + 2/r
-!  r          r          r          r           r
+! d ln g   =  d g / 2g  =  d A / 2A + d B / B + 6 d phi + 2/r
+!  r           r            r          r           r
 !
 ! Notice that when we use artificial viscosity we need
 ! to add an extra contribution to the pressure:
@@ -141,249 +137,13 @@
   flux_S = 0.d0
 
 
-! ******************************************
-! ***   METHOD = CENTER (SECOND ORDER)   ***
-! ******************************************
-
-! The fluxes at cell interfaces are just averaged over
-! adjacent grid points.  This is not very stable!
-
-  if (fluid_method=="center") then
-
-!    NOT YET IMPLEMENTED.
-
-     print *, 'fluid_method=center not yet implemented.'
-     print *, 'Aborting! (subroutine fluid.f90)'
-     print *
-
-     call die
-
-
-! *****************************************
-! ***   METHOD = UPWIND (FIRST ORDER)   ***
-! *****************************************
-
-! The fluxes at cell interfaces are copied from
-! the upwind side.
-!
-! Notice that this is not a "true" upwind since
-! I don't decompose into eigenfunctions, and I
-! just base the direction in which the derivatives
-! are calculated on the fluid speed and not the
-! characteristic speeds.
-!
-! This method is not very good, it is only first
-! order accurate, and also it tends to go unstable
-! at the origin and develop high frequency noise
-! when the fluid speed approaches zero.  It is only
-! here as a quick and dirty way to test things.
-
-  else if (fluid_method=="upwind") then
-
-     do i=0,Nr-1
-
-        aux = half*(fluid_v(l,i) + fluid_v(l,i+1))
-
-!       Fluxes for D.
-
-        flux_D(i) = half*(alpha(l,i  )*fluid_cD(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*fluid_cD(l,i+1)*(one - sign(one,aux)))*aux
-
-!       Fluxes for E.
-
-        flux_E(i) = half*(alpha(l,i  )*fluid_cE(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*fluid_cE(l,i+1)*(one - sign(one,aux)))*aux &
-                  + half*(alpha(l,i  )*fluid_v(l,i  )*(fluid_p(l,i  ) + fluid_q(l,i  )) &
-                        + alpha(l,i+1)*fluid_v(l,i+1)*(fluid_p(l,i+1) + fluid_q(l,i+1))) 
-
-!       Fluxes for S.
-
-        flux_S(i) = half*(alpha(l,i  )*fluid_cS(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*fluid_cS(l,i+1)*(one - sign(one,aux)))*aux &
-                  + half*(alpha(l,i  )*(fluid_p(l,i  ) + fluid_q(l,i  )) &
-                        + alpha(l,i+1)*(fluid_p(l,i+1) + fluid_q(l,i+1)))
-
-     end do
-
-
-! *******************************************
-! ***   METHOD = LIMITER (SECOND ORDER)   ***
-! *******************************************
-
-! The fluxes at cell interfaces are either interpolated (averaged)
-! or extrapolated from the upwind side using a slope limiter.
-!
-! Just as the "uwpind" method above, we only take into account the
-! fluid speed and not the characteristic speeds.  This method is
-! second order, but it is not very accurate, nor very stable.
-! It is only here as a quick and dirty way to test things.
-
-  else if (fluid_method=="limiter") then
-
-     do i=0,Nr-1
-
-        aux = half*(fluid_v(l,i) + fluid_v(l,i+1))
-
-!       Fluxes for D.
-
-        if (aux>=0.d0) then
-
-           slope1 = alpha(l,i+1)*fluid_cD(l,i+1) - alpha(l,i  )*fluid_cD(l,i  )
-           slope2 = alpha(l,i  )*fluid_cD(l,i  ) - alpha(l,i-1)*fluid_cD(l,i-1)
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_D(i) = aux*(alpha(l,i  )*fluid_cD(l,i  ) + half*slopelim)
-
-        else
-
-           slope1 = alpha(l,i+1)*fluid_cD(l,i+1) - alpha(l,i  )*fluid_cD(l,i  )
-           slope2 = alpha(l,i+2)*fluid_cD(l,i+2) - alpha(l,i+1)*fluid_cD(l,i+1)
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_D(i) = aux*(alpha(l,i+1)*fluid_cD(l,i+1) - half*slopelim)
-
-        end if
-
-!       Fluxes for E.
-
-        if (aux>=0.d0) then
-
-           slope1 = alpha(l,i+1)*(fluid_cE(l,i+1) + fluid_p(l,i+1) + fluid_q(l,i+1)) &
-                  - alpha(l,i  )*(fluid_cE(l,i  ) + fluid_p(l,i  ) + fluid_q(l,i  ))
-           slope2 = alpha(l,i  )*(fluid_cE(l,i  ) + fluid_p(l,i  ) + fluid_q(l,i  )) &
-                  - alpha(l,i-1)*(fluid_cE(l,i-1) + fluid_p(l,i-1) + fluid_q(l,i-1))
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_E(i) = aux*(alpha(l,i  )*(fluid_cE(l,i  ) + fluid_p(l,i  ) + fluid_q(l,i  )) &
-                     + half*slopelim)
-
-        else
-
-           slope1 = alpha(l,i+1)*(fluid_cE(l,i+1) + fluid_p(l,i+1) + fluid_q(l,i+1)) &
-                  - alpha(l,i  )*(fluid_cE(l,i  ) + fluid_p(l,i  ) + fluid_q(l,i  ))
-           slope2 = alpha(l,i+2)*(fluid_cE(l,i+2) + fluid_p(l,i+2) + fluid_q(l,i+2)) &
-                  - alpha(l,i+1)*(fluid_cE(l,i+1) + fluid_p(l,i+1) + fluid_q(l,i+1))
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_E(i) = aux*(alpha(l,i+1)*(fluid_cE(l,i+1) + fluid_p(l,i+1) + fluid_q(l,i+1)) &
-                     - half*slopelim)
-
-        end if
-
-!       Fluxes for S.
-
-        if (aux>=0.d0) then
-
-           slope1 = alpha(l,i+1)*fluid_cS(l,i+1) - alpha(l,i  )*fluid_cS(l,i  )
-           slope2 = alpha(l,i  )*fluid_cS(l,i  ) - alpha(l,i-1)*fluid_cS(l,i-1)
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_S(i) = aux*(alpha(l,i)*fluid_cS(l,i) + half*slopelim)
-
-        else
-
-           slope1 = alpha(l,i+1)*fluid_cS(l,i+1) - alpha(l,i  )*fluid_cS(l,i  )
-           slope2 = alpha(l,i+2)*fluid_cS(l,i+2) - alpha(l,i+1)*fluid_cS(l,i+1)
-
-           if (slope1*slope2>0.d0) then
-              if (fluid_limiter=="minmod") then
-                 if (abs(slope1)<abs(slope2)) then
-                    slopelim = slope1
-                 else
-                    slopelim = slope2
-                 end if
-              else if (fluid_limiter=="vanleer") then
-                 slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-              end if
-           else
-              slopelim = 0.d0
-           end if
-
-           flux_S(i) = aux*(alpha(l,i+1)*fluid_cS(l,i+1) - half*slopelim)
-
-        end if
-
-!       Add contribution from pressure (it is independent of the speed v).
-
-        flux_S(i) = flux_S(i) &
-                  + half*(alpha(l,i  )*(fluid_p(l,i  ) + fluid_q(l,i  )) &
-                        + alpha(l,i+1)*(fluid_p(l,i+1) + fluid_q(l,i+1)))
-
-     end do
-
-
 ! **********************
 ! ***   LLF METHOD   ***
 ! **********************
 
 ! Local Lax-Friedrichs method.  This is only first order.
 
-  else if (fluid_method=="llf") then
+  if (fluid_method=="llf") then
 
 !    NOT YET IMPLEMENTED
 
@@ -420,7 +180,7 @@
      flux_E = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:))
      call reconstruct(flux_E,flux_EL,flux_ER,limiter,-1)
 
-     flux_S = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:) + fluid_q(l,:))
+     flux_S = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
      call reconstruct(flux_S,flux_SL,flux_SR,limiter,+1)
 
 !    Reconstruct characteristic speeds at cell boundaries.
@@ -501,9 +261,9 @@
 ! *******************************************
 
   do i=1,Nr-1
-     sfluid_cD(l,i) = - (flux_D(i) - flux_D(i-1))*idr
-     sfluid_cE(l,i) = - (flux_E(i) - flux_E(i-1))*idr
-     sfluid_cS(l,i) = - (flux_S(i) - flux_S(i-1))*idr
+     sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))
+     sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))
+     sfluid_cS(l,i) = - idr*(flux_S(i) - flux_S(i-1))
   end do
 
 
@@ -514,35 +274,84 @@
 ! Here we add all other source terms, including terms related to
 ! the extrinsic curvature, the Christoffel symbols and the shift.
 
-! Sources for D.
+! Sources for D.  The terms we are still missing are:
+!
+!                                     1/2
+!  +  alpha trK D  -  alpha v D d ln g
+!                                r
+!
+! with:
+!
+!       1/2
+! d ln g   =  d g / 2g  =  d A / 2A + d B / B + 6 d phi + 2/r
+!  r           r            r          r           r
 
   sfluid_cD(l,:) = sfluid_cD(l,:) + alpha(l,:)*trK(l,:)*fluid_cD(l,:) &
                  - alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
                  *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
 
+! Shift terms for D (scalar):
+!
+!   +  beta d D
+!            r
+
   if (shift/="none") then
      sfluid_cD(l,:) = sfluid_cD(l,:) + beta(l,:)*DA_fluid_cD(l,:)
   end if
 
-! Sources for E.
+! Sources for E.  The terms we are still missing are:
+!
+!   +  alpha trK (E + p)
+!
+!                                4 phi
+!   +  (E + p + D) [ alpha v  A e      (KTA + trK/3) - v d alpha ]
+!                                                         r
+!                            1/2
+!   -  alpha v (E + p) d ln g
+!                       r
+!
+! with:
+!
+!       1/2
+! d ln g   =  d g / 2g  =  d A / 2A + d B / B + 6 d phi + 2/r
+!  r           r            r          r           r
 
-  sfluid_cE(l,:) = sfluid_cE(l,:) + (fluid_cE(l,:) + fluid_cD(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+  sfluid_cE(l,:) = sfluid_cE(l,:) + alpha(l,:)*trK(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+                 + (fluid_cE(l,:) + fluid_cD(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
                  *(alpha(l,:)*fluid_v(l,:)**2*A(l,:)*exp(4.d0*phi(l,:)) &
                  *(KTA(l,:) + third*trK(l,:)) - fluid_v(l,:)*D1_alpha(l,:)) &
-                 + alpha(l,:)*trK(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
                  - alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
                  *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+
+! Shift terms for E (scalar):
+!
+!   +  beta d E
+!            r
 
   if (shift/="none") then
      sfluid_cE(l,:) = sfluid_cE(l,:) + beta(l,:)*DA_fluid_cE(l,:)
   end if
 
-! Sources for S.
+! Sources for S.  The terms we are still missing are:
+!
+!   +  alpha trK S
+!
+!
+!   -  alpha v S [ d B / B  +  4 d phi  +  2/r ]
+!                   r             r
+!
+!   -  (E + D + p) d alpha  -  alpha d p
+!                   r                 r
 
   sfluid_cS(l,:) = sfluid_cS(l,:) + alpha(l,:)*trK(l,:)*fluid_cS(l,:) &
-                 - (fluid_cE(l,:) + fluid_cD(l,:))*D1_alpha(l,:) &
                  - alpha(l,:)*fluid_v(l,:)*fluid_cS(l,:) &
-                 *(D1_B(l,:)/B(l,:) + 4.d0*D1_phi(l,:) + 2.d0/r(l,:))
+                 *(D1_B(l,:)/B(l,:) + 4.d0*D1_phi(l,:) + 2.d0/r(l,:)) &
+                 - (fluid_cE(l,:) + fluid_cD(l,:))*D1_alpha(l,:)
+
+! Shift terms for S (1-form):
+!
+!   +  beta d S  +  S d beta
+!            r         r
 
   if (shift/="none") then
      sfluid_cS(l,:) = sfluid_cS(l,:) + beta(l,:)*DA_fluid_cS(l,:) + fluid_cS(l,:)*D1_beta(l,:)
@@ -623,10 +432,54 @@
 ! This routine finds a linear reconstruction of the array
 ! "var" at cell interfaces. The reconstruction is done
 ! with either a centered interpolation or a one sided
-! extrapolation using a slope limiter (minmod or vanleer).  
+! extrapolation using a slope limiter.
+!
 ! We do both left and right sided reconstructions, and store
 ! them in the arrays "varl" and "varr".
-
+!
+! The slow limiters work by reconstructing a function at the
+! half interval between grid points using the slopes to the
+! left, center and right:
+!
+!     slope1 = var(i  ) - var(i-1)
+!     slope2 = var(i+1) - var(i  )
+!     slope3 = var(i+2) - var(i+1)
+!
+! For each case we need to do a reconstruction from the left
+! and from the right, as this is needed for the Riemann solver.
+! For the left-sided reconstruction we take:
+!
+!      varl(i)  = var(i) + 0.5d0*slopelim
+!
+! and for the right-sided reconstruction:
+!
+!     varr(i)  = var(i+1) - 0.5d0*slopelim
+!
+! where "slopelim" is an approximation to the slope obtained
+! be using the ratio of the center and left slopes (for varl),
+! and center and right slopes (for varr).
+!
+! For the left-sided reconstruction we take:
+!
+!     slopelim = phi*slope2
+!
+! and for the right-sided reconstruction:
+!
+!     slopelim = phi*slope2
+!
+! where "phi" is a function of the ratios (r=slope1/slope2)
+! and (r=slope2/slope3) respectively.
+!
+! The function "phi" is called the "limiter", and can be chosen
+! in a variety of different ways, but in order to give us a TVD
+! method it must satisfy the following conditions:
+!
+!     r <=  phi(r) <= 2r      for:   0 <= r <= 1/2
+!     r >=  phi(r) <= 1       for:   1/2 <= r <= 1
+!     phi(1) = 1
+!     1 <=  phi(r) <= r       for:   1 <= r <= 2
+!     1 <=  phi(r) <= 2       for    r > 2
+ 
 ! Include modules.
 
   use param
@@ -638,6 +491,7 @@
   integer i,sym
 
   real(8) slope1,slope2,slope3,slopelim
+  real(8) ratio,phi,philimiter
   real(8) var(1-ghost:Nr),varl(1-ghost:Nr),varr(1-ghost:Nr)
 
   character(len=*) limiter
@@ -648,13 +502,6 @@
 ! ***********************************************
 
 ! Sanity check.
-
-  if ((limiter/="minmod").and.(limiter/="vanleer")) then
-     print *
-     print *, 'Unknown limiter type in fluid.f90, aborting ...'
-     print *
-     call die
-  end if
 
   if (abs(sym)/=1) then
      print *
@@ -679,38 +526,26 @@
 !    Left side reconstruction.
 
      if (slope1*slope2>0.d0) then
-        if (limiter=="minmod") then
-           if (abs(slope1)<abs(slope2)) then
-              slopelim = slope1
-           else
-              slopelim = slope2
-           end if
-        else if (limiter=="vanleer") then
-           slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-        end if
+        ratio = slope1/slope2
+        phi = philimiter(limiter,ratio)
      else
-        slopelim = 0.d0
+        phi = 0.d0
      end if
 
-     varl(i) = var(i) + 0.5d0*slopelim
+     slopelim = phi*slope2
+     varl(i)  = var(i) + 0.5d0*slopelim
 
 !    Right side reconstruction.
 
      if (slope2*slope3>0.d0) then
-        if (limiter=="minmod") then
-           if (abs(slope2)<abs(slope3)) then
-              slopelim = slope2
-           else
-              slopelim = slope3
-           end if
-        else if (limiter=="vanleer") then
-           slopelim = 2.d0*slope2*slope3/(slope2 + slope3)
-        end if
+        ratio = slope2/slope3
+        phi = philimiter(limiter,ratio)
      else
-        slopelim = 0.d0
+        phi = 0.d0
      end if
 
-     varr(i) = var(i+1) - 0.5d0*slopelim
+     slopelim = phi*slope3
+     varr(i)  = var(i+1) - 0.5d0*slopelim
 
   end do
 
@@ -735,37 +570,25 @@
 ! Left side reconstruction.
 
   if (slope1*slope2>0.d0) then
-     if (limiter=="minmod") then
-        if (abs(slope1)<abs(slope2)) then
-           slopelim = slope1
-        else
-           slopelim = slope2
-        end if
-     else if (limiter=="vanleer") then
-        slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-     end if
+     ratio = slope1/slope2
+     phi = philimiter(limiter,ratio)
   else
-     slopelim = 0.d0
+     phi = 0.d0
   end if
 
+  slopelim = phi*slope2
   varl(0) = var(0) + 0.5d0*slopelim
 
 ! Right side reconstruction.
 
   if (slope2*slope3>0.d0) then
-     if (limiter=="minmod") then
-        if (abs(slope2)<abs(slope3)) then
-           slopelim = slope2
-        else
-           slopelim = slope3
-        end if
-     else if (limiter=="vanleer") then
-        slopelim = 2.d0*slope2*slope3/(slope2 + slope3)
-     end if
+     ratio = slope2/slope3
+     phi = philimiter(limiter,ratio)
   else
-     slopelim = 0.d0
+     phi = 0.d0
   end if
 
+  slopelim = phi*slope3
   varr(0) = var(1) - 0.5d0*slopelim
 
 
@@ -781,19 +604,13 @@
 ! Left side reconstruction.
 
   if (slope1*slope2>0.d0) then
-     if (limiter=="minmod") then
-        if (abs(slope1)<abs(slope2)) then
-           slopelim = slope1
-        else
-           slopelim = slope2
-        end if
-     else if (limiter=="vanleer") then
-        slopelim = 2.d0*slope1*slope2/(slope1 + slope2)
-     end if
+     ratio = slope1/slope2
+     phi = philimiter(limiter,ratio)
   else
-     slopelim = 0.d0
+     phi = 0.d0
   end if
 
+  slopelim = phi*slope2
   varl(Nr-1) = var(Nr-1) + 0.5d0*slopelim
 
 ! Right side reconstruction.
@@ -808,3 +625,79 @@
   end subroutine reconstruct
 
 
+
+
+
+
+
+
+
+! ******************************
+! ***   DIFFERENT LIMITERS   ***
+! ******************************
+
+ function philimiter(limiter,ratio)
+
+ real(8) philimiter
+ real(8) ratio
+ real(8) aux1,aux2,beta
+
+ character(len=20) limiter
+
+! 1) minmod limiter.
+
+  if (limiter=="minmod") then
+
+     philimiter = min(1.d0,ratio)
+
+! 2) vanleer limiter.
+
+  else if (limiter=="vanleer") then
+
+     philimiter = 2.d0*ratio/(1.d0+ratio)
+
+! 3) superbee limiter.
+
+  else if (limiter=="superbee") then
+
+     aux1 = min(1.d0,2.d0*ratio)
+     aux2 = min(2.d0,ratio)
+     philimiter = max(aux1,aux2)
+
+! 4) monotonized central (MC) limiter.
+
+  else if (limiter=="mc") then
+
+     philimiter = min(2.d0*ratio,0.5d0*(1.d0+ratio),2.d0)
+
+! 5) koren limiter.
+
+  else if (limiter=="koren") then
+
+     philimiter = min(2.d0*ratio,(1.d0+2.d0*ratio)/3.d0,2.d0)
+
+! 6) ospre limiter.
+
+  else if (limiter=="ospre") then
+
+     philimiter = 1.5d0*(ratio + ratio**2)/(1.d0 + ratio + ratio**2)
+
+! 7) sweby limiter (beta=1.5).  Notice that superbee is the same
+!    as sweby with beta=2.
+
+  else if (limiter=="sweby") then
+
+     beta = 1.5d0
+
+     aux1 = min(1.d0,beta*ratio)
+     aux2 = min (beta,ratio)
+     philimiter = max(aux1,aux2)
+ 
+  end if
+
+
+! ***************
+! ***   END   ***
+! ***************
+
+ end function philimiter
