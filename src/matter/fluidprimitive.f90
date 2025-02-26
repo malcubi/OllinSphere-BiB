@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.13 2024/09/23 18:51:52 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.14 2025/02/26 17:09:32 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -99,7 +99,7 @@
 !    by a very small quantity to recover the fluid speed, which will
 !    introduce very large round-off errors.
 !
-!    In order to avoid this we set the conserved mass density to a small
+!    In order to avoid this, we set the conserved mass density to a small
 !    value and the momentum density to zero. For the conserved energy
 !    density we take E = rho0*e. We then set all other variables to values 
 !    consistent with this and we jump out of here.
@@ -203,7 +203,7 @@
         if (fluid_EOS=="ideal") then
 
            fluid_vs(l,i) = sqrt(abs(p1*fluid_gamma*(fluid_gamma-1.d0) &
-                         /(p1*fluid_gamma + fluid_rho(l,i)*(fluid_gamma - 1.d0))))
+                         /(p1*fluid_gamma + fluid_rho(l,i)*(fluid_gamma-1.d0))))
 
 !       If we don't have an equation of state we just use the polytropic relation
 !       in order to avoid problems in other routines if vs is not defined.  But
@@ -232,7 +232,7 @@
 !       introduces a second order error. For rho we use the ADM
 !       energy density: rho = E + D.
 
-        if ((fluid_q1/=0.d0).and.(fluid_q2/=0.d0)) then
+        if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
            aux = dr(l)*D1_fluid_cS(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
            if (aux>=0.d0) then
               fluid_q(l,i) = 0.d0
@@ -254,7 +254,7 @@
         if (fluid_EOS/="none") then
 
            if (fluid_EOS=="ideal") then
-              f1 = (fluid_gamma - 1.d0)*fluid_rho(l,i)*fluid_e(l,i) - p1
+              f1 = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i) - p1
            else
               print *
               print *, 'Unknown equation of state'
@@ -275,7 +275,7 @@
 
            if (j==1) then
               if (fluid_EOS=="ideal") then
-                 aux = (fluid_gamma - 1.d0)*fluid_rho(l,i)*fluid_e(l,i)
+                 aux = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i)
               else
                  aux = fluid_p(l,i)
               end if
