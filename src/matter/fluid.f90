@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.15 2025/02/26 17:23:22 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.16 2025/02/26 20:11:26 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -25,8 +25,8 @@
 !      -  alpha v (E + p) d ln g
 !                          r
 !
-! d S  =  beta d S  +  S d beta  -  d [ alpha v S ]  -  d [ alpha p ]  +  alpha trK S
-!  t            r         r          r                   r 
+! d S  =  beta d S  +  S d beta  -  d [ alpha ( v S + p ) ]  +  alpha trK S
+!  t            r         r          r
 !
 !      -  alpha v S [ d B / B  +  4 d phi  +  2/r ]  -  (E + D) d alpha
 !                      r             r                           r
@@ -385,6 +385,11 @@
 ! ***********************
 ! ***   DISSIPATION   ***
 ! ***********************
+
+! This is here just for testing simple methods. 
+! In practice it seems that adding extra
+! dissipation to the fluid methods makes things
+! go unstable.
 
   if (fluiddiss/=0.d0) then
 
