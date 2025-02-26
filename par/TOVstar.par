@@ -20,7 +20,7 @@ boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = fluid        # Perfect fluid
 fluid_method = hlle       # Numerical method for fluid
-fluid_limiter = vanleer   # Type of limiter
+fluid_limiter = mc        # Type of limiter
 fluid_gamma = 1.666666666 # Adiabatic index (5/3 for a monoatomic non-relativistic gas)
 fluid_kappa = 1.0         # Polytropic constant
 fluid_atmos = 1.d-9       # Artificial atmosphere value
@@ -32,7 +32,6 @@ fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
 
 geodiss   = 0.01          # Dissipation coefficient for geometry
-fluiddiss = 0.01          # Dissipation coefficient for fluid
 
 directory = TOVstar       # Name of output directory
 Ninfo = 500		  # How often do we want to output information to screen?

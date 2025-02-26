@@ -20,7 +20,7 @@ boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = fluid        # Perfect fluid
 fluid_method = hlle       # Numerical method for fluid
-fluid_limiter = minmod    # Type of limiter
+fluid_limiter = mc        # Type of limiter
 fluid_gamma = 1.4         # Adiabatic index
 
 idata = blastwave         # Type of initial data

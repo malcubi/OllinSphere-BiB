@@ -20,7 +20,7 @@ boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = fluid        # Real scalar field
 fluid_method = hlle       # Numerical method for fluid
-fluid_limiter = minmod    # Type of limiter
+fluid_limiter = mc        # Type of limiter
 
 idata = fluidshell	  # Type of initial data
 fluid_a0 = 0.001          # Amplitude of gaussian
@@ -30,7 +30,7 @@ fluid_s0 = 2.5	          # Width of gaussian
 fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term.
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term.
 
-geodiss = 0.05            # Dissipation coefficient for geometry
+geodiss = 0.01            # Dissipation coefficient for geometry
 
 directory = fluid	  # Name of output directory
 Ninfo = 200		  # How often do we want to output information to screen?
