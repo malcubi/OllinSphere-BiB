@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.1 2024/09/23 18:51:22 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.2 2025/02/26 17:04:54 malcubi Exp $
 
   subroutine fluidintegral
 
@@ -126,7 +126,6 @@
 
      if (rank==0) then
         write(*,'(A,E19.12)') ' Total baryon rest mass (Nb) = ',NTOT
-        print *
      end if
 
   end if
