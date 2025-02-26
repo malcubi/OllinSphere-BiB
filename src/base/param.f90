@@ -326,7 +326,7 @@
   real(8) :: elecdiss   = 0.01d0      ! Dissipation for electric field.
   real(8) :: procadiss  = 0.01d0      ! Dissipation for Proca field.
   real(8) :: diracdiss  = 0.01d0      ! Dissipation for Dirac field.
-  real(8) :: fluiddiss  = 0.01d0      ! Dissipation for fluids.
+  real(8) :: fluiddiss  = 0.0d0       ! Dissipation for fluids (better zero).
 
 
 ! ********************
