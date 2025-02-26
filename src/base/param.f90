@@ -893,8 +893,8 @@
 
   character(1000) :: fluidprofile  = "gaussian" ! range=(gaussian,tophat)
   character(1000) :: fluid_EOS     = "ideal"    ! range=(none,ideal)
-  character(1000) :: fluid_method  = "hlle"     ! range=(center,upwind,limiter,llf,hlle)
-  character(1000) :: fluid_limiter = "minmod"   ! range=(minmod,vanleer)
+  character(1000) :: fluid_method  = "hlle"     ! range=(llf,hlle)
+  character(1000) :: fluid_limiter = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
 
 ! Do we use the sound speed for the fluid methods?
 ! using the sound speed is more accurate, but for
