@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.28 2023/08/22 17:58:56 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.29 2025/02/26 17:04:14 malcubi Exp $
 
   subroutine auxiliary_matter(l)
 
@@ -637,6 +637,9 @@
 
      diffvar => fluid_cS
      D1_fluid_cS(l,:) = diff1(l,-1)
+
+     diffvar => fluid_p
+     D1_fluid_p(l,:) = diff1(l,-1)
 
 !    Advective derivatives.
 
