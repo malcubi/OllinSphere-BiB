@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.50 2024/09/23 18:51:52 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.51 2025/02/26 17:06:31 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -959,28 +959,30 @@
      patmos = fluid_kappa*rhoatmos**fluid_gamma
      Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
 
-!    Energy density.
-
      do i=1-ghost,Nr
-        if (fluid_cD(l,i)>rhoatmos) then
+        if ((fluid_cD(l,i)>rhoatmos).and.(fluid_rho(l,i)>rhoatmos)) then
+
+!          Energy density.
+
            rho(l,i) = rho(l,i) + fluid_cE(l,i) + fluid_cD(l,i)
+
+!          Momentum density.
+
+           JA(l,i) = JA(l,i) + fluid_cS(l,i)
+
+!          Stress tensor.
+
+           SAA(l,i) = SAA(l,i) + fluid_v(l,i)*fluid_cS(l,i) + fluid_p(l,i) + fluid_q(l,i)
+           SBB(l,i) = SBB(l,i) + fluid_p(l,i) + fluid_q(l,i)
+
+!          SLL = (SAA - SBB)/r**2.
+
+           if (.not.nolambda) then
+              SLL(l,i) = SLL(l,i) + fluid_v(l,i)*fluid_cS(l,i)/r(l,i)**2
+           end if
+
         end if
      end do
-
-!    Momentum density.
-
-     JA(l,:) = JA(l,:) + fluid_cS(l,:)
-
-!    Stress tensor.
-
-     SAA(l,:) = SAA(l,:) + fluid_v(l,:)*fluid_cS(l,:) + (fluid_p(l,:) - patmos) + fluid_q(l,:)
-     SBB(l,:) = SBB(l,:) + (fluid_p(l,:) - patmos) + fluid_q(l,:)
-
-!    SLL = (SAA - SBB)/r**2.
-
-     if (.not.nolambda) then
-        SLL(l,:) = SLL(l,:) + fluid_v(l,:)*fluid_cS(l,:)/r(l,:)**2
-     end if
 
   end if
 
