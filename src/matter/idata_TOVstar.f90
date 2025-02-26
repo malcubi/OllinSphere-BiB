@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.8 2024/09/25 16:36:58 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.9 2025/02/26 17:07:39 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -590,9 +590,7 @@
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
 
-! Add atmosphere.  We just add it everywhere since
-! we will subtract it latter when we calculate the
-! stress-energy tensor.
+! Add atmosphere.
 
   do l=Nl-1,0,-1
      do i=1-ghost,Nrtotal
@@ -646,6 +644,9 @@
   end do
 
   call alphamaximal(0,Nl-1,"robin",1.d0)
+
+
+! ***
 
 
 ! ***************
