@@ -174,10 +174,12 @@
 
 !    Reconstruct fluxes at cell interfaces.
 
-     flux_D = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:)
+     flux_D = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
+            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
      call reconstruct(flux_D,flux_DL,flux_DR,limiter,-1)
 
-     flux_E = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:))
+     flux_E = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
      call reconstruct(flux_E,flux_EL,flux_ER,limiter,-1)
 
      flux_S = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
@@ -261,8 +263,10 @@
 ! *******************************************
 
   do i=1,Nr-1
-     sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))
-     sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))
+     !sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))
+     !sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))
+     sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
+     sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
      sfluid_cS(l,i) = - idr*(flux_S(i) - flux_S(i-1))
   end do
 
@@ -286,9 +290,12 @@
 ! d ln g   =  d g / 2g  =  d A / 2A + d B / B + 6 d phi + 2/r
 !  r           r            r          r           r
 
+!  sfluid_cD(l,:) = sfluid_cD(l,:) + alpha(l,:)*trK(l,:)*fluid_cD(l,:) &
+!                 - alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
+!                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+
   sfluid_cD(l,:) = sfluid_cD(l,:) + alpha(l,:)*trK(l,:)*fluid_cD(l,:) &
-                 - alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+                 - alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:)*(2.d0/r(l,:))
 
 ! Shift terms for D (scalar):
 !
@@ -321,7 +328,8 @@
                  *(alpha(l,:)*fluid_v(l,:)**2*A(l,:)*exp(4.d0*phi(l,:)) &
                  *(KTA(l,:) + third*trK(l,:)) - fluid_v(l,:)*D1_alpha(l,:)) &
                  - alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+!                *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+                 *(2.d0/r(l,:))
 
 ! Shift terms for E (scalar):
 !
