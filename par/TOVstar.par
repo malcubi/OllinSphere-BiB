@@ -31,7 +31,7 @@ TOV_rho0 = 0.01   	  # Central density for TOV star
 fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
 
-geodiss   = 0.01          # Dissipation coefficient for geometry
+geodiss = 0.01            # Dissipation coefficient for geometry
 
 directory = TOVstar       # Name of output directory
 Ninfo = 500		  # How often do we want to output information to screen?
