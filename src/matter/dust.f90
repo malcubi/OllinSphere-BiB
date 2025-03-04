@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.5 2025/03/04 19:40:15 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.6 2025/03/04 20:06:31 malcubi Exp $
 
   subroutine sources_dust(l)
 
@@ -133,10 +133,6 @@
   flux_E(:) = alpha(l,:)*dust_cE(l,:)
   flux_S(:) = alpha(l,:)*dust_cS(l,:)
 
-  !flux_D(:) = alpha(l,:)*dust_cD(l,:)*(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
-  !flux_E(:) = alpha(l,:)*dust_cE(l,:)*(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
-  !flux_S(:) = alpha(l,:)*dust_cS(l,:)*(B(l,:))
-
 
 ! ******************************************
 ! ***   METHOD = CENTER (SECOND ORDER)   ***
@@ -192,6 +188,7 @@
 
 ! The fluxes at cell interfaces are either interpolated (averaged)
 ! or extrapolated from the upwind side using a minmod limiter.
+! I will add other limiters later.
 
   else if (dust_method=="limiter") then
 
@@ -334,9 +331,6 @@
      sdust_cD(l,i) = - idr*(flux_DI(i) - flux_DI(i-1))
      sdust_cE(l,i) = - idr*(flux_EI(i) - flux_EI(i-1))
      sdust_cS(l,i) = - idr*(flux_SI(i) - flux_SI(i-1))
-     !sdust_cD(l,i) = - idr*(flux_DI(i) - flux_DI(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
-     !sdust_cE(l,i) = - idr*(flux_EI(i) - flux_EI(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
-     !sdust_cS(l,i) = - idr*(flux_SI(i) - flux_SI(i-1))/(B(l,i))
   end do
 
 
@@ -353,9 +347,6 @@
                 - alpha(l,:)*dust_v(l,:)*dust_cD(l,:) &
                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
 
-  !sdust_cD(l,:) = sdust_cD(l,:) + alpha(l,:)*trK(l,:)*dust_cD(l,:) &
-  !              - alpha(l,:)*dust_v(l,:)*dust_cD(l,:)*(2.d0/r(l,:))
-
   if (shift/="none") then
      sdust_cD(l,:) = sdust_cD(l,:) + beta(l,:)*DA_dust_cD(l,:)
   end if
@@ -367,7 +358,6 @@
                 *(alpha(l,:)*dust_v(l,:)**2*A(l,:)*psi4(l,:)*(KTA(l,:) + third*trK(l,:)) &
                 - dust_v(l,:)*D1_alpha(l,:)) - alpha(l,:)*dust_v(l,:)*dust_cE(l,:) &
                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
-                !*(2.d0/r(l,:))
 
   if (shift/="none") then
      sdust_cE(l,:) = sdust_cE(l,:) + beta(l,:)*DA_dust_cE(l,:)

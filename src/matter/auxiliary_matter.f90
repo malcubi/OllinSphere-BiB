@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.30 2025/03/04 19:35:09 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.31 2025/03/04 20:06:52 malcubi Exp $
 
   subroutine auxiliary_matter(l)
 
@@ -606,7 +606,7 @@
  
      do i=1-ghost,Nrtotal
         if (dust_cD(l,i)<=dust_atmos) then
-           dust_cD(l,i) = dust_atmos
+           dust_cD(l,i) = dust_atmos/10.d0
            dust_cE(l,i) = 0.d0
            dust_cS(l,i) = 0.d0
            dust_v(l,i)  = 0.d0

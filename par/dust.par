@@ -5,14 +5,14 @@
 dr0 = 0.01		  # Grid spacing
 dtfac = 0.7		  # Courant parameter
 
-Nrtotal = 5000		  # Number of grid points
+Nrtotal = 2500		  # Number of grid points
 Nt = 5000		  # Number of time steps
 
 Nl = 1                    # Number of refinement levels
 
 slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
 gauge_f = 2.0	          # Coefficient for harmonic slicing
-#ilapse = psiminus2       # Precollapsed lapse
+ilapse = psiminus2        # Precollapsed lapse
 
 integrator = rk4	  # Type of integration method (icn,rk4)
 order = four  		  # Order for spatial finite differencing (two,four)
@@ -20,6 +20,8 @@ order = four  		  # Order for spatial finite differencing (two,four)
 boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = dust         # Real scalar field
+dust_method = limiter     # Dust integration method
+
 idata = dustshell	  # Type of initial data
 dust_a0 = 0.005           # Amplitude of perturbation
 dust_r0 = 5.0	          # Center of perturbation
@@ -28,11 +30,11 @@ dust_s0 = 2.0	          # Width of perturbation
 ahfind = .true.           # Look for apparent horizon
 ahfind_every = 50         # How often to look for horizons?
 
-directory = dust	  # Name of output directory
+directory = dust_limiter_test4	  # Name of output directory
 Ninfo = 200		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 200		  # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,compactness
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,compactness
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_Nb,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_Nb,compactness
 
