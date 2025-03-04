@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.55 2024/09/23 18:50:53 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.56 2025/03/04 19:36:47 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -346,6 +346,27 @@
   end if
 
 
+! ****************
+! ***   DUST   ***
+! ****************
+
+  if (contains(mattertype,"dust")) then
+
+!    The total dust rest mass is:
+!
+!                     /r            2
+!    dust_Nb  =  4 pi |  dust_rho0 R  dR
+!                     /0
+!
+!    with R the Schwarzschild radius.
+
+     if (allocated(dust_Nb)) then
+        call fluidintegral
+     end if
+
+  end if
+
+
 ! *************************
 ! ***   PERFECT FLUID   ***
 ! *************************
@@ -364,7 +385,7 @@
         !fluid_wb_tot = fluid_p/(fluid_e*fluid_rho)
      end if
 
-!    The total baryon rest mass is:
+!    The total fluid rest mass is:
 !
 !                      /r             2
 !    fluid_Nb  =  4 pi |  fluid_rho0 R  dR
