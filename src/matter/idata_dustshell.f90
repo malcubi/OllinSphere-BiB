@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_dustshell.f90,v 1.5 2022/07/12 23:59:18 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_dustshell.f90,v 1.6 2025/03/04 19:37:51 malcubi Exp $
 
   subroutine idata_dustshell
 
@@ -409,7 +409,7 @@
   phi = dlog(psi)
 
   if (chimethod) then
-     chi  = one/psi**chipower
+     chi = one/psi**chipower
   end if
 
 
