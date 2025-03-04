@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.51 2025/02/26 17:06:31 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.52 2025/03/04 19:31:43 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -882,30 +882,30 @@
 
   if (contains(mattertype,"dust")) then
 
-!    Energy density.
+     do i=1-ghost,Nr
+        if (dust_cD(l,i)>dust_atmos) then
 
-     rho(l,:) = rho(l,:) + dust_cE(l,:) + dust_cD(l,:)
+!          Energy density.
 
-!    Momentum density.
+           rho(l,i) = rho(l,i) + dust_cE(l,i) + dust_cD(l,i)
 
-     JA(l,:) = JA(l,:) + dust_cS(l,:)
+!          Momentum density.
 
-!    Stress tensor.
+           JA(l,i) = JA(l,i) + dust_cS(l,i)
 
-     SAA(l,:) = SAA(l,:) + dust_v(l,:)*dust_cS(l,:)
-     SBB(l,:) = SBB(l,:)
+!          Stress tensor.
 
-!    SLL = (SAA - SBB)/r**2.
+           SAA(l,i) = SAA(l,i) + dust_v(l,i)*dust_cS(l,i)
+           SBB(l,i) = SBB(l,i)
 
-     if (.not.nolambda) then
-        SLL(l,:) = SLL(l,:) + dust_v(l,:)*dust_cS(l,:)/r(l,:)**2
-     end if
+!          SLL = (SAA - SBB)/r**2.
 
-!    Cosmological background.
+           if (.not.nolambda) then
+              SLL(l,i) = SLL(l,i) + dust_v(l,i)*dust_cS(l,i)/r(l,i)**2
+           end if
 
-     if (cosmic_run) then
-
-     end if
+        end if
+     end do
 
   end if
 
