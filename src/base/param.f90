@@ -834,12 +834,16 @@
 ! dust_s0:           Width of initial profile.
 ! dust_t0:           Transition width of initial profile (for top-hat profile).
 !
+! dust_atmos:        Size of artificial atmosphere for dust.
+!
 ! dust_method:       Method for dust integration.
 
   real(8) :: dust_a0 = 0.d0
   real(8) :: dust_r0 = 0.d0
   real(8) :: dust_s0 = 1.d0
   real(8) :: dust_t0 = 1.d0
+
+  real(8) :: dust_atmos = 1.d-10
 
   character(1000) :: dustprofile = "gaussian"  ! range=(gaussian,tophat)
   character(1000) :: dust_method = "limiter"   ! range=(center,upwind,limiter)
