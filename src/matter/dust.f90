@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.4 2022/07/05 16:58:16 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.5 2025/03/04 19:40:15 malcubi Exp $
 
   subroutine sources_dust(l)
 
@@ -11,30 +11,27 @@
 !
 ! These equations take the general form:
 !
-!                                                          1/2
-! d D  =  beta d D  -  d [ alpha v D ]  -  alpha v D d ln g
-!  t            r       r                             r
+!                                                                          1/2
+! d D  =  beta d D  -  d [ alpha v D ]  +  alpha trK D  -  alpha v D d ln g
+!  t            r       r                                             r
 !
-!      +  alpha trK D
+!      
+! d E  =  beta d E  -  d [ alpha v E ] +  alpha trK E
+!  t            r       r
 !
-!                                                          1/2
-! d E  =  beta d E  -  d [ alpha v E ]  -  alpha v E d ln g
-!  t            r       r                             r
 !                          2    4 phi
 !      +  (E + D) [ alpha v  A e     (KTA + trK/3) - v d alpha ]
 !                                                       r
+!                         1/2
+!      -  alpha v E d ln g 
+!                    r
 !
-!      +  alpha trK E
-!
-!
-! d S  =  beta d S  +  S d beta  -  d [ alpha v S ]
+! d S  =  beta d S  +  S d beta  -  d [ alpha v S ]  +  alpha trK S
 !  t            r         r          r
 !
-!      -  alpha v S [ d B / B  +  4 d phi  +  2/r ]
-!                      r             r
+!      -  alpha v S [ d B / B  +  4 d phi  +  2/r ]  -  (E + D) d alpha
+!                      r             r                           r
 !
-!      -  (E + D) d alpha  +  alpha trK S
-!                  r
 !
 ! where g is the determinant of the spatial metric and:
 !
@@ -84,7 +81,8 @@
   real(8) slope1,slope2,slopelim
   real(8) idr,aux
 
-  real(8) flux_D(0:Nr),flux_E(0:Nr),flux_S(0:Nr)
+  real(8) flux_D(1-ghost:Nr),flux_E(1-ghost:Nr),flux_S(1-ghost:Nr)          ! Fluxes at grid points.
+  real(8) flux_DI(1-ghost:Nr),flux_EI(1-ghost:Nr),flux_SI(1-ghost:Nr)       ! Fluxes at cell interfaces.
 
 
 ! *******************
@@ -113,13 +111,31 @@
 !
 ! 3) Limiter:  The advection term in the flux is either interpolated
 !              (averaged) or extrapolated from the upwind side using
-!              a minmod limiter (second order).
+!              a slope limiter (second order).
 
-! Initialize fluxes to zero.
 
-  flux_D = 0.d0
-  flux_E = 0.d0
-  flux_S = 0.d0
+! ****************************
+! ***   CALCULATE FLUXES   ***
+! ****************************
+
+! Initialize fluxes at cell interfaces to zero.
+
+  flux_DI = 0.d0
+  flux_EI = 0.d0
+  flux_SI = 0.d0
+
+! Calculate fluxes at grid points.  We don't include
+! the speed "dust_v" in the fluxes here, since we will
+! use it to determine the way the flux at the interfaces
+! is calculated.
+
+  flux_D(:) = alpha(l,:)*dust_cD(l,:)
+  flux_E(:) = alpha(l,:)*dust_cE(l,:)
+  flux_S(:) = alpha(l,:)*dust_cS(l,:)
+
+  !flux_D(:) = alpha(l,:)*dust_cD(l,:)*(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+  !flux_E(:) = alpha(l,:)*dust_cE(l,:)*(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+  !flux_S(:) = alpha(l,:)*dust_cS(l,:)*(B(l,:))
 
 
 ! ******************************************
@@ -127,27 +143,15 @@
 ! ******************************************
 
 ! The fluxes at cell interfaces are just averaged over
-! adjacent grid points.  This is not very stable!
+! adjacent grid points.  This is second order, but not
+! very stable in general.
 
   if (dust_method=="center") then
 
-     do i=0,Nr-1
-
-!       Fluxes for D.
-
-        flux_D(i) = half*(alpha(l,i  )*dust_v(l,i  )*dust_cD(l,i  ) &
-                        + alpha(l,i+1)*dust_v(l,i+1)*dust_cD(l,i+1))
-
-!       Fluxes for E.
-
-        flux_E(i) = half*(alpha(l,i  )*dust_v(l,i  )*dust_cE(l,i  ) &
-                        + alpha(l,i+1)*dust_v(l,i+1)*dust_cE(l,i+1))
-
-!       Fluxes for S.
-
-        flux_S(i) = half*(alpha(l,i  )*dust_v(l,i  )*dust_cS(l,i  ) &
-                        + alpha(l,i+1)*dust_v(l,i+1)*dust_cS(l,i+1))
-
+     do i=1,Nr-1
+        flux_DI(i) = half*(dust_v(l,i)*flux_D(i) + dust_v(l,i+1)*flux_D(i+1))
+        flux_EI(i) = half*(dust_v(l,i)*flux_E(i) + dust_v(l,i+1)*flux_E(i+1))
+        flux_SI(i) = half*(dust_v(l,i)*flux_S(i) + dust_v(l,i+1)*flux_S(i+1))
      end do
 
 
@@ -156,27 +160,28 @@
 ! *****************************************
 
 ! The fluxes at cell interfaces are copied from
-! the upwind side.
+! the upwind side using the value of the speed
+! at the cell interface.  This is only first order.
 
   else if (dust_method=="upwind") then
 
-     do i=0,Nr-1
+     do i=1,Nr-1
+
+!       Calculate average speed at cell interface.
 
         aux = half*(dust_v(l,i) + dust_v(l,i+1))
 
-!       Fluxes for D.
+!       Now find the upwind flux at cell interfaces.
 
-        flux_D(i) = half*(alpha(l,i  )*dust_cD(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*dust_cD(l,i+1)*(one - sign(one,aux)))*aux
-
-!       Fluxes for E.
-
-        flux_E(i) = half*(alpha(l,i  )*dust_cE(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*dust_cE(l,i+1)*(one - sign(one,aux)))*aux
-!       Fluxes for S.
-
-        flux_S(i) = half*(alpha(l,i  )*dust_cS(l,i  )*(one + sign(one,aux)) &
-                        + alpha(l,i+1)*dust_cS(l,i+1)*(one - sign(one,aux)))*aux
+        if (aux>=0.d0) then
+           flux_DI(i) = aux*flux_D(i)
+           flux_EI(i) = aux*flux_E(i)
+           flux_SI(i) = aux*flux_S(i)
+        else
+           flux_DI(i) = aux*flux_D(i+1)
+           flux_EI(i) = aux*flux_E(i+1)
+           flux_SI(i) = aux*flux_S(i+1)
+        end if
 
      end do
 
@@ -190,16 +195,16 @@
 
   else if (dust_method=="limiter") then
 
-     do i=1,Nr-2
+     do i=1,Nr-1
 
         aux = half*(dust_v(l,i) + dust_v(l,i+1))
 
-        if (aux>=0.d0) then
+        if ((aux>=0.d0).or.(i==Nr-1)) then
 
 !          Fluxes for D.
 
-           slope1 = alpha(l,i+1)*dust_cD(l,i+1) - alpha(l,i  )*dust_cD(l,i  )
-           slope2 = alpha(l,i  )*dust_cD(l,i  ) - alpha(l,i-1)*dust_cD(l,i-1)
+           slope1 = flux_D(i+1) - flux_D(i)
+           slope2 = flux_D(i) - flux_D(i-1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -211,12 +216,12 @@
               slopelim = 0.d0
            end if
 
-           flux_D(i) = aux*(alpha(l,i)*dust_cD(l,i) + half*slopelim)
+           flux_DI(i) = aux*(flux_D(i) + half*slopelim)
 
 !          Fluxes for E.
 
-           slope1 = alpha(l,i+1)*dust_cE(l,i+1) - alpha(l,i  )*dust_cE(l,i  )
-           slope2 = alpha(l,i  )*dust_cE(l,i  ) - alpha(l,i-1)*dust_cE(l,i-1)
+           slope1 = flux_E(i+1) - flux_E(i)
+           slope2 = flux_E(i) - flux_E(i-1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -228,12 +233,12 @@
               slopelim = 0.d0
            end if
 
-           flux_E(i) = aux*(alpha(l,i)*dust_cE(l,i) + half*slopelim)
+           flux_EI(i) = aux*(flux_E(i) + half*slopelim)
 
 !          Fluxes for S.
 
-           slope1 = alpha(l,i+1)*dust_cS(l,i+1) - alpha(l,i  )*dust_cS(l,i  )
-           slope2 = alpha(l,i  )*dust_cS(l,i  ) - alpha(l,i-1)*dust_cS(l,i-1)
+           slope1 = flux_S(i+1) - flux_S(i)
+           slope2 = flux_S(i) - flux_S(i-1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -245,14 +250,14 @@
               slopelim = 0.d0
            end if
 
-           flux_S(i) = aux*(alpha(l,i)*dust_cS(l,i) + half*slopelim)
+           flux_SI(i) = aux*(flux_S(i) + half*slopelim)
 
         else
 
 !          Fluxes for D.
 
-           slope1 = alpha(l,i+1)*dust_cD(l,i+1) - alpha(l,i  )*dust_cD(l,i  )
-           slope2 = alpha(l,i+2)*dust_cD(l,i+2) - alpha(l,i+1)*dust_cD(l,i+1)
+           slope1 = flux_D(i+1) - flux_D(i)
+           slope2 = flux_D(i+2) - flux_D(i+1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -264,12 +269,12 @@
               slopelim = 0.d0
            end if
 
-           flux_D(i) = aux*(alpha(l,i+1)*dust_cD(l,i+1) - half*slopelim)
+           flux_DI(i) = aux*(flux_D(i+1) - half*slopelim)
 
 !          Fluxes for E.
 
-           slope1 = alpha(l,i+1)*dust_cE(l,i+1) - alpha(l,i  )*dust_cE(l,i  )
-           slope2 = alpha(l,i+2)*dust_cE(l,i+2) - alpha(l,i+1)*dust_cE(l,i+1)
+           slope1 = flux_E(i+1) - flux_E(i)
+           slope2 = flux_E(i+2) - flux_E(i+1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -281,12 +286,12 @@
               slopelim = 0.d0
            end if
 
-           flux_E(i) = aux*(alpha(l,i+1)*dust_cE(l,i+1) - half*slopelim)
+           flux_EI(i) = aux*(flux_E(i+1) - half*slopelim)
 
 !          Fluxes for S.
 
-           slope1 = alpha(l,i+1)*dust_cS(l,i+1) - alpha(l,i  )*dust_cS(l,i  )
-           slope2 = alpha(l,i+2)*dust_cS(l,i+2) - alpha(l,i+1)*dust_cS(l,i+1)
+           slope1 = flux_S(i+1) - flux_S(i)
+           slope2 = flux_S(i+2) - flux_S(i+1)
 
            if (slope1*slope2>0.d0) then
               if (abs(slope1)<abs(slope2)) then
@@ -298,7 +303,7 @@
               slopelim = 0.d0
            end if
 
-           flux_S(i) = aux*(alpha(l,i+1)*dust_cS(l,i+1) - half*slopelim)
+           flux_SI(i) = aux*(flux_S(i+1) - half*slopelim)
 
         end if
 
@@ -326,9 +331,12 @@
 ! *******************************************
 
   do i=1,Nr-1
-     sdust_cD(l,i) = - (flux_D(i) - flux_D(i-1))*idr
-     sdust_cE(l,i) = - (flux_E(i) - flux_E(i-1))*idr
-     sdust_cS(l,i) = - (flux_S(i) - flux_S(i-1))*idr
+     sdust_cD(l,i) = - idr*(flux_DI(i) - flux_DI(i-1))
+     sdust_cE(l,i) = - idr*(flux_EI(i) - flux_EI(i-1))
+     sdust_cS(l,i) = - idr*(flux_SI(i) - flux_SI(i-1))
+     !sdust_cD(l,i) = - idr*(flux_DI(i) - flux_DI(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
+     !sdust_cE(l,i) = - idr*(flux_EI(i) - flux_EI(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
+     !sdust_cS(l,i) = - idr*(flux_SI(i) - flux_SI(i-1))/(B(l,i))
   end do
 
 
@@ -345,6 +353,9 @@
                 - alpha(l,:)*dust_v(l,:)*dust_cD(l,:) &
                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
 
+  !sdust_cD(l,:) = sdust_cD(l,:) + alpha(l,:)*trK(l,:)*dust_cD(l,:) &
+  !              - alpha(l,:)*dust_v(l,:)*dust_cD(l,:)*(2.d0/r(l,:))
+
   if (shift/="none") then
      sdust_cD(l,:) = sdust_cD(l,:) + beta(l,:)*DA_dust_cD(l,:)
   end if
@@ -356,6 +367,7 @@
                 *(alpha(l,:)*dust_v(l,:)**2*A(l,:)*psi4(l,:)*(KTA(l,:) + third*trK(l,:)) &
                 - dust_v(l,:)*D1_alpha(l,:)) - alpha(l,:)*dust_v(l,:)*dust_cE(l,:) &
                 *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+                !*(2.d0/r(l,:))
 
   if (shift/="none") then
      sdust_cE(l,:) = sdust_cE(l,:) + beta(l,:)*DA_dust_cE(l,:)
@@ -369,8 +381,7 @@
                 *(D1_B(l,:)/B(l,:) + 4.d0*D1_phi(l,:) + 2.d0/r(l,:))
 
   if (shift/="none") then
-     sdust_cS(l,:) = sdust_cS(l,:) + beta(l,:)*DA_dust_cS(l,:) &
-                   + dust_cS(l,:)*D1_beta(l,:)
+     sdust_cS(l,:) = sdust_cS(l,:) + beta(l,:)*DA_dust_cS(l,:) + dust_cS(l,:)*D1_beta(l,:)
   end if
 
 
@@ -378,14 +389,11 @@
 ! ***   SOURCES AT OUTER BOUNDARY   ***
 ! *************************************
 
-! For the moment I just set the sources at the
-! boundaries to zero.  For fine grid this should
-! be corrected when we restrict from the coarse
-! grids.
+! For the moment I just copy the sources from one point in.
 
-  sdust_cD(l,Nr) = 0.d0
-  sdust_cE(l,Nr) = 0.d0
-  sdust_cS(l,Nr) = 0.d0
+  sdust_cD(l,Nr) = sdust_cD(l,Nr-1)
+  sdust_cE(l,Nr) = sdust_cE(l,Nr-1)
+  sdust_cS(l,Nr) = sdust_cS(l,Nr-1)
 
 
 ! ************************
