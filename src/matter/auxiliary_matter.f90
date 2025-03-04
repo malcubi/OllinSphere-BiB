@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.29 2025/02/26 17:04:14 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.30 2025/03/04 19:35:09 malcubi Exp $
 
   subroutine auxiliary_matter(l)
 
@@ -571,7 +571,7 @@
      D1_dust_cD(l,:) = diff1(l,+1)
 
      diffvar => dust_cE
-     D1_dust_cE(l,:) = diff1(l,-1)
+     D1_dust_cE(l,:) = diff1(l,+1)
 
      diffvar => dust_cS
      D1_dust_cS(l,:) = diff1(l,-1)
@@ -584,7 +584,7 @@
         DA_dust_cD(l,:) = diffadv(l,+1)
 
         diffvar => dust_cE
-        DA_dust_cE(l,:) = diffadv(l,-1)
+        DA_dust_cE(l,:) = diffadv(l,+1)
 
         diffvar => dust_cS
         DA_dust_cS(l,:) = diffadv(l,-1)
@@ -600,24 +600,22 @@
 !    Rest-mass density:  rho  =  D / W
 !
 !    Notice that in order to prevent possible divisions by
-!    very small quantities, if abs(D+E) is too small we
-!    just set them to a small number and set the velocity
-!    to zero. This causes jumps in the velocity in that region,
-!    but since the densities there are very small it 
-!    does not affect the overall solution.
+!    very small quantities when calculating v, if the density
+!    is too small we just set it to a small number and set
+!    E, S and v to zero.
  
      do i=1-ghost,Nrtotal
-        if (abs(dust_cD(l,i))+abs(dust_cE(l,i))<1.d-10) then
-           dust_cD(l,i) = 1.d-11
-           dust_cE(l,i) = 1.d-11
+        if (dust_cD(l,i)<=dust_atmos) then
+           dust_cD(l,i) = dust_atmos
+           dust_cE(l,i) = 0.d0
+           dust_cS(l,i) = 0.d0
            dust_v(l,i)  = 0.d0
         else
            dust_v(l,:) = dust_cS(l,:)/(dust_cE(l,:) + dust_cD(l,:))/(A(l,:)*psi4(l,:))
         end if
      end do
 
-     dust_W(l,:) = 1.d0/sqrt(abs(1.d0 - A(l,:)*psi4(l,:)*dust_v(l,:)**2))
-
+     dust_W(l,:)   = 1.d0/sqrt(abs(1.d0 - A(l,:)*psi4(l,:)*dust_v(l,:)**2))
      dust_rho(l,:) = dust_cD(l,:)/dust_W(l,:)
 
   end if
@@ -633,13 +631,13 @@
      D1_fluid_cD(l,:) = diff1(l,+1)
 
      diffvar => fluid_cE
-     D1_fluid_cE(l,:) = diff1(l,-1)
+     D1_fluid_cE(l,:) = diff1(l,+1)
 
      diffvar => fluid_cS
      D1_fluid_cS(l,:) = diff1(l,-1)
 
      diffvar => fluid_p
-     D1_fluid_p(l,:) = diff1(l,-1)
+     D1_fluid_p(l,:) = diff1(l,+1)
 
 !    Advective derivatives.
 
@@ -649,7 +647,7 @@
         DA_fluid_cD(l,:) = diffadv(l,+1)
 
         diffvar => fluid_cE
-        DA_fluid_cE(l,:) = diffadv(l,-1)
+        DA_fluid_cE(l,:) = diffadv(l,+1)
 
         diffvar => fluid_cS
         DA_fluid_cS(l,:) = diffadv(l,-1)
