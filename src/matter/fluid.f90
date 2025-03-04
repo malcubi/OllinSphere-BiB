@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.16 2025/02/26 20:11:26 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.17 2025/03/04 19:34:05 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -137,6 +137,21 @@
   flux_S = 0.d0
 
 
+! ****************************
+! ***   CALCULATE FLUXES   ***
+! ****************************
+
+! Calculate fluxes at grid points.
+
+  flux_D(:) = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
+         *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+
+  flux_E(:) = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+         *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+
+  flux_S(:) = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
+
+
 ! **********************
 ! ***   LLF METHOD   ***
 ! **********************
@@ -157,10 +172,6 @@
 ! first need to do a linear reconstruction of the fluid
 ! variables at cell interfaces using both left and right
 ! sided extrapolations.
-!
-! This method is more complicated, and last I checked the
-! method "limiter" above seems to be more accurate. I need
-! to check if I don't have anything wrong here.
 
   else if (fluid_method=="hlle") then
 
@@ -174,15 +185,8 @@
 
 !    Reconstruct fluxes at cell interfaces.
 
-     flux_D = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
      call reconstruct(flux_D,flux_DL,flux_DR,limiter,-1)
-
-     flux_E = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
      call reconstruct(flux_E,flux_EL,flux_ER,limiter,-1)
-
-     flux_S = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
      call reconstruct(flux_S,flux_SL,flux_SR,limiter,+1)
 
 !    Reconstruct characteristic speeds at cell boundaries.
@@ -233,7 +237,9 @@
 
         end if
 
-!       Calculate HLLE fluxes.
+!       Calculate HLLE fluxes.  Notice that, even though we use the same
+!       names for flux arrays, they will now represent the values
+!       at cell interfaces "i+1" instrad of at the grid points "i".
 
         flux_D(i) = (vpp*flux_DL(i) - vmm*flux_DR(i) + vpp*vmm*(D_R(i) - D_L(i)))/(vpp - vmm)
         flux_E(i) = (vpp*flux_EL(i) - vmm*flux_ER(i) + vpp*vmm*(E_R(i) - E_L(i)))/(vpp - vmm)
@@ -328,7 +334,7 @@
                  *(alpha(l,:)*fluid_v(l,:)**2*A(l,:)*exp(4.d0*phi(l,:)) &
                  *(KTA(l,:) + third*trK(l,:)) - fluid_v(l,:)*D1_alpha(l,:)) &
                  - alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-!                *(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
+                 !*(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
                  *(2.d0/r(l,:))
 
 ! Shift terms for E (scalar):
@@ -448,10 +454,14 @@
 ! extrapolation using a slope limiter.
 !
 ! We do both left and right sided reconstructions, and store
-! them in the arrays "varl" and "varr".
+! them in the arrays "varl" and "varr".  Notice that, while
+! var(i) donotes the value of the original variable at the
+! grid point "i", varl(i) and varr(i) denote the left and
+! right sided reconstructions of the function evaluated at
+! the cell interface correponding to the point at "i+1/2".
 !
-! The slow limiters work by reconstructing a function at the
-! half interval between grid points using the slopes to the
+! The slope limiters work by reconstructing a function at the
+! cell interface between grid points using the slopes to the
 ! left, center and right:
 !
 !     slope1 = var(i  ) - var(i-1)
@@ -462,7 +472,7 @@
 ! and from the right, as this is needed for the Riemann solver.
 ! For the left-sided reconstruction we take:
 !
-!      varl(i)  = var(i) + 0.5d0*slopelim
+!     varl(i)  = var(i)   + 0.5d0*slopelim
 !
 ! and for the right-sided reconstruction:
 !
