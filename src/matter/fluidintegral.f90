@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.3 2025/03/04 19:38:25 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.4 2025/09/04 16:06:41 malcubi Exp $
 
   subroutine fluidintegral
 
@@ -6,11 +6,11 @@
 ! ***   CALCULATION OF INTEGRATED FLUID REST MASS   ***
 ! *****************************************************
 
-! This is the integrated Dirac charge:
+! This is the integrated fluid rest mass:
 !
-!              /                      /             1/2      6   2
-! fluid_Nb  =  | fluid_cD dV  =  4 pi | fluid_cD [ A   B  psi ] r dr
-!              /                      /
+!                /                      /             1/2      6   2
+! fluid_mass  =  | fluid_cD dV  =  4 pi | fluid_cD [ A   B  psi ] r dr
+!                /                      /
 !
 ! Notice that this assumes that the spacetime is REGULAR at the
 ! origin, so it will not work for eternal black holes such as
@@ -49,11 +49,16 @@
 ! ***   INTEGRATE FLUID REST MASS   ***
 ! *************************************
 
-! The total rest mass is the integral of fluid_cD (not fluid_rho!).
+! The total rest mass is the integral of fluid_cD (not fluid_rho).
+! Notice that fluid_cD and fluid_rho coincide for a fluid at rest,
+! but if the fluid is moving then fluid_rho is the rest mass density
+! in the fluid's rest frame, while fluid_cD is the rest mass denisty
+! as measured by the Eulerian observers.  The conserved quantity is
+! then the integral of fluid_cD.
 
-  if (allocated(fluid_Nb)) then
+  if (allocated(fluid_mass)) then
 
-     fluid_Nb = 0.d0
+     fluid_mass = 0.d0
 
 !    Remember not to take into account the atmosphere.
 
@@ -70,7 +75,7 @@
      intvar => auxarray
 
      do l=0,Nl-1
-        fluid_Nb(l,:) = integral(l)
+        fluid_mass(l,:) = integral(l)
      end do
 
 
@@ -81,7 +86,7 @@
 !    For the case of several grid levels we need to restrict from the
 !    fine to the coarse grids.
 
-     restrictvar => fluid_Nb
+     restrictvar => fluid_mass
 
      do l=Nl-1,1,-1
 
@@ -98,7 +103,7 @@
 !          Find difference between the value at the edge of the fine grid, 
 !          and the value in the coarse grid.
 
-           delta = fluid_Nb(l-1,i0) - 0.5d0*(fluid_Nb(l,2*i0) + fluid_Nb(l,2*i0-1))
+           delta = fluid_mass(l-1,i0) - 0.5d0*(fluid_mass(l,2*i0) + fluid_mass(l,2*i0-1))
 
         else
 
@@ -114,7 +119,7 @@
 
         if (rank==0) then
            do i=1,ghost
-              fluid_Nb(l-1,1-i) = fluid_Nb(l-1,i)
+              fluid_mass(l-1,1-i) = fluid_mass(l-1,i)
            end do
         end if
 
@@ -129,12 +134,13 @@
 
      if (t(0)==0.d0) then
 
-        NTOT = fluid_Nb(0,Nr)
+        NTOT = fluid_mass(0,Nr)
 
 !       Processor 0 writes result to screen.
 
         if (rank==0) then
-           write(*,'(A,E19.12)') ' Total fluid rest mass (Nb) = ',NTOT
+           write(*,*)
+           write(*,'(A,E19.12)') ' Total fluid rest mass = ',NTOT
         end if
 
      end if
@@ -146,11 +152,12 @@
 ! ***   INTEGRATE DUST REST MASS   ***
 ! *************************************
 
-! The total rest mass is the integral of dust_cD (not dust_rho!).
+! The total rest mass is the integral of dust_cD.
+! (see comment above for fluid_mass).
 
-  if (allocated(dust_Nb)) then
+  if (allocated(dust_mass)) then
 
-     dust_Nb = 0.d0
+     dust_mass = 0.d0
 
 !    Remember not to take into account the atmosphere.
 
@@ -167,7 +174,7 @@
      intvar => auxarray
 
      do l=0,Nl-1
-        dust_Nb(l,:) = integral(l)
+        dust_mass(l,:) = integral(l)
      end do
 
 
@@ -178,7 +185,7 @@
 !    For the case of several grid levels we need to restrict from the
 !    fine to the coarse grids.
 
-     restrictvar => dust_Nb
+     restrictvar => dust_mass
 
 !    NOT YET IMPLEMENTED.
 
@@ -191,12 +198,13 @@
 
      if (t(0)==0.d0) then
 
-        NTOT = dust_Nb(0,Nr)
+        NTOT = dust_mass(0,Nr)
 
 !       Processor 0 writes result to screen.
 
         if (rank==0) then
-           write(*,'(A,E19.12)') ' Total dust rest mass (Nb) = ',NTOT
+           write (*,*)
+           write(*,'(A,E19.12)') ' Total dust rest mass = ',NTOT
         end if
 
      end if
