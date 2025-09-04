@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.17 2025/03/04 19:34:05 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.18 2025/09/04 16:07:32 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -246,6 +246,17 @@
         flux_S(i) = (vpp*flux_SL(i) - vmm*flux_SR(i) + vpp*vmm*(S_R(i) - S_L(i)))/(vpp - vmm)
 
      end do
+
+
+! ************************
+! ***   METHOD = MP5   ***
+! ************************
+
+! This is the MP5 method coded by Matthew Smith.
+
+  else if (fluid_method=="mp5") then
+
+     call mp5fluxes(flux_D,flux_E,flux_S,l)
 
 
 ! **************************
@@ -723,4 +734,326 @@
 ! ***   END   ***
 ! ***************
 
- end function philimiter
+  end function philimiter
+
+
+
+
+
+
+
+
+! **********************************
+! ***   MP5 ROUTINES START HERE  ***
+! **********************************
+
+! These routines were coded by Matthew Smith.
+!
+! I am not sure how all this works, I need to check it (miguel).
+
+
+! **********************
+! ***   MP5 FLUXES   ***
+! **********************
+
+  subroutine mp5fluxes(FD, FE, FS, l)
+
+  use arrays
+  use param
+
+  implicit none
+  
+! Numerical fluxes.
+
+  real(8) FD(1-ghost:Nr)
+  real(8) FE(1-ghost:Nr)
+  real(8) FS(1-ghost:Nr)
+
+  integer l
+
+! Conserved variables.
+
+  real(8) D_L(1-ghost:Nr), D_R(1-ghost:Nr)
+  real(8) E_L(1-ghost:Nr), E_R(1-ghost:Nr)
+  real(8) S_L(1-ghost:Nr), S_R(1-ghost:Nr)
+   
+! L, R fluxes.
+
+  real(8) FD_L(1-ghost:Nr), FD_R(1-ghost:Nr)
+  real(8) FE_L(1-ghost:Nr), FE_R(1-ghost:Nr)
+  real(8) FS_L(1-ghost:Nr), FS_R(1-ghost:Nr)
+
+  real(8) vp_L(1-ghost:Nr), vp_R(1-ghost:Nr)
+  real(8) vm_L(1-ghost:Nr), vm_R(1-ghost:Nr)
+  real(8) vllf
+
+  real(8) aux
+
+  integer i
+  
+! Compute flux normally according to centre values.
+
+  FD = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
+       *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+  FE = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+       *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+  FS = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
+
+! Perform left and right reconstruction of the
+! conserved variables and fluxes.
+
+  call mp5reconstruct(fluid_cD(l,:), D_L, D_R, +1)
+  call mp5reconstruct(fluid_cE(l,:), E_L, E_R, +1)
+  call mp5reconstruct(fluid_cS(l,:), S_L, S_R, -1)
+
+  call mp5reconstruct(FD, FD_L, FD_R, -1)
+  call mp5reconstruct(FE, FE_L, FE_R, -1)
+  call mp5reconstruct(FS, FS_L, FS_R, +1)
+  
+! Compute the LLF speeds.
+
+  if (fluid_usesoundspeed) then
+     call mp5reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),+1)
+     call mp5reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),+1)
+  end if
+  
+  do i=0,Nr-1
+
+     if (fluid_usesoundspeed) then
+
+        vllf = max(abs(vp_L(i)),abs(vp_R(i)),abs(vm_L(i)),abs(vm_R(i)))
+
+     else
+
+        aux = 0.5d0*(alpha(l,i  )/sqrt(abs(A(l,i  )))/psi(l,i  )**2 &
+                   + alpha(l,i+1)/sqrt(abs(A(l,i+1)))/psi(l,i+1)**2)
+ 
+        if (shift=="none") then
+           vllf = abs(aux)
+        else
+           vllf = abs(-0.5d0*(beta(l,i)+beta(l,i+1))+aux)
+        end if
+
+     endif
+
+!    Calculate fluxes according to LLF interface values
+
+     FD(i) = 0.5d0*(FD_L(i) + FD_R(i)) - 0.5d0*vllf*(D_R(i) - D_L(i))
+     FE(i) = 0.5d0*(FE_L(i) + FE_R(i)) - 0.5d0*vllf*(E_R(i) - E_L(i))
+     FS(i) = 0.5d0*(FS_L(i) + FS_R(i)) - 0.5d0*vllf*(S_R(i) - S_L(i))
+
+  end do
+
+  end subroutine mp5fluxes
+
+
+
+
+
+! *************************
+! ***   MP5 INTERFACE   ***
+! *************************
+
+  function mp5interface(um2, um1, u, up1, up2) result(mp5val)
+
+  implicit none
+
+  real(8) :: um2,um1,u,up1,up2
+  real(8) :: minmod2,minmod4
+  real(8) :: mp5val
+  real(8) :: vnorm,vl,vmp
+  real(8) :: djm1,dj,djp1,dm4jph,dm4jmh
+  real(8) :: vul,vav,vmd,vlc,vmin,vmax
+  real(8) :: mp5alpha,eps
+
+  mp5alpha = 4.0d0
+  eps = 1.0d-10
+
+  vnorm = sqrt(um2*um2 + um1*um1 + u*u + up1*up1 + up2*up2)
+
+! Not sure about this formula ...
+
+  vl = (2.0d0*um2 - 13.0d0*um1 + 47.0d0*u + 27.0d0*up1 - 3.0d0*up2)/60.0d0
+  ! vl = (3.0d0*um2 - 20.0d0*um1 + 90.0d0*u + 60.0d0*up1 - 5.0d0*up2)/128.d0
+
+  vmp = u + minmod2(up1-u,mp5alpha*(u-um1))
+
+  if ((vl - u)*(vl - vmp) .lt. eps) then
+
+     mp5val = vl
+
+  else
+
+     djm1 = um2 - 2.0d0*um1 + u
+     dj   = um1 - 2.0d0*u + up1
+     djp1 = u - 2.0d0*up1 + up2
+
+     dm4jph = minmod4(4.0d0*dj-djp1,4.0d0*djp1-dj,dj,djp1)
+     dm4jmh = minmod4(4.0d0*dj-djm1,4.0d0*djm1-dj,dj,djm1)
+
+     vul = u + mp5alpha*(u - um1)
+     vav = 0.5d0*(u + up1)
+     vmd = vav - 0.5d0*dm4jph
+     vlc = u + 0.5d0*(u - um1) + 4.0d0*dm4jmh/3.0d0
+
+     vmin = max(min(u, up1, vmd), min(u, vul, vlc))
+     vmax = min(max(u, up1, vmd), max(u, vul, vlc))
+
+     mp5val = vl + minmod2(vmin - vl,vmax - vl)
+
+  end if
+
+! ***************
+! ***   END   ***
+! ***************
+
+  end function mp5interface
+
+
+
+
+
+! ***************************
+! ***   MP5 RECONSTRUCT   ***
+! ***************************
+
+! Performs a left and right reconstruction of a variable
+! according to the mp5interface function.
+
+  subroutine mp5reconstruct(var,varl,varr,sym)
+
+  use param
+  
+  implicit none
+  
+  real(8) var(1-ghost:Nr),varl(1-ghost:Nr),varr(1-ghost:Nr)
+
+  real(8) mp5interface
+
+  real(8) aux
+  
+  integer i,sym
+
+  !! For the origin, we should be able to apply the same reconstruction
+  !! as for the rest of the interior, provided there are sufficient ghost
+  !! cells (test runs are using 3 ghost cells).
+  !!
+  !! It is questionable to reconstruct up to to index Nr-1,
+  !! since our array indices only go up to Nr. 
+  !! It appears however to not lead directly to crashes.
+  !!
+  !! For the sake of correctness, it is best to run the left- and right-
+  !! reconstructions separately owing to their differing stencils.
+
+  !! left reconstruction
+
+  do i=0,Nr-2 
+     varl(i) = mp5interface(var(i-2),var(i-1),var(i),var(i+1),var(i+2))
+  end do
+
+  ! varl(0) = mp5interface(sym*var(3), sym*var(2), sym*var(1), var(1), var(2))
+
+  !! right reconstruction
+
+  do i=0,Nr-3
+     varr(i) = mp5interface(var(i+3),var(i+2),var(i+1),var(i),var(i-1))
+  end do
+
+  ! varr(0) = mp5interface(var(3), var(2), var(1), sym*var(1), sym*var(2))
+
+  ! print *, var(0), "    ", var(1), "    ", sym
+  ! print *, var(2), "    ", var(-1)
+  !! uncomment these and everything is fine
+  ! varl(0) = var(0) + sym*0.5d0*(var(2) - var(1))
+  ! varr(0) = var(1) - 0.5d0*(var(2) - var(1))
+  ! varl(0) = var(0) - 0.5d0*(var(0) - var(-1))
+  ! varr(0) = var(1) - 0.5d0*(var(1) - var(0))
+  ! varl(0) = sym*varr(0)
+  ! if (sym == 1) then
+     ! aux = var(2) - var(1)
+     ! varr(0) = 0.0d0 !var(1)
+     ! varl(0) = 0.0d0 !var(0)
+  ! else
+     ! varr(0) = 0.0d0
+     ! varl(0) = 0.0d0
+  ! endif
+
+  !! δ We need a way to reconstruct at index Nr-1 and
+  !! we also need the right-reconstruction at Nr-2.
+  !! Choose to do non-limited reconstruction here,
+  !! and replace with something more sophisticated later.
+  !!
+  !! This could be a source of error, but the first NaN
+  !! appear far away from the outer boundary in tests.
+
+  varl(Nr-1) = var(Nr-1) ! + 0.5d0*(var(Nr) - var(Nr-1))
+
+  varr(Nr-2) = var(Nr-1) !var(Nr-1) - 0.5d0*(var(Nr-1) - var(Nr-2))
+  varr(Nr-1) = var(Nr)   !var(Nr) - 0.5d0*(var(Nr) - var(Nr-1))
+    
+  end subroutine mp5reconstruct
+
+
+
+
+
+! *******************
+! ***   MINMOD2   ***
+! *******************
+
+  function minmod2(a,b)
+
+  implicit none
+
+  real(8) :: a,b
+  real(8) :: minmod2
+  real(8) :: signof
+
+  minmod2 = 0.5d0*(signof(a) + signof(b))*min(abs(a),abs(b))
+
+  end function minmod2
+
+
+
+
+
+! *******************
+! ***   MINMOD4   ***
+! *******************
+
+  function minmod4(a, b, c, d)
+
+  implicit none
+
+  real(8) :: a,b,c,d
+  real(8) :: minmod4
+  real(8) :: signof
+
+  minmod4 = 0.125d0*(signof(a) + signof(b))*abs(signof(a) + signof(c)) &
+          *abs(signof(a) + signof(d))*min(abs(a),abs(b),abs(c),abs(d))
+
+  end function minmod4
+
+
+
+
+
+! *******************
+! ***   SIGN OF   ***
+! *******************
+
+  function signof(a)
+
+  implicit none
+
+  real(8) :: a
+  real(8) :: signof
+
+  if (a>0.0d0) then
+     signof = +1.0d0
+  else
+     signof = -1.0d0
+  end if
+
+  end function signof
+
