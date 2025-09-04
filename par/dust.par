@@ -35,6 +35,6 @@ Ninfo = 200		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 200		  # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_Nb,compactness
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_Nb,compactness
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_mass,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dust_rho,dust_v,dust_W,dust_cD,dust_cE,dust_cS,rho,mass_sch,mass_int,dust_mass,compactness
 
