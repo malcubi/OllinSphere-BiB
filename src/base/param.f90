@@ -267,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,blastwave,scalarDM,complexDM,ghostwormhole)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,TOVcomplex,blastwave,scalarDM,complexDM,ghostwormhole,duststep)
 
 
 ! *********************
@@ -846,7 +846,7 @@
   real(8) :: dust_atmos = 1.d-10
 
   character(1000) :: dustprofile = "gaussian"  ! range=(gaussian,tophat)
-  character(1000) :: dust_method = "limiter"   ! range=(center,upwind,limiter)
+  character(1000) :: dust_method = "limiter"   ! range=(center,upwind,limiter,mp5)
 
 
 ! *****************
@@ -897,7 +897,7 @@
 
   character(1000) :: fluidprofile  = "gaussian" ! range=(gaussian,tophat)
   character(1000) :: fluid_EOS     = "ideal"    ! range=(none,ideal)
-  character(1000) :: fluid_method  = "hlle"     ! range=(llf,hlle)
+  character(1000) :: fluid_method  = "hlle"     ! range=(llf,hlle,mp5)
   character(1000) :: fluid_limiter = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
 
 ! Do we use the sound speed for the fluid methods?

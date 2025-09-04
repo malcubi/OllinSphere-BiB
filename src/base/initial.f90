@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.91 2024/12/04 16:55:53 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.92 2025/09/04 16:02:50 malcubi Exp $
 
   subroutine initial
 
@@ -867,9 +867,33 @@
 
      end if
 
+! Blast wave initial data.
+
+  else if (idata=="blastwave") then
+
+     if (contains(mattertype,"fluid")) then
+
+        call idata_blastwave
+
+     else
+
+        print *, 'Blastwave initial data needs fluid type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
+
+     end if
+
+  end if
+
+
+! ********************
+! ***   TOV STAR   ***
+! ********************
+
 ! Initial data for a TOV star.
 
-  else if (idata=="TOVstar") then
+  if (idata=="TOVstar") then
 
      if (contains(mattertype,"fluid")) then
 
@@ -884,17 +908,27 @@
 
      end if
 
-! Blast wave initial data.
+  end if
 
-  else if (idata=="blastwave") then
 
-     if (contains(mattertype,"fluid")) then
+! *******************************************
+! ***   TOV STAR + COMPLEX SCALAR FIELD   ***
+! *******************************************
 
-        call idata_blastwave
+! This initial data is for a TOV star plus a complex
+! scalar field pulse.  It is a fermion-boson system,
+! but NOT a fermion-boosn star since the complex
+! scalar field is not assumed to be stationary.
+
+  if (idata=="TOVcomplex") then
+
+     if (contains(mattertype,"fluid").and.contains(mattertype,"complex")) then
+
+        call idata_TOVcomplex
 
      else
 
-        print *, 'Blastwave initial data needs fluid type matter ...'
+        print *, 'TOVcomplex initial data needs fluid + complex type matter ...'
         print *, 'Aborting! (subroutine initial)'
         print *
         call die
