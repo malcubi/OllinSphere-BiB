@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.14 2023/09/26 16:40:45 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.15 2025/09/04 16:04:28 malcubi Exp $
 
   subroutine bosonintegral
 
@@ -141,10 +141,11 @@
 ! total charge. We do this only on the coarse grid,
 ! and use linear interpolation.
 !
-! Notice that at the moment we only do this calculation at
-! t=0 (for the initial data).  I might change this later.
+! Notice that at the moment we only do this calculation for
+! boson star initial data and at t=0 (for the initial data).
+! I might change this later.
 
-  if (t(0)==0.d0) then
+  if ((t(0)==0.d0).and.(idata=="bosonstar")) then
 
      R99 = 0.d0
      NBTOT = complex_NB(0,Nr)
@@ -196,7 +197,7 @@
 
 !    Processor 0 writes result to screen.
 
-     if (rank==0) then
+     if (rank==0)  then
         write(*,'(A,E19.12)') ' Total boson charge (Q) =',NBTOT
         write(*,'(A,E19.12)') ' R99 =',R99
         print *

@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.40 2023/09/26 16:40:27 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.41 2025/09/04 16:03:34 malcubi Exp $
 
   subroutine massintegral
 
@@ -210,6 +210,7 @@
 
    if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
      if (rank==0) then
+        write(*,*)
         write(*,'(A,E19.12)') ' Total integrated mass = ',MTOT
      end if
   end if
