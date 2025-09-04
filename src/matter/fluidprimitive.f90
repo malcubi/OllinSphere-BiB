@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.14 2025/02/26 17:09:32 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.15 2025/09/04 16:06:15 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -86,7 +86,7 @@
 ! Notice that we can't just set e=p=0, since in that case the speed of
 ! sound vanishes and the routine that calculates the fluid sources fails.
 
-  rhoatmos = fluid_atmos
+  rhoatmos = fluid_atmos/10.d0
 
   patmos = fluid_kappa*rhoatmos**fluid_gamma
   Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
@@ -104,7 +104,7 @@
 !    density we take E = rho0*e. We then set all other variables to values 
 !    consistent with this and we jump out of here.
 
-     if ((fluid_cD(l,i)<=rhoatmos).or.(fluid_rho(l,i)<=rhoatmos)) then
+     if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_rho(l,i)<=fluid_atmos)) then
 
 !       Primitive variables.
 
