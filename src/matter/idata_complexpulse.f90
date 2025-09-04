@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.39 2024/02/02 17:18:01 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.40 2025/09/04 16:04:58 malcubi Exp $
 
   subroutine idata_complexpulse
 
@@ -48,13 +48,14 @@
 ! But this won't be the case for a transformed radial coordinate.
 !
 ! Notice that the initial pulse is assumed to be time-symmetric,
-! (i.e. pi=0), as otherwise we would have a non-zero energy
+! (i.e. pi=0), or else purely real with purely imaginary time
+! derivative, as otherwise we would have a non-zero energy
 ! flux and we would need to solve the coupled momentum and
 ! hamiltonian constraints.
 !
 ! Notice also that when the potential vanishes, the Hamiltonian
 ! constraint becomes linear in psi.
-
+!
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
@@ -215,13 +216,13 @@
   end if
 
 
-! **************************
-! ***   ZERO POTENTIAL   ***
-! **************************
+! ***************************************************
+! ***   ZERO POTENTIAL AND ZERO TIME DERIVATIVE   ***
+! ***************************************************
 
-! In the case of zero potential the Hamiltonian
-! constraint is linear in psi, so we can just solve
-! it directly by matrix inversion.
+! In the case of zero potential and zero time derivative
+! the Hamiltonian  constraint is linear in psi, so we can
+! just solve it directly by matrix inversion.
 !
 ! Notice that here we are assuming not only that there
 ! is no potential, but also that the time derivatives
@@ -233,7 +234,7 @@
 !
 ! l(l+1) |phi|^2 / r^2
 
-  if (complexpotential=="none") then
+  if ((complexpotential=="none").and.(k_parameter==0.d0)) then
 
 !    Message to screen.
 
