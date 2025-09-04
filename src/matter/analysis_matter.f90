@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.56 2025/03/04 19:36:47 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.57 2025/09/04 16:04:03 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -354,13 +354,13 @@
 
 !    The total dust rest mass is:
 !
-!                     /r            2
-!    dust_Nb  =  4 pi |  dust_rho0 R  dR
-!                     /0
+!                       /r            2
+!    dust_mass  =  4 pi |  dust_rho0 R  dR
+!                       /0
 !
 !    with R the Schwarzschild radius.
 
-     if (allocated(dust_Nb)) then
+     if (allocated(dust_mass)) then
         call fluidintegral
      end if
 
@@ -373,8 +373,8 @@
 
   if (contains(mattertype,"fluid")) then
 
-!    Barotropic index, using both the rest mass energy density
-!    and the total energy density.
+!    Barotropic index w=pressure/density, using both the
+!    rest mass energy density and the total energy density.
 
      if (allocated(fluid_wb_rest)) then
         fluid_wb_rest = fluid_p/fluid_rho
@@ -387,13 +387,13 @@
 
 !    The total fluid rest mass is:
 !
-!                      /r             2
-!    fluid_Nb  =  4 pi |  fluid_rho0 R  dR
-!                      /0
+!                        /r             2
+!    fluid_mass  =  4 pi |  fluid_rho0 R  dR
+!                        /0
 !
 !    with R the Schwarzschild radius.
 
-     if (allocated(fluid_Nb)) then
+     if (allocated(fluid_mass)) then
 
         call fluidintegral
 
@@ -402,7 +402,7 @@
 
         if ((t(0)==0.d0).and.(rank==0)) then
            if (idata=="TOVstar") then
-              write(*,'(A,E19.12)') ' Binding energy (M-Nb) = ',mass_int(0,Nr) - fluid_Nb(0,Nr)
+              write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',mass_int(0,Nr) - fluid_mass(0,Nr)
            end if
         end if
 
