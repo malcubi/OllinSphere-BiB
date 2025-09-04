@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.9 2025/02/26 17:07:39 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.10 2025/09/04 16:05:51 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -644,9 +644,6 @@
   end do
 
   call alphamaximal(0,Nl-1,"robin",1.d0)
-
-
-! ***
 
 
 ! ***************
