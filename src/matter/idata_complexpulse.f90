@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.40 2025/09/04 16:04:58 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.41 2025/09/08 19:47:05 malcubi Exp $
 
   subroutine idata_complexpulse
 
@@ -18,11 +18,13 @@
 !
 ! The Hamiltonian constraint that we need to solve has the form:
 !
-!  __2                5
-!  \/ psi  +  2 pi psi rho  =  0
+!  __2                              5
+!  \/ psi  -  R psi / 8  +  2 pi psi rho  =  0
 !
 !
-! with rho the energy density of the complex scalar field:
+! with R the Ricci scalar of the conformal metric (0 for
+! the conformally flat case), and where rho is the energy
+! density of the complex scalar field given by:
 !
 !            2       2            4
 ! rho  =  (xi_r  + xi_i) / 2 A psi  +  V
@@ -460,7 +462,7 @@
 
 !       For initial guess solve taking psi=1 on the right-hand side.
 
-        C2 = - 2.d0*smallpi*VG
+        C2 = - 2.d0*smallpi*A*VG
 
         lmin = 0; lmax = Nl-1
         call invertmatrix(lmin,lmax,1.d0,u,C0,C1,C2,+1,"robin")
@@ -502,8 +504,8 @@
 !          diagonal source term on the right hand side. This has
 !          the advantage that I don't need to calculate A*u_old.
 !
-!          In our case F(u) = 2*pi*V*u**5, so that:  F'(u) = 10*pi*V*u**4.
-!          Notice also that:  F'(u_old)*u_old - F(u_old)  =  8*pi*V*u_old**5
+!          In our case F(u) = 2*pi*A*V*u**5, so that:  F'(u) = 10*pi*A*V*u**4.
+!          Notice also that:  F'(u_old)*u_old - F(u_old)  =  8*pi*A*V*u_old**5
 
            if (newr) then
               CA = C1 + 10.d0*smallpi*A*VG*u_old**4
