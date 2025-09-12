@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.52 2025/03/04 19:31:43 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.53 2025/09/12 18:34:59 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -346,9 +346,11 @@
 
 !    Energy density.
 
-     rho(l,:) = rho(l,:) + half*(complex_gpiR(l,:)**2 + complex_gxiR(l,:)**2/(A(l,:)*psi4(l,:))) &
+     complex_rhotot(l,:) = half*(complex_gpiR(l,:)**2 + complex_gxiR(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + half*(complex_gpiI(l,:)**2 + complex_gxiI(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + complex_V(l,:)
+
+     rho(l,:) = rho(l,:) + complex_rhotot(l,:)
 
 !    Momentum density (index down).
 
@@ -964,7 +966,9 @@
 
 !          Energy density.
 
-           rho(l,i) = rho(l,i) + fluid_cE(l,i) + fluid_cD(l,i)
+           fluid_rhotot(l,i) = fluid_cE(l,i) + fluid_cD(l,i)
+
+           rho(l,i) = rho(l,i) + fluid_rhotot(l,i)
 
 !          Momentum density.
 
