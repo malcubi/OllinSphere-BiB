@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.41 2025/09/04 16:03:34 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.42 2025/09/12 18:33:00 malcubi Exp $
 
   subroutine massintegral
 
@@ -76,7 +76,8 @@
 
   logical contains
 
-  integer i,l,i0
+  integer i,l,i0,p
+  integer status(MPI_STATUS_SIZE)
 
   real(8) r0,interp
   real(8) delta,m0,m1
@@ -201,18 +202,27 @@
 ! ***   OUTPUT TOTAL MASS   ***
 ! *****************************
 
-!  At t=0 output total mass.  Notice that for cases
-!  when the density decays slowly, such as when we
-!  have an electric fiels, this number does not mean
-!  much as it converges very slowly, so we don't output it.
+! At t=0 output total mass.  Notice that for cases
+! when the density decays slowly, such as when we
+! have an electric fiels, this number does not mean
+! much as it converges very slowly, so we don't output it.
 
-   MTOT = mass_int(0,Nr)
+  if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
 
-   if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
-     if (rank==0) then
-        write(*,*)
+     MTOT = mass_int(0,Nr)
+
+     if (size==1) then
         write(*,'(A,E19.12)') ' Total integrated mass = ',MTOT
+     else
+        if (rank==0) then
+           p = size-1
+           call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+           write(*,'(A,E19.12)') ' Total integrated mass = ',MTOT
+        else if (rank==size-1) then
+           call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+        end if
      end if
+
   end if
 
 
@@ -236,6 +246,7 @@
   if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
      if (rank==0) then
         write(*,'(A,E19.12)') ' Maximum of compactness function (M(r)/r_area) = ',CMAX
+        print *
      end if
   end if
 
@@ -248,7 +259,7 @@
 
   if ((t(0)==0.d0).and.(idata=="TOVstar")) then
      if (rank==0) then
-        write(*,'(A,E19.12)') ' M/R = ',MTOT/TOV_rad
+        write(*,'(A,E19.12)') ' Ratio M/R = ',MTOT/TOV_rad
         print *
      end if
   end if
@@ -278,7 +289,6 @@
   if ((t(0)==0.d0).and. &
      ((idata=="bosonstar").or.(idata=="procastar").or.(idata=="l-procastar").or.idata=='diracstar')) then
 
-     !R95 = 0.d0
      R99 = 0.d0
 
 !    Single processor run.
@@ -286,9 +296,6 @@
      if (size==1) then
 
         do i=1,Nr
-           !if ((abs(mass_int(0,i-1))<0.95d0*abs(MTOT)).and.(abs(mass_int(0,i))>=0.95d0*abs(MTOT))) then
-           !   R95 = r(0,i-1) + dr(0)*(0.95d0*MTOT-mass_int(0,i-1))/(mass_int(0,i)-mass_int(0,i-1))
-           !end if
            if ((abs(mass_int(0,i-1))<0.99d0*abs(MTOT)).and.(abs(mass_int(0,i))>=0.99d0*abs(MTOT))) then
               R99 = r(0,i-1) + dr(0)*(0.99d0*MTOT-mass_int(0,i-1))/(mass_int(0,i)-mass_int(0,i-1))
            end if
@@ -310,9 +317,6 @@
         end if
 
         do i=i0,Nr
-           !if ((mass_int(0,i-1)<0.95d0*MTOT).and.(mass_int(0,i)>=0.95d0*MTOT)) then
-           !   R95 = r(0,i-1) + dr(0)*(0.95d0*MTOT-mass_int(0,i-1))/(mass_int(0,i)-mass_int(0,i-1))
-           !end if
            if ((mass_int(0,i-1)<0.99d0*MTOT).and.(mass_int(0,i)>=0.99d0*MTOT)) then
               R99 = r(0,i-1) + dr(0)*(0.99d0*MTOT-mass_int(0,i-1))/(mass_int(0,i)-mass_int(0,i-1))
            end if
@@ -326,9 +330,6 @@
 !       But, if for some reason the integrated mass is not monotone (numerical error, there
 !       is a black hole and the integrated mass makes no sense, we have a non-minimally coupled
 !       scalar field, etc.), then we keep the largest value.
-
-        !call MPI_Allreduce(R95,aux,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,ierr)
-        !R95 = aux
 
         call MPI_Allreduce(R99,aux,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,ierr)
         R99 = aux
