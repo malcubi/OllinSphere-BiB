@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.10 2025/09/04 16:05:51 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.11 2025/09/12 18:35:35 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -71,6 +71,12 @@
 ! so that we can just solve the maximal slicing equation at the
 ! end.  This is much better since this way the lapse remains
 ! smooth at the surface of the star.
+!
+!
+! NOTE FOR PARALLEL RUNS:  The initial data is not really
+! solved in parallel.  It is in fact solved only on processor
+! zero on a full size array, and then it is distributed
+! among the other processors.  This is slow, but works.
 
 ! Include modules.
 
@@ -129,7 +135,6 @@
 
   if (rank==0) then
      print *, "Solving initial data for a TOV star ..."
-     print *
   end if
 
 
@@ -376,7 +381,8 @@
 
                  TOV_rad = rr(l,irad-1) - dr(l)*rho0_g(l,irad-1)/(rho0_g(l,irad) - rho0_g(l,irad-1))
 
-                 write(*,'(A,E19.12)') ' Radius of TOV star    = ',TOV_rad
+                 write(*,'(A,E19.12)') ' Radius of TOV star = ',TOV_rad
+                 print *
 
 !                Set fluid density equal to zero.
 
@@ -415,31 +421,39 @@
 
         print *, 'Adding gaussian perturbation to TOV star ...'
 
-!       Rescale the amplitude of the gaussian with max(rho)
+!       Rescale the amplitude of the gaussian with max(rho).
 
         aux = maxval(rho0_g)
         TOV_a0 = aux*TOV_a0
 
 !       Add gaussian perturbation to density.
-!       But only add it inside the star!
 
-        if (boson_phiR_r0==0.d0) then
-           do i=1-ghost,irad
+        if (TOV_r0==0.d0) then
+           do i=1-ghost,Nrtotal
               rho0_g(:,i) = rho0_g(:,i) + TOV_a0*exp(-rr(:,i)**2/TOV_s0**2)
            end do
         else
-           do i=1-ghost,irad
+           do i=1-ghost,Nrtotal
               rho0_g(:,i) = rho0_g(:,i) + TOV_a0 &
                           *(exp(-(rr(:,i)-TOV_r0)**2/TOV_s0**2) &
                           + exp(-(rr(:,i)+TOV_r0)**2/TOV_s0**2))
            end do
         end if
 
-!       Solve again hamiltonian constraint.
+!       If the perturbation is smaller than the
+!       atmosphere set it to zero.
+
+        do l=Nl-1,0,-1
+           do i=1-ghost,Nrtotal
+              if (rho0_g(l,i)<=fluid_atmos) then
+                 rho0_g(l,i) = 0.d0
+              end if
+           end do
+        end do
+
+!       Solve again Hamiltonian constraint.
 
         print *, 'Solving hamiltonian constraint again'
-        print *
-        print *, 'THIS IS NOT YET IMPLEMENTED, THE HAMILTONIAN CONSTRAINT WILL BE VIOLATED!'
         print *
 
 !       Loop over grid levels. We solve from fine to coarse grid.
@@ -473,7 +487,9 @@
 
                  delta = half*dr(l)
                  r0 = 0.d0
+
                  A0 = 1.d0
+                 rho0 = (9.d0*(rho0_g(l,0)+rho0_g(l,1)) - (rho0_g(l,-1)+rho0_g(l,2)))/16.d0
 
 !             Grid spacing and values at previous grid point.
 
@@ -481,19 +497,76 @@
 
                  delta = dr(l)
                  r0 = rr(l,i-1)
+
                  A0 = A_g(l,i-1)
+                 rho0 = rho0_g(l,i-1)
 
               end if
 
 !             I) First Runge-Kutta step.
 
+!             Sources at first grid point if we start
+!             from the origin (for finer grid).
+
+              if (i==1) then
+
+!                At the origin we have A'=0
+
+                 k11 = 0.d0
+
+!             Sources at previous grid point.
+
+              else
+
+                 rm = r0
+
+                 A_rk = A0
+                 rho0_rk = rho0
+
+!                Sources.
+
+                 k11 = delta*J1_TOV(A_rk,rho0_rk,rm)
+
+              end if
+
 !             II) Second Runge-Kutta step.
+
+              rm = r0 + half*delta
+
+              A_rk = A0 + half*k11
+
+              if (i==1) then ! Linear interpolation for first point.
+                 rho0_rk = 0.5d0*(rho0 + rho0_g(l,1))
+              else           ! Cubic interpolation for the rest.
+                 rho0_rk = (9.d0*(rho0_g(l,i)+rho0_g(l,i-1)) - (rho0_g(l,i-2)+rho0_g(l,i+1)))/16.d0
+              end if
+
+!             Sources.
+
+              k12 = delta*J1_TOV(A_rk,rho0_rk,rm)
 
 !             III) Third Runge-Kutta step.
 
+              A_rk = A0 + half*k12
+
+!             Sources.
+
+              k13 = delta*J1_TOV(A_rk,rho0_rk,rm)
+
 !             IV) Fourth Runge-Kutta step.
 
+              rm = r0 + delta
+
+              A_rk = A0 + k13
+              rho0_rk = rho0_g(l,i)
+
+!             Sources.
+
+              k14 = delta*J1_TOV(A_rk,rho0_rk,rm)
+
 !             Advance to next grid point.
+
+              A_g(l,i) = A0 + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
 
            end do
 
@@ -504,24 +577,6 @@
            end do
 
         end do
-
-!       Restrict solution from fine to coarse grid.
-
-        do l=Nl-1,1,-1
-
-           do i=1,Nrtotal-ghost,2
-
-           end do
-
-!          Fix ghost zones.
-
-           do i=1,ghost
-              A_g(l-1,1-i) = A_g(l-1,i)
-           end do
-
-        end do
-
-!       Fix ghost zones.
 
      end if
 
