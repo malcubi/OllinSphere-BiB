@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.57 2025/09/04 16:04:03 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.58 2025/09/12 18:33:36 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -8,6 +8,7 @@
 
 ! Include modules.
 
+  use mpi
   use param
   use arrays
   use procinfo
@@ -18,8 +19,10 @@
 
   logical contains
 
-  integer i,l
+  integer i,l,p
+  integer status(MPI_STATUS_SIZE)
 
+  real(8) bind
   real(8) half,one,two,smallpi
 
 
@@ -35,9 +38,9 @@
   smallpi = acos(-one)
 
 
-! **************************************************
-! ***   INTEGRATED MASS AND DENSITY TIMES r**2   ***
-! **************************************************
+! ********************************************************
+! ***   TOTAL INTEGRATED MASS AND DENSITY TIMES r**2   ***
+! ********************************************************
 
 ! Density times r**2.
 
@@ -141,10 +144,22 @@
 !       Output total binding energy, but only at t=0 and
 !       for certain type of initial data.
 
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (idata=="bosonstar") then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - complex_mass*complex_NB(0,Nr)
+        if ((t(0)==0.d0).and.(idata=="bosonstar")) then
+
+           bind = mass_int(0,Nr) - complex_mass*complex_NB(0,Nr)
+
+           if (size==1) then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+           else
+              if (rank==0) then
+                 p = size-1
+                 call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              else if (rank==size-1) then
+                 call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+              end if
            end if
+
         end if
 
      end if
@@ -285,10 +300,22 @@
 !       Output total binding energy, but only at t=0 and
 !       for certain type of initial data.
 
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (index(adjustl(idata),"procastar")/=0) then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+        if ((t(0)==0.d0).and.(index(adjustl(idata),"procastar")/=0)) then
+
+           bind = mass_int(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+
+           if (size==1) then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+           else
+              if (rank==0) then
+                 p = size-1
+                 call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              else if (rank==size-1) then
+                 call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+              end if
            end if
+
         end if
 
      end if
@@ -335,10 +362,22 @@
 !       Output total binding energy, but only at t=0 and
 !       for certain type of initial data.
 
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (idata=="diracstar") then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
+        if ((t(0)==0.d0).and.(idata=="diracstar")) then
+
+           bind = mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
+
+           if (size==1) then
+              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+           else
+              if (rank==0) then
+                 p = size-1
+                 call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              else if (rank==size-1) then
+                 call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+              end if
            end if
+
         end if
 
      end if
@@ -354,13 +393,13 @@
 
 !    The total dust rest mass is:
 !
-!                       /r            2
-!    dust_mass  =  4 pi |  dust_rho0 R  dR
-!                       /0
+!                           /r            2
+!    dust_restmass  =  4 pi |  dust_rho0 R  dR
+!                           /0
 !
 !    with R the Schwarzschild radius.
 
-     if (allocated(dust_mass)) then
+     if (allocated(dust_restmass)) then
         call fluidintegral
      end if
 
@@ -387,23 +426,35 @@
 
 !    The total fluid rest mass is:
 !
-!                        /r             2
-!    fluid_mass  =  4 pi |  fluid_rho0 R  dR
-!                        /0
+!                            /r             2
+!    fluid_restmass  =  4 pi |  fluid_rho0 R  dR
+!                            /0
 !
 !    with R the Schwarzschild radius.
 
-     if (allocated(fluid_mass)) then
+     if (allocated(fluid_restmass)) then
 
         call fluidintegral
 
 !       Output total binding energy, but only at t=0 and
 !       for certain type of initial data.
 
-        if ((t(0)==0.d0).and.(rank==0)) then
-           if (idata=="TOVstar") then
-              write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',mass_int(0,Nr) - fluid_mass(0,Nr)
+        if ((t(0)==0.d0).and.(idata=="TOVstar")) then
+
+           bind = mass_int(0,Nr) - fluid_restmass(0,Nr)
+
+           if (size==1) then
+              write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',bind
+           else
+              if (rank==0) then
+                 p = size-1
+                 call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                 write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',bind
+              else if (rank==size-1) then
+                 call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+              end if
            end if
+
         end if
 
      end if
@@ -490,7 +541,6 @@
 
      if (allocated(mass_rn)) then
 
-
 !       Check if eQ_int is allocated.
 
         if (allocated(eQ_int)) then
@@ -534,11 +584,41 @@
 !       for certain type of initial data.
 
         if ((t(0)==0.d0).and.(rank==0)) then
+
            if (idata=="chargedboson") then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_rn(0,Nr) - complex_mass*complex_NB(0,Nr)
+
+              bind = mass_rn(0,Nr) - complex_mass*complex_NB(0,Nr)
+
+              if (size==1) then
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              else
+                 if (rank==0) then
+                    p = size-1
+                    call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                    write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+                 else if (rank==size-1) then
+                    call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+                 end if
+              end if
+
            else if (idata=="chargedproca") then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',mass_rn(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+
+              bind = mass_rn(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+
+              if (size==1) then
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              else
+                 if (rank==0) then
+                    p = size-1
+                    call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                    write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+                 else if (rank==size-1) then
+                    call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+                 end if
+              end if
+
            end if
+
         end if
 
 !       Restrict.
