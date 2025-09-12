@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.15 2025/09/04 16:04:28 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.16 2025/09/12 18:34:05 malcubi Exp $
 
   subroutine bosonintegral
 
@@ -138,14 +138,14 @@
 ! *********************************************
 
 ! Calculate the radius for which we have 99% of the
-! total charge. We do this only on the coarse grid,
+! total boson number. We do this only on the coarse grid,
 ! and use linear interpolation.
 !
 ! Notice that at the moment we only do this calculation for
 ! boson star initial data and at t=0 (for the initial data).
 ! I might change this later.
 
-  if ((t(0)==0.d0).and.(idata=="bosonstar")) then
+  if (t(0)==0.d0) then
 
      R99 = 0.d0
      NBTOT = complex_NB(0,Nr)
@@ -198,8 +198,11 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0)  then
-        write(*,'(A,E19.12)') ' Total boson charge (Q) =',NBTOT
-        write(*,'(A,E19.12)') ' R99 =',R99
+        write(*,'(A,E19.12)') ' Total boson number    = ',NBTOT
+        write(*,'(A,E19.12)') ' Total boson rest mass = ',NBTOT*complex_mass
+        if (idata=="bosonstar") then
+           write(*,'(A,E19.12)') ' R99 =',R99
+        end if
         print *
      end if
 
