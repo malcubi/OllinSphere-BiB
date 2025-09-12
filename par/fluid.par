@@ -37,6 +37,6 @@ Ninfo = 200		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 200		  # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_mass,rho,mass_sch,mass_int,compactness
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_mass,rho,mass_sch,mass_int,compactness
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int,compactness
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int,compactness
 
