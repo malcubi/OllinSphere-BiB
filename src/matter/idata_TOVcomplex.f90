@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVcomplex.f90,v 1.1 2025/09/04 16:23:06 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVcomplex.f90,v 1.2 2025/09/12 18:35:56 malcubi Exp $
 
   subroutine idata_TOVcomplex
 
@@ -13,45 +13,41 @@
 ! scalar field is not assumed to be stationary.
 !
 ! The idea is to first solve for the TOV star and
-! later add the scalar field and solve the 
-! Hamiltonian constraint and lapse condition
-! again.
+! later add the scalar field and solve the Hamiltonian
+! constraint again.
 !
-! We the first call the idata_TOVstar routine.
-! Once we come out from this we need to solve
-! the Hamiltonian constraint for the conformal
-! factor psi, which takes the form:
+! For the initial data I use the areal coordinate
+! gauge in order to be consistent with the TOV
+! star data.  Thta is, I set B=psi=1, and solve
+! for the radial metric coefficient A.
 !
-!  __2                5
-!  \/ psi  +  2 pi psi rho  =  0
+! The Hamiltonian constraint then has the form:
 !
-! where rho is the total energy denisty that includes
-! the fluid and complex scalar field contributions:
+! dA/dr = A [ (1 - A) / r + 8 pi r A rho ]
 !
-! rho  =  rho_fluid + rho_complex
+! where now the density "rho" must include the
+! contributions from the fluid and scalar field.
+!
+! rho  =  rhoF  +  rhoS
 !
 ! with:
 !
-! rho_fluid    =  fluid_cE(l,i) + fluid_cD(l,i)
+! rhoF  =  fluid_cE  +  fluid_cD
 !
-! and:
-!                      2        2        2       2          4
-! rho_complex  =  [ (pi_r  +  pi_i) + (xi_r  + xi_i) / A psi  ] / 2  +  V
+! We separate the scalar field contribution in two:
+! one term that depends on the metric function A,
+! and one that does not:
 !
-! ! The Laplacian of psi is given in general by:
+! rhoS  =  rhoX/A  +  rhoP
 !
-! __2           2
-! \/ psi  =  [ d psi  +  (2/r - d A/2A + d B/B) d psi ] / A
-!               r                r        r      r
+! with:
 !
-! In most cases we will have B=1, but A will not be 1 since
-! the TOV star initial data solved for A.
+! rhoX  =  (xiR**2 + xiI**2) / 2
 !
-! Notice that the initial pulse is assumed to be time-symmetric,
-! (i.e. pi=0), or else purely real with purely imaginary time
-! derivative, as otherwise we would have a non-zero energy
-! flux and we would need to solve the coupled momentum and
-! hamiltonian constraints.
+! rhoP  =  (piR**2 + piI**2) / 2  +  V
+!
+! Finally, we solve the maximal slicing condition again.
+!
 !
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
@@ -71,27 +67,36 @@
 
   implicit none
 
-  integer :: l
+  integer :: i,l,p
+  integer :: i0,imin,imax,Naux
+  integer :: status(MPI_STATUS_SIZE)
 
-  real(8) :: one,two,smallpi
+  real(8) :: r0,delta,rm
+  real(8) :: A0,A_rk
+  real(8) :: rho_rk,rhoF_rk,rhoX_rk,rhoP_rk
+  real(8) :: s1,s2,s3,s4
+  real(8) :: half,one,smallpi
+
+! Global arrays.
+
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr,A_g
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rhoF_g,rhoX_g,rhoP_g
 
 ! Local arrays.
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: rhoF,rhoS1,rhoS2
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: u,u_old
+  real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: rhoF,rhoX,rhoP
 
-! u        Global solution of ODE.
-! CL0,C0   Local and global coefficient of first derivative in ODE.
-! CL1,C1   Local and global coefficient of linear term in ODE.
-! CL2,C2   Local and global source term in ODE.
+! rr       Radial coordinate global array.
+! A_g      Radial metric global array.
+! rho*     Local and global contributions to energy density.
 
 
 ! *******************
 ! ***   NUMBERS   ***
 ! *******************
 
-  one = 1.d0
-  two = 2.d0
+  half = 0.5d0
+  one  = 1.d0
 
   smallpi = acos(-1.d0)
 
@@ -103,9 +108,15 @@
   call idata_TOVstar
 
 
-! ***********************************************
-! ***  NOW ADD A COMPLEX SCALAR FIELD PULSE   ***
-! ***********************************************
+! ************************************************
+! ***   NOW ADD A COMPLEX SCALAR FIELD PULSE   ***
+! ************************************************
+
+! Message to screen.
+
+  if (rank==0) then
+     print *, 'Adding a complex scalar field pulse ...'
+  end if
 
 ! Remember that the complex scalar field must be even.
 
@@ -156,7 +167,7 @@
      complex_piR = 0.d0
      complex_piI = 0.d0
 
-  else if ((k_parameter/=0.d0).and.(complex_mass>0.d0)) then
+  else if (k_parameter/=0.d0) then
 
 !    When k_parameter is not zero we set up an initially
 !    purely real field.
@@ -198,36 +209,299 @@
   end do
 
 
-! ********************************
-! ***   TOTAL ENERGY DENSITY   ***
-! ********************************
+! ****************************************
+! ***   ENERGY DENSITY CONTRIBUTIONS   ***
+! ****************************************
 
 ! Fluid contribution:
 !
-! rho_fluid  =  fluid_cE + flud_cD
+! rho_fluid  =  fluid_cE + fluid_cD
+!
+! Take care not to include the artificial atmosphere.
 
-  rhoF = fluid_cE + fluid_cD
+  do l=0,Nl-1
+     do i=1,Nrtotal
+        if ((fluid_cD(l,i)>fluid_atmos).and.(fluid_rho(l,i)>fluid_atmos)) then
+           rhoF(l,i) = fluid_cE(l,i) + fluid_cD(l,i)
+        else
+           rhoF(l,i) = 0.d0
+        end if
+     end do
+  end do
 
 ! Complex scalar field contribution. We separate
 ! this in two contributions depending on the power
-! of psi, so that we have the full scalar contribution
+! of A, so that we have the full scalar contribution
 ! given by:
 !
-! rho_scalar = rhoS1/psi**4 + rhoS2
-!
-! Notice that in the Hamiltonian constraint we need
-! in fact to multiply this with A*psi^5, so that we
-! will have:
-!
-! 2 pi A psi^5 rho  =  2 pi ( A rhoS2 psi^5 + rhoS1 psi )
+! rho_scalar = rhoX/A + rhoP
 
-  rhoS1 = 0.5d0*(complex_xiR**2 + complex_xiI**2)/A
-  rhoS2 = 0.5d0*(complex_piR**2 + complex_piI**2) + complex_V
+  rhoX = 0.5d0*(complex_xiR**2 + complex_xiI**2)
+  rhoP = 0.5d0*(complex_piR**2 + complex_piI**2) + complex_V
 
 
-! ****************************************
-! ***   SOLVE HAMILTONIAN CONSTRAINT   ***
-! ****************************************
+! *****************************************
+! ***   FILL IN GLOBAL DENSITY ARRAYS   ***
+! *****************************************
+
+! Array size.
+
+  Naux = (Nrmax + ghost)
+
+! Procesor 0.
+
+  if (rank==0) then
+
+     if (size==1) then
+        imax = Nrl(0)
+     else
+        imax = Nrl(0) - ghost
+     end if
+
+     do i=1-ghost,imax
+        rhoF_g(:,i) = rhoF(:,i)
+        rhoX_g(:,i) = rhoX(:,i)
+        rhoP_g(:,i) = rhoP(:,i)
+     end do
+
+!    Iterate over other processors to receive data.
+
+     i0 = imax
+
+     do p=1,size-1
+
+!       Receive local denisty arrays (rhoF,rhoX,rhoP) from other
+!       processors and copy them into global arrays.
+
+           do l=0,Nl-1
+              call MPI_RECV(rhoF(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+              call MPI_RECV(rhoX(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+              call MPI_RECV(rhoP(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+           end do
+
+           if (p==size-1) then
+              imax = Nrl(p)
+           else
+              imax = Nrl(p) - ghost
+           end if
+
+           do i=1,imax
+              rhoF_g(:,i+i0) = rhoF(:,i)
+              rhoX_g(:,i+i0) = rhoX(:,i)
+              rhoP_g(:,i+i0) = rhoP(:,i)
+           end do
+
+        i0 = i0 + imax
+
+     end do
+
+! Other processors send local density arrays to processor 0.
+
+  else
+
+     do l=0,Nl-1
+        call MPI_SEND(rhoF(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+        call MPI_SEND(rhoX(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+        call MPI_SEND(rhoP(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+     end do
+
+  end if
+
+
+! *************************************
+! ***   FIND GRID POINT POSITIONS   ***
+! *************************************
+
+  do l=0,Nl-1
+     do i=1-ghost,Nrtotal
+        rr(l,i) = (dble(Nmin(rank) + i) - half)*dr(l)
+     end do
+  end do
+
+
+! ***********************
+! ***   INTEGRATION   ***
+! ***********************
+  
+! We solve the system of equations using fourth
+! order Runge--Kutta.
+
+! For the moment only processor 0 solves for the
+! initial data.  The solution is later distributed
+! among processors.
+
+! Initialize array for metric coefficient A.
+
+  A_g = 1.d0
+
+  
+! *********************************************
+! ***   ONLY PROCESSOR 0 SOLVES THE ODE's   ***
+! *********************************************
+
+  if (rank==0) then
+
+!    ****************************************
+!    ***   SOLVE HAMILTONIAN CONSTRAINT   ***
+!    ****************************************
+
+!    The Hamiltonian constraint is solved for A
+!    using a fourth order Runge-Kutta method.
+
+!    Loop over grid levels. We solve from fine to coarse grid.
+
+     do l=Nl-1,0,-1
+
+!       Find initial point. Only the finest grid
+!       integrates from the origin.
+
+        if (l==Nl-1) then
+           imin = 1
+        else
+           imin = Nrtotal/2
+        end if
+
+!       Find initial point. Only the finest grid
+!       integrates from the origin.
+
+        if (l==Nl-1) then
+           imin = 1
+        else
+           imin = Nrtotal/2
+        end if
+
+!       For coarse grids we interpolate the initial point.
+
+        if (l<Nl-1) then
+           A_g(l,imin-1) = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
+                         - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
+        end if
+
+!       Fourth order Runge-Kutta.
+
+        do i=imin,Nrtotal
+
+!          Grid spacing and values at first point
+!          if we start from the origin (finer grid).
+
+           if (i==1) then
+
+              delta = half*dr(l)
+              r0 = 0.d0
+
+              A0 = 1.d0
+
+              rhoF_rk = (9.d0*(rhoF_g(l,0)+rhoF_g(l,1)) - (rhoF_g(l,-1)+rhoF_g(l,2)))/16.d0
+              rhoX_rk = (9.d0*(rhoX_g(l,0)+rhoX_g(l,1)) - (rhoX_g(l,-1)+rhoX_g(l,2)))/16.d0
+              rhoP_rk = (9.d0*(rhoP_g(l,0)+rhoP_g(l,1)) - (rhoP_g(l,-1)+rhoP_g(l,2)))/16.d0
+
+!          Grid spacing and values at previous grid point.
+
+           else
+
+              delta = dr(l)
+              r0 = rr(l,i-1)
+
+              A0 = A_g(l,i-1)
+
+              rhoF_rk = rhoF_g(l,i-1)
+              rhoX_rk = rhoX_g(l,i-1)
+              rhoP_rk = rhoP_g(l,i-1)
+
+           end if
+
+!          I) First Runge-Kutta step.
+
+!          Sources at first grid point if we start
+!          from the origin (for finer grid).
+
+           if (i==1) then
+
+!             At the origin we have A'=0.
+
+              s1 = 0.d0
+
+!          Sources at previous grid point.
+
+           else
+
+              rm = r0
+              A_rk = A0
+
+              rho_rk = rhoF_rk + (rhoX_rk/A_rk + rhoP_rk)
+              s1 = delta*A_rk*((1.d0-A_rk)/rm + 8.d0*smallpi*rm*A_rk*rho_rk)
+
+           end if
+
+!          II) Second Runge-Kutta step.
+
+           rm = r0 + half*delta
+           A_rk = A0 + half*s1
+
+           if (i==1) then
+              rhoF_rk = 0.5d0*(rhoF_rk + rhoF_g(l,1))
+              rhoX_rk = 0.5d0*(rhoX_rk + rhoX_g(l,1))
+              rhoP_rk = 0.5d0*(rhoP_rk + rhoP_g(l,1))
+           else
+              rhoF_rk = (9.d0*(rhoF_g(l,i)+rhoF_g(l,i-1)) - (rhoF_g(l,i-2)+rhoF_g(l,i+1)))/16.d0
+              rhoX_rk = (9.d0*(rhoX_g(l,i)+rhoX_g(l,i-1)) - (rhoX_g(l,i-2)+rhoX_g(l,i+1)))/16.d0
+              rhoP_rk = (9.d0*(rhoP_g(l,i)+rhoP_g(l,i-1)) - (rhoP_g(l,i-2)+rhoP_g(l,i+1)))/16.d0
+           end if
+
+           rho_rk = rhoF_rk + (rhoX_rk/A_rk + rhoP_rk)
+           s2 = delta*A_rk*((1.d0-A_rk)/rm + 8.d0*smallpi*rm*A_rk*rho_rk)
+
+!          III) Third Runge-Kutta step.
+
+           A_rk = A0 + half*s2
+
+           s3 = delta*A_rk*((1.d0-A_rk)/rm + 8.d0*smallpi*rm*A_rk*rho_rk)
+
+!          IV) Fourth Runge-Kutta step.
+
+           rm = r0 + delta
+           A_rk = A0 + s3
+
+           rhoF_rk = rhoF_g(l,i)
+           rhoX_rk = rhoX_g(l,i)
+           rhoP_rk = rhoP_g(l,i)
+
+           rho_rk = rhoF_rk + (rhoX_rk/A_rk + rhoP_rk)
+           s4 = delta*A_rk*((1.d0-A_rk)/rm + 8.d0*smallpi*rm*A_rk*rho_rk)
+
+!          Advance to next grid point.
+
+           A_g(l,i) = A0 + (s1 + 2.d0*(s2 + s3) + s4)/6.d0
+
+        end do
+
+!       Ghost zones.
+
+        do i=1,ghost
+           A_g(l,1-i) = A_g(l,i)
+        end do
+
+     end do
+
+
+!    ************************************
+!    ***   RESTRICT TO COARSE GRIDS   ***
+!    ************************************
+
+!    Restrict solution from fine to coarse grid.
+!    We don't call the subroutine "restrict"
+!    since here we are running only on processor 0.
+!    We use cubic interpolation.
+
+
+! *************************************
+! ***   FINISHED FINDING SOLUTION   ***
+! *************************************
+
+! When we get here the solution has been found,
+! so we close the "if" statement for processor 0.
+
+  end if
 
 
 ! ************************************************
@@ -240,38 +514,10 @@
 ! the solution among all other processors.
 
   if (size==1) then
-     !psi = u
+     A = A_g
   else
-     call distribute(0,Nl-1,psi,u)
+     call distribute(0,Nl-1,A,A_g)
   end if
-
-! Derivative of psi.
-
-  diffvar => psi
-
-  do l=0,Nl-1
-     D1_psi(l,:) = diff1(l,+1)
-  end do
-
-
-! ***************************************
-! ***   FIND CONFORMAL FUNCTION phi   ***
-! ***************************************
-
-! Find phi.
-
-  phi  = dlog(psi)
-  D1_phi = D1_psi/psi
-
-  if (chimethod) then
-     chi  = one/psi**chipower
-     D1_chi = - dble(chipower)*D1_psi/psi**3
-  end if
-
-! Find psi2 and psi4.
-
-  psi2 = psi**2
-  psi4 = psi**4
 
 
 ! **********************
