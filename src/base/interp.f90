@@ -42,7 +42,9 @@
   real(8) ddr             ! Current grid spacing.
   real(8) delta           ! Distance to grid point to the left.
   real(8) rmin,rmax       ! Minimum and maximum radii.
-  real(8) small,aux
+  real(8) aux
+
+  real(8) :: small = 1.d-10
 
   real(8) fa(-1:2)        ! Small local array with values at nearest neighbors.
 
@@ -129,12 +131,12 @@
      end if
 
      if (rank==0) then
-        rmin = rleft(rank,l) + dr(l)
+        rmin = rleft(rank,l) + dr(l) + small
      else
-        rmin = rleft(rank,l) + aux*dr(l)
+        rmin = rleft(rank,l) + aux*dr(l) + small
      end if
 
-     rmax = rright(rank,l) - (aux-1.d0)*dr(l)
+     rmax = rright(rank,l) - (aux-1.d0)*dr(l) + small
 
 !    If you don't own the grid point then either die,
 !    or return 0 depending on the value of 'errorflag'.
@@ -172,8 +174,6 @@
 
 ! Check that the point to be interpolated
 ! is indeed between grid points (i0,i0+1).
-
-  small = 1.d-10
 
   if ((delta<-small).or.(delta>dr(l)+small)) then
      print *
