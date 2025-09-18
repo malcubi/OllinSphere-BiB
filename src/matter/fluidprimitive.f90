@@ -58,6 +58,7 @@
 
 ! Include modules.
 
+  use procinfo
   use param
   use arrays
   use derivatives
@@ -338,16 +339,18 @@
 
 ! Ghost points.
 
-  do i=1,ghost
-     fluid_rho(l,1-i) = + fluid_rho(l,i)
-     fluid_p(l,1-i)   = + fluid_p(l,i)
-     fluid_e(l,1-i)   = + fluid_e(l,i)
-     fluid_h(l,1-i)   = + fluid_h(l,i)
-     fluid_v(l,1-i)   = - fluid_v(l,i)
-     fluid_W(l,1-i)   = + fluid_W(l,i)
-     fluid_q(l,1-i)   = + fluid_q(l,i)
-     fluid_vs(l,1-i)  = + fluid_vs(l,i)
-  end do
+  if (rank==0) then
+     do i=1,ghost
+        fluid_rho(l,1-i) = + fluid_rho(l,i)
+        fluid_p(l,1-i)   = + fluid_p(l,i)
+        fluid_e(l,1-i)   = + fluid_e(l,i)
+        fluid_h(l,1-i)   = + fluid_h(l,i)
+        fluid_v(l,1-i)   = - fluid_v(l,i)
+        fluid_W(l,1-i)   = + fluid_W(l,i)
+        fluid_q(l,1-i)   = + fluid_q(l,i)
+        fluid_vs(l,1-i)  = + fluid_vs(l,i)
+     end do
+  end if
 
 
 ! ***************
