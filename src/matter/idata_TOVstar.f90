@@ -647,8 +647,8 @@
 
 ! Add atmosphere.
 
-  do l=Nl-1,0,-1
-     do i=1-ghost,Nrtotal
+  do l=0,Nl-1
+     do i=1-ghost,Nr
         if (fluid_rho(l,i)<=fluid_atmos) then
            fluid_rho(l,i) = fluid_atmos
         end if
