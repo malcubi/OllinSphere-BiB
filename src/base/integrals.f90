@@ -236,7 +236,7 @@
 
 !    Loop over processors with rank>0.
 
-     do p=1,size
+     do p=1,size-1
 
 !       Synchronize.
 
@@ -276,4 +276,5 @@
 ! **********************
 
   end module integrals
+
 
