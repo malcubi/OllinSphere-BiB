@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.15 2025/09/04 16:06:15 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.16 2025/09/24 17:32:25 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -67,11 +67,12 @@
 
   implicit none
 
-  integer i,j,l,maxiter
+  integer :: i,j,l
+  integer :: maxiter = 500
 
-  real(8) p1,p2,f1,f2
-  real(8) rhoatmos,Eatmos,patmos
-  real(8) W,res,aux
+  real(8) :: p1,p2,f1,f2
+  real(8) :: rhoatmos,Eatmos,patmos
+  real(8) :: W,res,aux
   real(8) :: epsilon = 1.d-10
 
 
@@ -79,7 +80,10 @@
 ! ***   RECOVER PRIMITIVE VARIABLES   ***
 ! ***************************************
 
-  maxiter = 500
+! For initial data we don't need to recover the
+! primitive variables.
+
+  if (t(l)==0.d0) goto 10
 
 ! Find atmosphere values.  We set both rho0 and e to a small value,
 ! and obtain the pressure from the polytropic equation of state.
@@ -94,7 +98,7 @@
 
 ! Loop over grid points.
 
-  do i=1,Nr
+  do i=1-ghost,Nr
 
 !    Atmosphere: If the density is too low we run the risk of dividing
 !    by a very small quantity to recover the fluid speed, which will
@@ -123,17 +127,6 @@
 
         fluid_v(l,i) = 0.d0
         fluid_W(l,i) = 1.d0
-
-!       Enthalpy.
-
-        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
-
-!       Speed of sound, assuming a polytropic equation of state:
-!
-!         2
-!       vs  =  gamma (gamma - 1) e / (1 + gamma e)
-
-        fluid_vs(l,i) = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*Eatmos/(1.d0+fluid_gamma*Eatmos)))
 
         goto 10
 
@@ -193,60 +186,9 @@
            fluid_e(l,i)  = 0.d0
         end if
 
-!       Find enthalpy.
-
-        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (p1 + fluid_q(l,i))/fluid_rho(l,i)
-
-!       Find speed of sound (at the moment only for ideal gas equation of state):
-!
-!       vs^2  = gamma (gamma-1) e / ( 1 + gamma e)  =  p gamma (gamma - 1) / (p gamma + rho0 (gamma - 1))
-
-        if (fluid_EOS=="ideal") then
-
-           fluid_vs(l,i) = sqrt(abs(p1*fluid_gamma*(fluid_gamma-1.d0) &
-                         /(p1*fluid_gamma + fluid_rho(l,i)*(fluid_gamma-1.d0))))
-
-!       If we don't have an equation of state we just use the polytropic relation
-!       in order to avoid problems in other routines if vs is not defined.  But
-!       really this is not a good idea.
-
-        else
-
-           fluid_vs(l,i) = sqrt(abs(fluid_gamma*fluid_p(l,i)/(fluid_rho(l,i)*fluid_h(l,i))))
-
-        end if
-
-!       Update artificial viscosity:
-!
-!       1) If the divergence of S is positive then set
-!       fluid_q to zero.
-!
-!       2) If the divergence is negative compute the artificial
-!       viscosity contribution. The artificial viscosity has
-!       two contributions and has the following general form:
-!
-!       q  =  dr abs(div.S) ( q1 vs + q2 dr abs(div.S) / rho )
-!
-!       with q1 and q2 positive constants, and vs the speed
-!       of sound. Notice that the term with q1 introduces a first
-!       order error, so one must keep q1 small.  The term with q2
-!       introduces a second order error. For rho we use the ADM
-!       energy density: rho = E + D.
-
-        if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
-           aux = dr(l)*D1_fluid_cS(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
-           if (aux>=0.d0) then
-              fluid_q(l,i) = 0.d0
-           else
-              fluid_q(l,i) = abs(aux)*(fluid_q1*fluid_vs(l,i) &
-                           + fluid_q2*abs(aux)/(fluid_cE(l,i) + fluid_cD(l,i)))
-           end if
-        else
-           fluid_q(l,i) = 0.d0
-        end if
-
 !       Calculate difference between trial value of pressure
-!       and predicted value from the equation of state.
+!       and predicted value from the equation of state, and
+!       update the value of the pressure for next iteration.
 !
 !       If there is NO equation of state (for example if you forced
 !       some specific form of rho for the initial data and solved
@@ -254,50 +196,47 @@
 
         if (fluid_EOS/="none") then
 
+!          Ideal gas equation of state.
+
            if (fluid_EOS=="ideal") then
+
               f1 = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i) - p1
+
+              if (j==1) then
+                 aux = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i)
+              else
+                 aux = p1 - f1*(p2-p1)/(f2-f1)
+              end if
+
+              p2 = p1
+              f2 = f1
+
+              p1 = aux
+              if (p1<=patmos) p1=patmos
+
+!             Calculate residual.
+
+              res = abs(p2 - p1)
+
+!          ADD IF STATEMENTS FOR NEW EQUATIONS OF STATE HERE.
+
+!          Unknown equation of state.
+
            else
+
               print *
               print *, 'Unknown equation of state'
               print *, 'Aborting! (subroutine fluidprimitive)'
               print *
               call die
+
            end if
-
-        else
-
-           f1 = 0.d0
-
-        end if
-         
-!       Update the value of the pressure for the next iteration.
-
-        if (fluid_EOS/="none") then
-
-           if (j==1) then
-              if (fluid_EOS=="ideal") then
-                 aux = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i)
-              else
-                 aux = fluid_p(l,i)
-              end if
-           else
-              aux = p1 - f1*(p2-p1)/(f2-f1)
-           end if
-
-           p2 = p1
-           f2 = f1
-
-           p1 = aux
-           if (p1<=patmos) p1=patmos
-
-!          Calculate residual.
-
-           res = abs(p2 - p1)
 
 !       No equation of state.
 
         else
 
+           f1 = 0.d0
            res = 0.d0
 
         end if
@@ -318,17 +257,82 @@
         call die
      end if
 
-!    Simple continue for the goto above (yes, a goto, so what?).
+  end do
 
-10   continue
+! Simple continue for the goto above (yes, a goto, so what?).
 
-!    Calculate Mach number.
+  10 continue
 
-     fluid_Mach(l,i) = fluid_v(l,i)/fluid_vs(l,i)
 
-!    Characteristic speeds.
+! ********************
+! ***   ENTHALPY   ***
+! ********************
 
-     aux = fluid_vs(l,i)/sqrt(A(l,i))*abs(1.d0 - A(l,i)*fluid_v(l,i)**2)
+! h  =  1 + e + (p+q)/rho
+
+  fluid_h(l,:) = 1.d0 + fluid_e(l,:) + (fluid_p(l,:) + fluid_q(l,:))/fluid_rho(l,:)
+
+
+! **************************
+! ***   SPEED OF SOUND   ***
+! **************************
+
+  if (fluid_EOS/="none") then
+
+!    Ideal gas equation of state.
+
+     if (fluid_EOS=="ideal") then
+
+!       Speed of sound for ideal gas equation of state:
+!
+!       vs^2  = gamma (gamma - 1) e / ( 1 + gamma e)
+!
+!             =  p gamma (gamma - 1) / (p gamma + rho0 (gamma - 1))
+
+        fluid_vs(l,:) = sqrt(abs(fluid_p(l,:)*fluid_gamma*(fluid_gamma-1.d0) &
+                      /(fluid_p(l,:)*fluid_gamma + fluid_rho(l,:)*(fluid_gamma-1.d0))))
+
+!    ADD IF STATEMENTS FOR NEW EQUATIONS OF STATE HERE.
+
+!    Unknown equation of state.
+
+     else
+
+        print *
+        print *, 'Unknown equation of state'
+        print *, 'Aborting! (subroutine fluidprimitive, speed of sound)'
+        print *
+        call die
+
+     end if
+
+! If we don't have an equation of state we just use the polytropic relation
+! in order to avoid problems in other routines if vs is not defined.  But
+! really this is not a good idea.
+
+  else
+
+     fluid_vs(l,:) = sqrt(abs(fluid_gamma*fluid_p(l,:)/(fluid_rho(l,:)*fluid_h(l,:))))
+
+  end if
+
+! Calculate Mach number.
+
+  fluid_Mach(l,:) = fluid_v(l,:)/fluid_vs(l,:)
+
+! Characteristic speeds (in spherical symmetry, see page 262 of my book):
+!
+! v_+  =  [ alpha/(1 - A fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) + aux ]
+!
+! v_-  =  [ alpha/(1 - A fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) - aux ]
+!
+! with:
+!
+! aux  =  fluid_vs (1 - A fluid_v**2) / A^(1/2)
+
+  do i=1-ghost,Nr
+
+     aux = fluid_vs(l,i)*abs(1.d0 - A(l,i)*fluid_v(l,i)**2)/sqrt(A(l,i))
 
      fluid_vcp(l,i) = alpha(l,i)/(1.d0 - A(l,i)*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
                     *(fluid_v(l,i)*(1.d0 - fluid_vs(l,i)**2) + aux)
@@ -337,7 +341,48 @@
 
   end do
 
-! Ghost points.
+
+! ********************************
+! ***   ARTIFICIAL VISCOSITY   ***
+! ********************************
+
+! Update artificial viscosity:
+!
+! 1) If the divergence of S is positive then set
+! fluid_q to zero.
+!
+! 2) If the divergence is negative compute the artificial
+! viscosity contribution. The artificial viscosity has
+! two contributions and has the following general form:
+!
+! q  =  dr abs(div.S) ( q1 vs + q2 dr abs(div.S) / rho )
+!
+! with q1 and q2 positive constants, and vs the speed
+! of sound. Notice that the term with q1 introduces a first
+! order error, so one must keep q1 small.  The term with q2
+! introduces a second order error. For rho we use the ADM
+! energy density: rho = E + D.
+
+  do i=1-ghost,Nr
+
+     if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
+        aux = dr(l)*D1_fluid_cS(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
+     if (aux>=0.d0) then
+           fluid_q(l,i) = 0.d0
+        else
+           fluid_q(l,i) = abs(aux)*(fluid_q1*fluid_vs(l,i) &
+                        + fluid_q2*abs(aux)/(fluid_cE(l,i) + fluid_cD(l,i)))
+        end if
+     else
+        fluid_q(l,i) = 0.d0
+     end if
+
+  end do
+
+
+! ************************
+! ***   GHOST POINTS   ***
+! ************************
 
   if (rank==0) then
      do i=1,ghost
