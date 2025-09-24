@@ -1,24 +1,24 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVcomplex.f90,v 1.2 2025/09/12 18:35:56 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVcomplex.f90,v 1.3 2025/09/24 17:31:02 malcubi Exp $
 
   subroutine idata_TOVcomplex
 
 ! *******************************************
 ! ***   TOV STAR + COMPLEX SCALAR FIELD   ***
-! ***        (FERMION-BOSON SYSTEM)       ***
+! ***       (FERMION-BOSON SYSTEM)        ***
 ! *******************************************
 
 ! This initial data is for a TOV star plus a complex
 ! scalar field pulse.  It is a fermion-boson system,
-! but NOT a fermion-boosn star since the complex
+! but NOT a fermion-boson star since the complex
 ! scalar field is not assumed to be stationary.
 !
-! The idea is to first solve for the TOV star and
-! later add the scalar field and solve the Hamiltonian
+! The idea is to first solve for the TOV star and later
+! add a scalar field pulse and solve the Hamiltonian
 ! constraint again.
 !
 ! For the initial data I use the areal coordinate
 ! gauge in order to be consistent with the TOV
-! star data.  Thta is, I set B=psi=1, and solve
+! star data.  That is, I set B=psi=1 and solve
 ! for the radial metric coefficient A.
 !
 ! The Hamiltonian constraint then has the form:
@@ -68,7 +68,7 @@
   implicit none
 
   integer :: i,l,p
-  integer :: i0,imin,imax,Naux
+  integer :: i0,imin,imax,iaux,Naux
   integer :: status(MPI_STATUS_SIZE)
 
   real(8) :: r0,delta,rm
@@ -84,7 +84,7 @@
 
 ! Local arrays.
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: rhoF,rhoX,rhoP
+  real(8), dimension (0:Nl-1,1-ghost:Nrmax) :: rhoF,rhoX,rhoP
 
 ! rr       Radial coordinate global array.
 ! A_g      Radial metric global array.
@@ -116,6 +116,7 @@
 
   if (rank==0) then
      print *, 'Adding a complex scalar field pulse ...'
+     print *
   end if
 
 ! Remember that the complex scalar field must be even.
@@ -220,7 +221,7 @@
 ! Take care not to include the artificial atmosphere.
 
   do l=0,Nl-1
-     do i=1,Nrtotal
+     do i=1-ghost,Nr
         if ((fluid_cD(l,i)>fluid_atmos).and.(fluid_rho(l,i)>fluid_atmos)) then
            rhoF(l,i) = fluid_cE(l,i) + fluid_cD(l,i)
         else
@@ -231,8 +232,8 @@
 
 ! Complex scalar field contribution. We separate
 ! this in two contributions depending on the power
-! of A, so that we have the full scalar contribution
-! given by:
+! of A, so that we have the full scalar field
+! contribution given by:
 !
 ! rho_scalar = rhoX/A + rhoP
 
@@ -270,7 +271,7 @@
 
      do p=1,size-1
 
-!       Receive local denisty arrays (rhoF,rhoX,rhoP) from other
+!       Receive local density arrays (rhoF,rhoX,rhoP) from other
 !       processors and copy them into global arrays.
 
            do l=0,Nl-1
@@ -335,11 +336,12 @@
   A_g = 1.d0
 
   
-! *********************************************
-! ***   ONLY PROCESSOR 0 SOLVES THE ODE's   ***
-! *********************************************
+! *******************************************
+! ***   ONLY PROCESSOR 0 SOLVES THE ODE   ***
+! *******************************************
 
   if (rank==0) then
+
 
 !    ****************************************
 !    ***   SOLVE HAMILTONIAN CONSTRAINT   ***
@@ -351,15 +353,6 @@
 !    Loop over grid levels. We solve from fine to coarse grid.
 
      do l=Nl-1,0,-1
-
-!       Find initial point. Only the finest grid
-!       integrates from the origin.
-
-        if (l==Nl-1) then
-           imin = 1
-        else
-           imin = Nrtotal/2
-        end if
 
 !       Find initial point. Only the finest grid
 !       integrates from the origin.
@@ -493,6 +486,22 @@
 !    since here we are running only on processor 0.
 !    We use cubic interpolation.
 
+     do l=Nl-1,1,-1
+
+        do i=1,Nrtotal-ghost,2
+           iaux = i/2 + 1
+           rm = rr(l-1,iaux)
+           A_g(l-1,iaux) = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
+        end do
+
+!       Fix ghost zones.
+
+        do i=1,ghost
+           A_g(l-1,1-i) = A_g(l-1,i)
+        end do
+
+     end do
+
 
 ! *************************************
 ! ***   FINISHED FINDING SOLUTION   ***
@@ -520,9 +529,9 @@
   end if
 
 
-! **********************
-! ***   FIND LAPSE   ***
-! **********************
+! ***************************
+! ***   FIND LAPSE AGAIN  ***
+! ***************************
 
 ! Now solve for the lapse using maximal slicing.
 ! But we first need to calculate all auxiliary
