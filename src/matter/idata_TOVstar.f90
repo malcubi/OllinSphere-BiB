@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.11 2025/09/12 18:35:35 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.12 2025/09/24 17:29:39 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -683,6 +683,14 @@
 ! Initialize artificial viscosity to zero.
 
   fluid_q = 0.d0
+
+! Initialize speed of sound for a polytropic equation of state:
+!
+!   2
+! vs  =  gamma (gamma - 1) e / (1 + gamma e)
+
+  fluid_vs = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*fluid_e/(1.d0+fluid_gamma*fluid_e)))
+
 
 
 ! **********************
