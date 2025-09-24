@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/virial.f90,v 1.3 2022/05/24 16:55:52 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/virial.f90,v 1.4 2025/09/24 17:27:36 malcubi Exp $
 
   subroutine virialintegral1
 
@@ -81,6 +81,13 @@
   do l=Nl-1,0,-1
      virial1(l,:) = integral(l)
   end do
+
+! Restrict integral.
+
+  if (Nl>1) then
+     intvar => virial1
+     call restrictintegral
+  end if
 
 
 ! ***************
@@ -176,6 +183,13 @@
   do l=Nl-1,0,-1
      virial2(l,:) = integral(l)
   end do
+
+! Restrict integral.
+
+  if (Nl>1) then
+     intvar => virial2
+     call restrictintegral
+  end if
 
 
 ! ***************
