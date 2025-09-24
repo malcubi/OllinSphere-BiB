@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/interp.f90,v 1.7 2019/08/02 16:02:48 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/interp.f90,v 1.8 2025/09/24 17:14:01 malcubi Exp $
 
   real(8) function interp(l,r0,errorflag)
 
