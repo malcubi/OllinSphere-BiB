@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/rtransform.f90,v 1.19 2021/09/25 22:45:26 erik Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/rtransform.f90,v 1.20 2025/09/24 17:17:42 malcubi Exp $
 
   subroutine rtransform
 
@@ -170,6 +170,13 @@
            r_trans(l,:) = integral(l)
         end do
 
+!       Restrict integral.
+
+        if (Nl>1) then
+           intvar => r_trans
+           call restrictintegral
+        end if
+
      end if
 
 !    Ghost zones (only for processor 0).
@@ -287,6 +294,13 @@
      do l=Nl-1,0,-1
         r_trans(l,:) = integral(l)
      end do
+
+!    Restrict integral.
+
+     if (Nl>1) then
+        intvar => r_trans
+        call restrictintegral
+     end if
 
 !    Ghost zones (only for processor 0).
 
