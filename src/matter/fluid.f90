@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.19 2025/09/24 17:33:28 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.20 2025/09/24 23:57:40 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -867,7 +867,8 @@
         if (shift=="none") then
            vllf = abs(aux)
         else
-           vllf = abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux)
+           vllf = max(abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux), &
+                      abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
         end if
 
      end if
@@ -1007,7 +1008,7 @@
 
   vmp = u + minmod2(up1-u,mp5alpha*(u-um1))
 
-  if ((vl - u)*(vl - vmp) .lt. eps) then
+  if ((vl-u)*(vl-vmp)<eps) then
 
      mp5val = vl
 
