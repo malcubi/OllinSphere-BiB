@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.16 2025/09/24 17:32:25 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.17 2025/09/24 23:48:51 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -83,7 +83,7 @@
 ! For initial data we don't need to recover the
 ! primitive variables.
 
-  if (t(l)==0.d0) goto 10
+  if (t(l)==0.d0) goto 20
 
 ! Find atmosphere values.  We set both rho0 and e to a small value,
 ! and obtain the pressure from the polytropic equation of state.
@@ -116,7 +116,7 @@
         fluid_rho(l,i) = rhoatmos
         fluid_e(l,i)   = Eatmos
         fluid_p(l,i)   = patmos
-
+ 
 !       Conserved quantities (D,E,S).
 
         fluid_cD(l,i) = rhoatmos
@@ -151,7 +151,7 @@
 
 !       Find value of v using old value of pressure.
 
-        if (fluid_cS(l,i)==0.d0) then
+        if (abs(fluid_cS(l,i))==0.d0) then
            fluid_v(l,i) = 0.d0
         else
            fluid_v(l,i) = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + p1 + fluid_q(l,i)) &
@@ -196,7 +196,7 @@
 
         if (fluid_EOS/="none") then
 
-!          Ideal gas equation of state.
+!          Ideal gas equation of state: p = (1-gamma) rho e
 
            if (fluid_EOS=="ideal") then
 
@@ -257,11 +257,11 @@
         call die
      end if
 
+     10 continue
+
   end do
 
-! Simple continue for the goto above (yes, a goto, so what?).
-
-  10 continue
+  20 continue
 
 
 ! ********************
