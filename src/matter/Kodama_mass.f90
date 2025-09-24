@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/Kodama_mass.f90,v 1.3 2022/05/04 19:37:39 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/Kodama_mass.f90,v 1.4 2025/09/24 17:25:32 malcubi Exp $
 
   subroutine Kodamamass
 
@@ -103,79 +103,12 @@
      Kodama_mass(l,:) = integral(l)
   end do
 
+! Restrict integral.
 
-! ********************
-! ***   RESTRICT   ***
-! ********************
-
-! For the case of several grid levels we need to restrict from the
-! fine to the coarse grids.
-
-  restrictvar => Kodama_mass
-
-  do l=Nl-1,1,-1
-
-!    Substract constant difference at edge of fine grid. Since the
-!    integrals are done indendently at each grid level, we find that
-!    after restriction there will be small jumps due to accumulated
-!    numerical error when we pass from the end on a fine grid to the
-!    next coarse grid. Here we correct for that.
-
-     i0 = Nr/2
-
-!    Find delta.
-
-     if (size==1) then
-
-!       Find difference between the value at the edge of the fine grid, 
-!       and the value in the coarse grid.
-
-        delta = Kodama_mass(l-1,i0) - 0.5d0*(Kodama_mass(l,2*i0) + Kodama_mass(l,2*i0-1))
-
-     else
-
-!       Find values of radius (r0) and Kodama_mass (m0) at edge of fine grid,
-!       and send them to all processors.  Notice that the edge of the grid
-!       belongs to the processor with rank=size-1.
-
-        r0 = 0.5d0*(r(l,2*i0)+r(l,2*i0-1))
-        m0 = 0.5d0*(Kodama_mass(l,2*i0)+Kodama_mass(l,2*i0-1))
-
-        call MPI_BCAST(r0,1,MPI_DOUBLE_PRECISION,size-1,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(m0,1,MPI_DOUBLE_PRECISION,size-1,MPI_COMM_WORLD,ierr)
-
-!       Now interpolate value of Kodama_mass at r0 from coarse grid,
-!       and send it to all processors.  Notice that the point r0
-!       is in the middle of the coarse grid, and belongs to the
-!       processor with rank=(size-1)/2.
-
-        interpvar => Kodama_mass
-        m1 = interp(l-1,r0,.false.)
-        call MPI_BCAST(m1,1,MPI_DOUBLE_PRECISION,(size-1)/2,MPI_COMM_WORLD,ierr)
-
-!       Find difference bewteen m1 and m0.
-
-        delta = m1 - m0
-
-     end if
-
-!    Subtract delta.
-
-     Kodama_mass(l-1,:) = Kodama_mass(l-1,:) - delta
-
-!    Restrict.
-
-     call restrict(l,.false.)
-
-!    Fix symmetries.
-
-     if (rank==0) then
-        do i=1,ghost
-           Kodama_mass(l-1,1-i) = Kodama_mass(l-1,i)
-        end do
-     end if
-
-  end do
+  if (Nl>1) then
+     intvar => Kodama_mass
+     call restrictintegral
+  end if
 
 
 ! ***************
