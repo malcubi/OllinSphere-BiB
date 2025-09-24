@@ -1,3 +1,4 @@
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/analysis_geometry.f90,v 1.34 2025/09/24 17:22:23 malcubi Exp $
 
   subroutine analysis_geometry
 
@@ -88,6 +89,13 @@
      do l=Nl-1,0,-1
         hembed(l,:) = integral(l)
      end do
+
+!    Restrict integral.
+
+     if (Nl>1) then
+        intvar => hembed
+        call restrictintegral
+     end if
 
   end if
 
