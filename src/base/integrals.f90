@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/integrals.f90,v 1.10 2022/07/12 23:58:01 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/integrals.f90,v 1.11 2025/09/24 17:16:30 malcubi Exp $
 
   module integrals
 
