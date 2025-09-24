@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.6 2025/03/04 20:06:31 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.7 2025/09/24 17:26:49 malcubi Exp $
 
   subroutine sources_dust(l)
 
@@ -66,6 +66,7 @@
 
 ! Include modules.
 
+  use procinfo
   use param
   use arrays
   use derivatives
@@ -81,8 +82,8 @@
   real(8) slope1,slope2,slopelim
   real(8) idr,aux
 
-  real(8) flux_D(1-ghost:Nr),flux_E(1-ghost:Nr),flux_S(1-ghost:Nr)          ! Fluxes at grid points.
-  real(8) flux_DI(1-ghost:Nr),flux_EI(1-ghost:Nr),flux_SI(1-ghost:Nr)       ! Fluxes at cell interfaces.
+  real(8) flux_D(1-ghost:Nrmax),flux_E(1-ghost:Nrmax),flux_S(1-ghost:Nrmax)          ! Fluxes at grid points.
+  real(8) flux_DI(1-ghost:Nrmax),flux_EI(1-ghost:Nrmax),flux_SI(1-ghost:Nrmax)       ! Fluxes at cell interfaces.
 
 
 ! *******************
