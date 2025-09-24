@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.18 2025/09/04 16:07:32 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.19 2025/09/24 17:33:28 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -66,6 +66,7 @@
 
 ! Include modules.
 
+  use procinfo
   use param
   use arrays
   use derivatives
@@ -82,16 +83,16 @@
   real(8) vpp,vmm
   real(8) idr,aux
 
-  real(8) flux_D(1-ghost:Nr),flux_DL(1-ghost:Nr),flux_DR(1-ghost:Nr)
-  real(8) flux_E(1-ghost:Nr),flux_EL(1-ghost:Nr),flux_ER(1-ghost:Nr)
-  real(8) flux_S(1-ghost:Nr),flux_SL(1-ghost:Nr),flux_SR(1-ghost:Nr)
+  real(8) flux_D(1-ghost:Nrmax),flux_DL(1-ghost:Nrmax),flux_DR(1-ghost:Nrmax)
+  real(8) flux_E(1-ghost:Nrmax),flux_EL(1-ghost:Nrmax),flux_ER(1-ghost:Nrmax)
+  real(8) flux_S(1-ghost:Nrmax),flux_SL(1-ghost:Nrmax),flux_SR(1-ghost:Nrmax)
 
-  real(8) D_L(1-ghost:Nr),D_R(1-ghost:Nr)
-  real(8) E_L(1-ghost:Nr),E_R(1-ghost:Nr)
-  real(8) S_L(1-ghost:Nr),S_R(1-ghost:Nr)
+  real(8) D_L(1-ghost:Nrmax),D_R(1-ghost:Nrmax)
+  real(8) E_L(1-ghost:Nrmax),E_R(1-ghost:Nrmax)
+  real(8) S_L(1-ghost:Nrmax),S_R(1-ghost:Nrmax)
 
-  real(8) vp_L(1-ghost:Nr),vp_R(1-ghost:Nr)
-  real(8) vm_L(1-ghost:Nr),vm_R(1-ghost:Nr)
+  real(8) vp_L(1-ghost:Nrmax),vp_R(1-ghost:Nrmax)
+  real(8) vm_L(1-ghost:Nrmax),vm_R(1-ghost:Nrmax)
 
   character(len=20) limiter
 
@@ -105,6 +106,19 @@
   third = 1.d0/3.d0
 
   idr = 1.d0/dr(l)
+
+
+! ********************************
+! ***   NO EQUATION OF STATE   ***
+! ********************************
+
+! If we don't have an equation of state we force
+! the method to use the speed of light instead
+! of the speed of sound.
+
+  if (fluid_EOS=="none") then
+     fluid_usesoundspeed = .false.
+  end if
 
 
 ! ****************************
@@ -144,10 +158,10 @@
 ! Calculate fluxes at grid points.
 
   flux_D(:) = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-         *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   flux_E(:) = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-         *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   flux_S(:) = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
 
@@ -220,7 +234,7 @@
 
 !       If we don't know the speed of sound, we can use
 !       the local speed of light instead.  This works just
-!       fine, though it is less accurate (more dissipative).
+!       fine, though it is more dissipative.
 
         else
 
@@ -231,8 +245,8 @@
               vpp = max(0.d0,+aux)
               vmm = min(0.d0,-aux)
            else
-              vpp = max(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1))+aux)
-              vmm = min(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1))-aux)
+              vpp = max(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) + aux)
+              vmm = min(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) - aux)
            end if
 
         end if
@@ -400,11 +414,13 @@
 
 ! Ghost points using symmetries.
 
-  do i=1,ghost
-     sfluid_cD(l,1-i) = + sfluid_cD(l,i)
-     sfluid_cE(l,1-i) = + sfluid_cE(l,i)
-     sfluid_cS(l,1-i) = - sfluid_cS(l,i)
-  end do
+  if (rank==0) then
+     do i=1,ghost
+        sfluid_cD(l,1-i) = + sfluid_cD(l,i)
+        sfluid_cE(l,1-i) = + sfluid_cE(l,i)
+        sfluid_cS(l,1-i) = - sfluid_cS(l,i)
+     end do
+  end if
 
 
 ! ***********************
@@ -438,7 +454,7 @@
 ! ***********************************
 
 ! Sources for cosmological background when needed.
-
+! Not yet implemented.
 
 ! ***************
 ! ***   END   ***
@@ -516,6 +532,7 @@
  
 ! Include modules.
 
+  use procinfo
   use param
 
 ! Extra variables.
@@ -526,7 +543,7 @@
 
   real(8) slope1,slope2,slope3,slopelim
   real(8) ratio,phi,philimiter
-  real(8) var(1-ghost:Nr),varl(1-ghost:Nr),varr(1-ghost:Nr)
+  real(8) var(1-ghost:Nrmax),varl(1-ghost:Nrmax),varr(1-ghost:Nrmax)
 
   character(len=*) limiter
 
@@ -549,7 +566,7 @@
 ! ***   INTERIOR POINTS   ***
 ! ***************************
 
-  do i=1,Nr-2
+  do i=0,Nr-2
 
 !    Find slopes.
 
@@ -743,9 +760,9 @@
 
 
 
-! **********************************
-! ***   MP5 ROUTINES START HERE  ***
-! **********************************
+! ***********************************
+! ***   MP5 ROUTINES START HERE   ***
+! ***********************************
 
 ! These routines were coded by Matthew Smith.
 !
@@ -756,72 +773,91 @@
 ! ***   MP5 FLUXES   ***
 ! **********************
 
-  subroutine mp5fluxes(FD, FE, FS, l)
+  subroutine mp5fluxes(FD,FE,FS,l)
 
+  use procinfo
   use arrays
   use param
 
   implicit none
-  
+
+  integer i,l
+
+  real(8) vllf,aux
+
 ! Numerical fluxes.
 
-  real(8) FD(1-ghost:Nr)
-  real(8) FE(1-ghost:Nr)
-  real(8) FS(1-ghost:Nr)
+  real(8) FD(1-ghost:Nrmax)
+  real(8) FE(1-ghost:Nrmax)
+  real(8) FS(1-ghost:Nrmax)
 
-  integer l
+! Left and right conserved variables.
 
-! Conserved variables.
-
-  real(8) D_L(1-ghost:Nr), D_R(1-ghost:Nr)
-  real(8) E_L(1-ghost:Nr), E_R(1-ghost:Nr)
-  real(8) S_L(1-ghost:Nr), S_R(1-ghost:Nr)
+  real(8) D_L(1-ghost:Nrmax),D_R(1-ghost:Nrmax)
+  real(8) E_L(1-ghost:Nrmax),E_R(1-ghost:Nrmax)
+  real(8) S_L(1-ghost:Nrmax),S_R(1-ghost:Nrmax)
    
-! L, R fluxes.
+! Left and right fluxes.
 
-  real(8) FD_L(1-ghost:Nr), FD_R(1-ghost:Nr)
-  real(8) FE_L(1-ghost:Nr), FE_R(1-ghost:Nr)
-  real(8) FS_L(1-ghost:Nr), FS_R(1-ghost:Nr)
+  real(8) FD_L(1-ghost:Nrmax),FD_R(1-ghost:Nrmax)
+  real(8) FE_L(1-ghost:Nrmax),FE_R(1-ghost:Nrmax)
+  real(8) FS_L(1-ghost:Nrmax),FS_R(1-ghost:Nrmax)
 
-  real(8) vp_L(1-ghost:Nr), vp_R(1-ghost:Nr)
-  real(8) vm_L(1-ghost:Nr), vm_R(1-ghost:Nr)
-  real(8) vllf
+! Left and right speeds.
 
-  real(8) aux
+  real(8) vp_L(1-ghost:Nrmax),vp_R(1-ghost:Nrmax)
+  real(8) vm_L(1-ghost:Nrmax),vm_R(1-ghost:Nrmax)
 
-  integer i
-  
-! Compute flux normally according to centre values.
+
+! ****************************
+! ***   CALCULATE FLUXES   ***
+! ****************************
+
+! Calculate fluxes at grid points.
 
   FD = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-       *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+     *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+
   FE = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-       *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+     *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+
   FS = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
 
-! Perform left and right reconstruction of the
-! conserved variables and fluxes.
+! Reconstruct conserved quantities at cell interfaces.
 
-  call mp5reconstruct(fluid_cD(l,:), D_L, D_R, +1)
-  call mp5reconstruct(fluid_cE(l,:), E_L, E_R, +1)
-  call mp5reconstruct(fluid_cS(l,:), S_L, S_R, -1)
+  call mp5reconstruct(fluid_cD(l,:),D_L,D_R,+1)
+  call mp5reconstruct(fluid_cE(l,:),E_L,E_R,+1)
+  call mp5reconstruct(fluid_cS(l,:),S_L,S_R,-1)
 
-  call mp5reconstruct(FD, FD_L, FD_R, -1)
-  call mp5reconstruct(FE, FE_L, FE_R, -1)
-  call mp5reconstruct(FS, FS_L, FS_R, +1)
-  
-! Compute the LLF speeds.
+! Reconstruct fluxes at cell interfaces.
+
+  call mp5reconstruct(FD,FD_L,FD_R,-1)
+  call mp5reconstruct(FE,FE_L,FE_R,-1)
+  call mp5reconstruct(FS,FS_L,FS_R,+1)
+
+
+! ***************************************
+! ***   LOCAL LAX-FRIEDRICHS SPEEDS   ***
+! ***************************************
+
+! Reconstruct characteristic speeds at cell boundaries.
 
   if (fluid_usesoundspeed) then
      call mp5reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),+1)
      call mp5reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),+1)
   end if
-  
+
+! Find local Lax-Fredrichs speeds.
+
   do i=0,Nr-1
+
+!    Use speed of sound.
 
      if (fluid_usesoundspeed) then
 
         vllf = max(abs(vp_L(i)),abs(vp_R(i)),abs(vm_L(i)),abs(vm_R(i)))
+
+!    Use speed of light.
 
      else
 
@@ -831,12 +867,12 @@
         if (shift=="none") then
            vllf = abs(aux)
         else
-           vllf = abs(-0.5d0*(beta(l,i)+beta(l,i+1))+aux)
+           vllf = abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux)
         end if
 
-     endif
+     end if
 
-!    Calculate fluxes according to LLF interface values
+!    Calculate fluxes according to LLF interface values.
 
      FD(i) = 0.5d0*(FD_L(i) + FD_R(i)) - 0.5d0*vllf*(D_R(i) - D_L(i))
      FE(i) = 0.5d0*(FE_L(i) + FE_R(i)) - 0.5d0*vllf*(E_R(i) - E_L(i))
@@ -844,7 +880,100 @@
 
   end do
 
+
+! ***************
+! ***   END   ***
+! ***************
+
   end subroutine mp5fluxes
+
+
+
+
+
+
+
+! ***************************
+! ***   MP5 RECONSTRUCT   ***
+! ***************************
+
+! Performs a left and right reconstruction of a variable
+! according to the mp5interface function.
+
+  subroutine mp5reconstruct(var,varl,varr,sym)
+
+  use procinfo
+  use param
+  
+  implicit none
+
+  integer i,sym
+
+  real(8) mp5interface
+  real(8) aux
+
+  real(8) var(1-ghost:Nrmax),varl(1-ghost:Nrmax),varr(1-ghost:Nrmax)
+
+  !! For the origin, we should be able to apply the same reconstruction
+  !! as for the rest of the interior, provided there are sufficient ghost
+  !! cells (test runs are using 3 ghost cells).
+  !!
+  !! It is questionable to reconstruct up to to index Nr-1,
+  !! since our array indices only go up to Nr. 
+  !! It appears however to not lead directly to crashes.
+  !!
+  !! For the sake of correctness, it is best to run the left- and right-
+  !! reconstructions separately owing to their differing stencils.
+
+  !! left reconstruction
+
+  do i=0,Nr-2 
+     varl(i) = mp5interface(var(i-2),var(i-1),var(i),var(i+1),var(i+2))
+  end do
+
+  ! varl(0) = mp5interface(sym*var(3), sym*var(2), sym*var(1), var(1), var(2))
+
+  !! right reconstruction
+
+  do i=0,Nr-3
+     varr(i) = mp5interface(var(i+3),var(i+2),var(i+1),var(i),var(i-1))
+  end do
+
+  ! varr(0) = mp5interface(var(3), var(2), var(1), sym*var(1), sym*var(2))
+
+  ! print *, var(0), "    ", var(1), "    ", sym
+  ! print *, var(2), "    ", var(-1)
+  !! uncomment these and everything is fine
+  ! varl(0) = var(0) + sym*0.5d0*(var(2) - var(1))
+  ! varr(0) = var(1) - 0.5d0*(var(2) - var(1))
+  ! varl(0) = var(0) - 0.5d0*(var(0) - var(-1))
+  ! varr(0) = var(1) - 0.5d0*(var(1) - var(0))
+  ! varl(0) = sym*varr(0)
+  ! if (sym == 1) then
+     ! aux = var(2) - var(1)
+     ! varr(0) = 0.0d0 !var(1)
+     ! varl(0) = 0.0d0 !var(0)
+  ! else
+     ! varr(0) = 0.0d0
+     ! varl(0) = 0.0d0
+  ! endif
+
+  !! We need a way to reconstruct at index Nr-1 and
+  !! we also need the right-reconstruction at Nr-2.
+  !! Choose to do non-limited reconstruction here,
+  !! and replace with something more sophisticated later.
+  !!
+  !! This could be a source of error, but the first NaN
+  !! appear far away from the outer boundary in tests.
+
+  varl(Nr-1) = var(Nr-1) ! + 0.5d0*(var(Nr) - var(Nr-1))
+
+  varr(Nr-2) = var(Nr-1) !var(Nr-1) - 0.5d0*(var(Nr-1) - var(Nr-2))
+  varr(Nr-1) = var(Nr)   !var(Nr) - 0.5d0*(var(Nr) - var(Nr-1))
+    
+  end subroutine mp5reconstruct
+
+
 
 
 
@@ -903,6 +1032,7 @@
 
   end if
 
+
 ! ***************
 ! ***   END   ***
 ! ***************
@@ -911,87 +1041,6 @@
 
 
 
-
-
-! ***************************
-! ***   MP5 RECONSTRUCT   ***
-! ***************************
-
-! Performs a left and right reconstruction of a variable
-! according to the mp5interface function.
-
-  subroutine mp5reconstruct(var,varl,varr,sym)
-
-  use param
-  
-  implicit none
-  
-  real(8) var(1-ghost:Nr),varl(1-ghost:Nr),varr(1-ghost:Nr)
-
-  real(8) mp5interface
-
-  real(8) aux
-  
-  integer i,sym
-
-  !! For the origin, we should be able to apply the same reconstruction
-  !! as for the rest of the interior, provided there are sufficient ghost
-  !! cells (test runs are using 3 ghost cells).
-  !!
-  !! It is questionable to reconstruct up to to index Nr-1,
-  !! since our array indices only go up to Nr. 
-  !! It appears however to not lead directly to crashes.
-  !!
-  !! For the sake of correctness, it is best to run the left- and right-
-  !! reconstructions separately owing to their differing stencils.
-
-  !! left reconstruction
-
-  do i=0,Nr-2 
-     varl(i) = mp5interface(var(i-2),var(i-1),var(i),var(i+1),var(i+2))
-  end do
-
-  ! varl(0) = mp5interface(sym*var(3), sym*var(2), sym*var(1), var(1), var(2))
-
-  !! right reconstruction
-
-  do i=0,Nr-3
-     varr(i) = mp5interface(var(i+3),var(i+2),var(i+1),var(i),var(i-1))
-  end do
-
-  ! varr(0) = mp5interface(var(3), var(2), var(1), sym*var(1), sym*var(2))
-
-  ! print *, var(0), "    ", var(1), "    ", sym
-  ! print *, var(2), "    ", var(-1)
-  !! uncomment these and everything is fine
-  ! varl(0) = var(0) + sym*0.5d0*(var(2) - var(1))
-  ! varr(0) = var(1) - 0.5d0*(var(2) - var(1))
-  ! varl(0) = var(0) - 0.5d0*(var(0) - var(-1))
-  ! varr(0) = var(1) - 0.5d0*(var(1) - var(0))
-  ! varl(0) = sym*varr(0)
-  ! if (sym == 1) then
-     ! aux = var(2) - var(1)
-     ! varr(0) = 0.0d0 !var(1)
-     ! varl(0) = 0.0d0 !var(0)
-  ! else
-     ! varr(0) = 0.0d0
-     ! varl(0) = 0.0d0
-  ! endif
-
-  !! δ We need a way to reconstruct at index Nr-1 and
-  !! we also need the right-reconstruction at Nr-2.
-  !! Choose to do non-limited reconstruction here,
-  !! and replace with something more sophisticated later.
-  !!
-  !! This could be a source of error, but the first NaN
-  !! appear far away from the outer boundary in tests.
-
-  varl(Nr-1) = var(Nr-1) ! + 0.5d0*(var(Nr) - var(Nr-1))
-
-  varr(Nr-2) = var(Nr-1) !var(Nr-1) - 0.5d0*(var(Nr-1) - var(Nr-2))
-  varr(Nr-1) = var(Nr)   !var(Nr) - 0.5d0*(var(Nr) - var(Nr-1))
-    
-  end subroutine mp5reconstruct
 
 
 
@@ -1017,11 +1066,13 @@
 
 
 
+
+
 ! *******************
 ! ***   MINMOD4   ***
 ! *******************
 
-  function minmod4(a, b, c, d)
+  function minmod4(a,b,c,d)
 
   implicit none
 
@@ -1033,6 +1084,8 @@
           *abs(signof(a) + signof(d))*min(abs(a),abs(b),abs(c),abs(d))
 
   end function minmod4
+
+
 
 
 
