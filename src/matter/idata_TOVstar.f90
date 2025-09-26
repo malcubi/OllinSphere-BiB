@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.12 2025/09/24 17:29:39 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.13 2025/09/26 20:02:30 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -104,6 +104,7 @@
   real(8) J1_TOV,J2_TOV                 ! Functions for sources of differential equations.
   real(8) rm,aux                        ! Auxiliary quantities.
   real(8) half,smallpi                  ! Numbers.
+  real(8) rhoatmos,Eatmos,patmos
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr            ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g           ! Radial metric global array.
@@ -645,22 +646,29 @@
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
 
-! Add atmosphere.
-
-  do l=0,Nl-1
-     do i=1-ghost,Nr
-        if (fluid_rho(l,i)<=fluid_atmos) then
-           fluid_rho(l,i) = fluid_atmos
-        end if
-     end do
-  end do
-
 ! Find pressure and internal energy.
 
   if (fluid_EOS=="ideal") then
      fluid_p = fluid_kappa*fluid_rho**fluid_gamma
-     fluid_e = fluid_kappa/(fluid_gamma-1.d0)*fluid_rho**(fluid_gamma-1.d0)
+     fluid_e = fluid_p/fluid_rho/(fluid_gamma-1.d0)
   end if
+
+! Atmosphere.
+
+  rhoatmos = fluid_atmos/10.d0
+
+  patmos = fluid_kappa*rhoatmos**fluid_gamma
+  Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
+
+  do l=0,Nl-1
+     do i=1-ghost,Nr
+        if (fluid_rho(l,i)<=fluid_atmos) then
+           fluid_rho(l,i) = rhoatmos
+           fluid_p(l,i) = patmos
+           fluid_e(l,i) = Eatmos
+        end if
+     end do
+  end do
 
 ! Find enthalpy: h = 1 + e + p/rho.
 
