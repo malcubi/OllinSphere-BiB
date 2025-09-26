@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.20 2025/09/24 23:57:40 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.21 2025/09/26 20:01:22 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -242,8 +242,8 @@
                       + alpha(l,i+1)/sqrt(abs(A(l,i+1)))/psi(l,i+1)**2)
 
            if (shift=="none") then
-              vpp = max(0.d0,+aux)
-              vmm = min(0.d0,-aux)
+              vpp = + aux
+              vmm = - aux
            else
               vpp = max(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) + aux)
               vmm = min(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) - aux)
@@ -253,7 +253,7 @@
 
 !       Calculate HLLE fluxes.  Notice that, even though we use the same
 !       names for flux arrays, they will now represent the values
-!       at cell interfaces "i+1" instrad of at the grid points "i".
+!       at cell interfaces "i+1" instead of at the grid points "i".
 
         flux_D(i) = (vpp*flux_DL(i) - vmm*flux_DR(i) + vpp*vmm*(D_R(i) - D_L(i)))/(vpp - vmm)
         flux_E(i) = (vpp*flux_EL(i) - vmm*flux_ER(i) + vpp*vmm*(E_R(i) - E_L(i)))/(vpp - vmm)
