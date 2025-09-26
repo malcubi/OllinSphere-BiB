@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.17 2025/09/24 23:48:51 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.18 2025/09/26 20:03:40 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -109,20 +109,20 @@
 !    density we take E = rho0*e. We then set all other variables to values 
 !    consistent with this and we jump out of here.
 
-     if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_rho(l,i)<=fluid_atmos)) then
+     if (fluid_cD(l,i)<=fluid_atmos) then
 
-!       Primitive variables.
-
-        fluid_rho(l,i) = rhoatmos
-        fluid_e(l,i)   = Eatmos
-        fluid_p(l,i)   = patmos
- 
 !       Conserved quantities (D,E,S).
 
         fluid_cD(l,i) = rhoatmos
         fluid_cE(l,i) = rhoatmos*Eatmos
         fluid_cS(l,i) = 0.d0
- 
+
+!       Primitive variables.
+
+        fluid_rho(l,i) = rhoatmos
+        fluid_p(l,i) = patmos
+        fluid_e(l,i) = Eatmos
+
 !       Fluid speed and Lorentz factor.
 
         fluid_v(l,i) = 0.d0

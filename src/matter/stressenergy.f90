@@ -881,6 +881,8 @@
 !
 !
 ! SBB  =  0
+!
+! Remember not to take into account the artificial atmosphere.
 
   if (contains(mattertype,"dust")) then
 
@@ -950,19 +952,13 @@
 !
 ! Notice that when we use artificial viscosity we must add
 ! the corresponding contribution to the pressure "fluid_q".
+!
+! Remember not to take into account the artificial atmosphere.
 
   if (contains(mattertype,"fluid")) then
 
-!    Set up atmosphere values (remember not to take into
-!    account the artificial atmosphere).
-
-     rhoatmos = fluid_atmos
-
-     patmos = fluid_kappa*rhoatmos**fluid_gamma
-     Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
-
      do i=1-ghost,Nr
-        if ((fluid_cD(l,i)>rhoatmos).and.(fluid_rho(l,i)>rhoatmos)) then
+        if (fluid_cD(l,i)>fluid_atmos) then
 
 !          Energy density.
 
