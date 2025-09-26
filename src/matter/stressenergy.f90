@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.53 2025/09/12 18:34:59 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.54 2025/09/26 20:53:18 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -881,10 +881,10 @@
 !
 !
 ! SBB  =  0
-!
-! Remember not to take into account the artificial atmosphere.
 
   if (contains(mattertype,"dust")) then
+
+!    Remember not to take into account the artificial atmosphere.
 
      do i=1-ghost,Nr
         if (dust_cD(l,i)>dust_atmos) then
@@ -952,10 +952,10 @@
 !
 ! Notice that when we use artificial viscosity we must add
 ! the corresponding contribution to the pressure "fluid_q".
-!
-! Remember not to take into account the artificial atmosphere.
 
   if (contains(mattertype,"fluid")) then
+
+!    Remember not to take into account the artificial atmosphere.
 
      do i=1-ghost,Nr
         if (fluid_cD(l,i)>fluid_atmos) then
