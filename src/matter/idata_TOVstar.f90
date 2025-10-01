@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.13 2025/09/26 20:02:30 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.14 2025/10/01 17:53:55 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -104,7 +104,8 @@
   real(8) J1_TOV,J2_TOV                 ! Functions for sources of differential equations.
   real(8) rm,aux                        ! Auxiliary quantities.
   real(8) half,smallpi                  ! Numbers.
-  real(8) rhoatmos,Eatmos,patmos
+  real(8) rhoatmos,Eatmos,patmos        ! Atmosphere values
+  real(8) c,G,Msol,Rsol
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr            ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g           ! Radial metric global array.
@@ -118,6 +119,23 @@
   half = 0.5d0
 
   smallpi = acos(-1.d0)
+
+! Speed of light in IS.
+
+  c = 2.99792458d8
+
+! Newton's constant in IS.
+
+  G = 6.6743d-11
+
+! Solar mass in IS.
+
+  Msol = 1.988920d30
+
+! Solar radius in meters.
+
+  Rsol = G*Msol/c**2
+  !print *, Rsol
 
 
 ! ******************************
@@ -383,6 +401,12 @@
                  TOV_rad = rr(l,irad-1) - dr(l)*rho0_g(l,irad-1)/(rho0_g(l,irad) - rho0_g(l,irad-1))
 
                  write(*,'(A,E19.12)') ' Radius of TOV star = ',TOV_rad
+
+!                We also output the radius in km assuming our units are
+!                such that c=G=Msol=1.  For this we need to multiply
+!                the result with G*Msol/c^2 ~ 1.477.
+
+                 write(*,'(A,E19.12)') ' Radius of TOV star in km (taking c=G=Msol=1) = ',TOV_rad*Rsol/1.d3
                  print *
 
 !                Set fluid density equal to zero.
