@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.58 2025/09/12 18:33:36 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.59 2025/10/01 17:50:01 malcubi Exp $
 
   subroutine analysis_matter
 
@@ -149,12 +149,12 @@
            bind = mass_int(0,Nr) - complex_mass*complex_NB(0,Nr)
 
            if (size==1) then
-              write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+              write(*,'(A,E19.12)') ' Binding energy (M-m*NB) = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,E19.12)') ' Binding energy (M-m*Q) = ',bind
+                 write(*,'(A,E19.12)') ' Binding energy (M-m*NB) = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
@@ -444,12 +444,12 @@
            bind = mass_int(0,Nr) - fluid_restmass(0,Nr)
 
            if (size==1) then
-              write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',bind
+              write(*,'(A,E19.12)') ' Binding energy (M-M0)    = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,E19.12)') ' Binding energy (M-M0) = ',bind
+                 write(*,'(A,E19.12)') ' Binding energy (M-M0)    = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
