@@ -1,12 +1,20 @@
 # Test parameter file:
 #
 # TOV star initial data, 1+log slicing, no shift.
+#
+# In this example I take fluid_gamma=2, fluid_kappa=100
+# and TOV_rho0 = 0.00128, which shoud correspond to a
+# stable star with mass M=1.4 and radius R=9.58
+# (or M=1.4 solar masses and radius R=14.14 km
+# assuming units such that c=G=Msol=1)
 
-dr0 = 0.005		  # Grid spacing
-dtfac = 0.7		  # Courant parameter
+#spacetime = background   # Uncomment this for static spacetime (Cowling) approximation
 
-Nrtotal = 10000		  # Number of grid points
-Nt = 50000		  # Number of time steps
+dr0 = 0.05		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 1000		  # Number of grid points
+Nt = 10000		  # Number of time steps
 
 Nl = 1                    # Number of refinement levels
 
@@ -19,17 +27,14 @@ order = four  		  # Order for spatial finite differencing (two,four)
 boundtype = constraint    # Constraint preserving boundary condition
 
 mattertype = fluid        # Perfect fluid
-fluid_method = hlle       # Numerical method for fluid
+fluid_method = mp5        # Numerical method for fluid (hlle or mp5)
 fluid_limiter = mc        # Type of limiter
-fluid_gamma = 1.666666666 # Adiabatic index (5/3 for a monoatomic non-relativistic gas)
-fluid_kappa = 1.0         # Polytropic constant
-fluid_atmos = 1.d-9       # Artificial atmosphere value
+fluid_gamma = 2.0         # Adiabatic index
+fluid_kappa = 100.0       # Polytropic constant
+fluid_atmos = 1.d-8       # Artificial atmosphere value
 
 idata = TOVstar		  # Type of initial data
-TOV_rho0 = 0.01   	  # Central density for TOV star
-
-fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
-fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
+TOV_rho0 = 0.00128   	  # Central density for TOV star
 
 geodiss = 0.01            # Dissipation coefficient for geometry
 
