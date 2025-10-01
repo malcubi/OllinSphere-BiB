@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.17 2025/09/24 17:25:02 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.18 2025/10/01 17:50:53 malcubi Exp $
 
   subroutine bosonintegral
 
@@ -135,12 +135,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0)  then
-        write(*,'(A,E19.12)') ' Total boson number    = ',NBTOT
-        write(*,'(A,E19.12)') ' Total boson rest mass = ',NBTOT*complex_mass
-        if (idata=="bosonstar") then
-           write(*,'(A,E19.12)') ' R99 =',R99
-        end if
-        print *
+        write(*,'(A,E19.12)') ' Total boson number NB        = ',NBTOT
+        write(*,'(A,E19.12)') ' Total boson rest mass (m*NB) = ',NBTOT*complex_mass
      end if
 
   end if
