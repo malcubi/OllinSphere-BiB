@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.6 2025/09/24 17:25:02 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.7 2025/10/01 17:52:44 malcubi Exp $
 
   subroutine fluidintegral
 
@@ -101,7 +101,7 @@
         NTOT = fluid_restmass(0,Nr)
 
         if (size==1) then
-           write(*,'(A,E19.12)') ' Total fluid rest mass = ',NTOT
+           write(*,'(A,E19.12)') ' Total fluid rest mass M0 = ',NTOT
         else
            if (rank==0) then
               p = size-1
