@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.43 2025/09/24 17:25:02 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.44 2025/10/01 17:52:09 malcubi Exp $
 
   subroutine massintegral
 
@@ -145,12 +145,12 @@
      MTOT = mass_int(0,Nr)
 
      if (size==1) then
-        write(*,'(A,E19.12)') ' Total integrated mass = ',MTOT
+        write(*,'(A,E19.12)') ' Total integrated mass M = ',MTOT
      else
         if (rank==0) then
            p = size-1
            call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-           write(*,'(A,E19.12)') ' Total integrated mass = ',MTOT
+           write(*,'(A,E19.12)') ' Total integrated mass M = ',MTOT
         else if (rank==size-1) then
            call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
         end if
@@ -192,7 +192,7 @@
 
   if ((t(0)==0.d0).and.(idata=="TOVstar")) then
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Ratio M/R = ',MTOT/TOV_rad
+        write(*,'(A,E19.12)') ' Total compactness M/R = ',MTOT/TOV_rad
         print *
      end if
   end if
@@ -272,8 +272,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' R99 from mass = ',R99
-        write(*,'(A,E19.12)') ' M/R99         = ',MTOT/R99
+        write(*,'(A,E19.12)') ' Effective radius R99 from M(r) = ',R99
+        write(*,'(A,E19.12)') ' Effective compactness M/R99    = ',MTOT/R99
         print *
      end if
 
