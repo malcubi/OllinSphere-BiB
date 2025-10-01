@@ -867,8 +867,8 @@
 !
 ! fluid_atmos:       Size of artificial atmosphere.
 !
-! fluid_q1:          Coefficient of linear artificial dissipation.
-! fluid_q2:          Coefficient of quadratic artificial dissipation.
+! fluid_q1:          Coefficient of linear artificial viscosity.
+! fluid_q2:          Coefficient of quadratic artificial viscosity.
 !
 ! fluid_method:      Method for fluid integration.
 ! fluid_limiter:     Type of limiter for reconstruction.
@@ -890,7 +890,14 @@
   real(8) :: fluid_gamma = 1.6666666666666666d0 ! 5/3 for a monoatomic non-relativistic gas.
   real(8) :: fluid_kappa = 1.d0
 
-  real(8) :: fluid_atmos = 1.d-10
+
+! Don't set the artificial atmosphere to less than 1.d-8 since
+! this is the level of roundoff error in fluidprimitive.f90
+! (it involves square roots).
+
+  real(8) :: fluid_atmos = 1.d-8
+
+! Set artificial viscosity to zero by default.
 
   real(8) :: fluid_q1 = 0.d0
   real(8) :: fluid_q2 = 0.d0
