@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.18 2025/09/26 20:03:40 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.19 2025/10/01 18:43:25 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -73,7 +73,8 @@
   real(8) :: p1,p2,f1,f2
   real(8) :: rhoatmos,Eatmos,patmos
   real(8) :: W,res,aux
-  real(8) :: epsilon = 1.d-10
+  real(8) :: epsilon = 1.d-8   ! Tolerance (don't set it lower than this)
+  real(8) :: Wmax = 1.d5       ! Maximum allowed Lorentz factor
 
 
 ! ***************************************
@@ -163,8 +164,14 @@
         aux = 1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2
 
         if (aux<=0.d0) then
-           W = 1.d10
-           !print *, "Fluid speed is larger than 1"
+           W = Wmax
+           if (fluid_cS(l,i)>0.d0) then
+              fluid_v(l,i) = + sqrt((1.d0 - 1.d0/Wmax)/(A(l,i)*exp(4.d0*phi(l,i))))
+           else
+              fluid_v(l,i) = - sqrt((1.d0 - 1.d0/Wmax)/(A(l,i)*exp(4.d0*phi(l,i))))
+           end if
+           print *, "Warning: Fluid speed is larger than light speed at level ",l," grid point ",i
+           print *
         else
            W = 1.d0/sqrt(abs(aux))
         end if
