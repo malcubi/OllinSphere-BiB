@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/chargeintegral.f90,v 1.5 2025/09/24 17:25:02 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/chargeintegral.f90,v 1.6 2025/10/01 17:51:29 malcubi Exp $
 
   subroutine chargeintegral
 
@@ -139,8 +139,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Total electric charge =',eQTOT
-        write(*,'(A,E19.12)') ' R99 =',R99
+        write(*,'(A,E19.12)') ' Total electric charge Q        =',eQTOT
+        write(*,'(A,E19.12)') ' Effective radius R99 from Q(r) =',R99
         print *
      end if
 
