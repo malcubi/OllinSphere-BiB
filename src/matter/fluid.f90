@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluid.f90,v 1.21 2025/09/26 20:01:22 malcubi Exp $
 
   subroutine sources_fluid(l)
 
@@ -80,7 +79,7 @@
 
   real(8) one,half,third
   real(8) slope1,slope2,slopelim
-  real(8) vpp,vmm
+  real(8) vpp,vmm,vllf
   real(8) idr,aux
 
   real(8) flux_D(1-ghost:Nrmax),flux_DL(1-ghost:Nrmax),flux_DR(1-ghost:Nrmax)
@@ -112,9 +111,11 @@
 ! ***   NO EQUATION OF STATE   ***
 ! ********************************
 
-! If we don't have an equation of state we force
-! the method to use the speed of light instead
-! of the speed of sound.
+! If we don't have an equation of state we force the
+! method to use the speed of light instead of the
+! speed of sound. This is very dissipative, but
+! without knowing the equation of state we don't
+! have a speed of sound.
 
   if (fluid_EOS=="none") then
      fluid_usesoundspeed = .false.
@@ -129,20 +130,13 @@
 ! can be calculated using several different methods.  At the
 ! moment all these methods are either first or second order.
 !
-! 1) Center:   Standard centered average (second order).
-!
-! 2) Upwind:   Copy from the adjacent grid point from the upwind
-!              side (first order).
-!
-! 3) Limiter:  The advection term in the flux is either interpolated
-!              (averaged) or extrapolated from the upwind side using
-!              a minmod limiter (second order).
-!
-! 4) LLF:      Local Lax-Friedrichs.  First order scheme that should
+! 1) LLF:      Local Lax-Friedrichs.  First order scheme that should
 !              work reasonably well.
 !
-! 5) HLLE:     Approximate Riemann solver of Harten, Lax, van Leer
-!              and Einfeldt.
+! 2) HLLE:     Approximate Riemann solver of Harten, Lax, van Leer
+!              and Einfeldt (HLLE).
+!
+! 3) MP5       Fifth order monotonicity preserving method.
 
 ! Initialize fluxes to zero.
 
@@ -203,63 +197,93 @@
      call reconstruct(flux_E,flux_EL,flux_ER,limiter,-1)
      call reconstruct(flux_S,flux_SL,flux_SR,limiter,+1)
 
-!    Reconstruct characteristic speeds at cell boundaries.
+!    Find fluxes using local speed of sound.
 
      if (fluid_usesoundspeed) then
+
+!       Reconstruct characteristic speeds at cell boundaries.
+
         call reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),limiter,+1)
         call reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),limiter,+1)
-     end if
 
-!    Find fluxes.
+!       Find fluxes.
 
-     do i=0,Nr-1
+        do i=0,Nr-1
 
-!       Find maximum and minimum speeds using the
-!       characteristic speeds coming from the speed
-!       of sound.
+!          For values of fluid_cD lower than fluid_atmos we just average
+!          the right and left fluxes.  This helps in reducing large errors.
 
-        if (fluid_usesoundspeed) then
+           if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cD(l,i+1)<=fluid_atmos)) then
 
-           vpp = max(0.d0,vp_L(i),vp_R(i))
-           vmm = min(0.d0,vm_L(i),vm_R(i))
+              flux_D(i) = 0.5d0*(flux_DL(i) + flux_DR(i))
+              flux_E(i) = 0.5d0*(flux_EL(i) + flux_ER(i))
+              flux_S(i) = 0.5d0*(flux_SL(i) + flux_SR(i))
 
-           if (vpp-vmm==0.d0) then
-              print *
-              print *, 'Problem in HLLE: Maximum and minimum speeds (vmm,vpp) are equal: ',vmm,vpp
-              print *, 'at point: ', i
-              print *, 'Aborting! (subroutine fluid.f90)'
-              print *
-              call die
-           end if
+!          Values of fluid_cD larger than fluid_atmos.
 
-!       If we don't know the speed of sound, we can use
-!       the local speed of light instead.  This works just
-!       fine, though it is more dissipative.
-
-        else
-
-           aux = 0.5d0*(alpha(l,i  )/sqrt(abs(A(l,i  )))/psi(l,i  )**2 &
-                      + alpha(l,i+1)/sqrt(abs(A(l,i+1)))/psi(l,i+1)**2)
-
-           if (shift=="none") then
-              vpp = + aux
-              vmm = - aux
            else
-              vpp = max(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) + aux)
-              vmm = min(0.d0,-0.5d0*(beta(l,i)+beta(l,i+1)) - aux)
+
+!             Maximum and minimum local characteristic speeds.
+!             (The shift is already included when calculating
+!             the characteristic speeds in fluidprimitive.f90).
+
+              vpp = max(0.d0,vp_L(i),vp_R(i))
+              vmm = min(0.d0,vm_L(i),vm_R(i))
+
+!             Calculate HLLE fluxes.  Notice that, even though we use the same
+!             names for the flux arrays, they will now represent the values
+!             at cell interfaces "i+1" instead of at the grid points "i".
+
+              flux_D(i) = (vpp*flux_DL(i) - vmm*flux_DR(i) + vpp*vmm*(D_R(i) - D_L(i)))/(vpp - vmm)
+              flux_E(i) = (vpp*flux_EL(i) - vmm*flux_ER(i) + vpp*vmm*(E_R(i) - E_L(i)))/(vpp - vmm)
+              flux_S(i) = (vpp*flux_SL(i) - vmm*flux_SR(i) + vpp*vmm*(S_R(i) - S_L(i)))/(vpp - vmm)
+
            end if
 
-        end if
+        end do
 
-!       Calculate HLLE fluxes.  Notice that, even though we use the same
-!       names for flux arrays, they will now represent the values
-!       at cell interfaces "i+1" instead of at the grid points "i".
+!    Find fluxes using local speed of light.
 
-        flux_D(i) = (vpp*flux_DL(i) - vmm*flux_DR(i) + vpp*vmm*(D_R(i) - D_L(i)))/(vpp - vmm)
-        flux_E(i) = (vpp*flux_EL(i) - vmm*flux_ER(i) + vpp*vmm*(E_R(i) - E_L(i)))/(vpp - vmm)
-        flux_S(i) = (vpp*flux_SL(i) - vmm*flux_SR(i) + vpp*vmm*(S_R(i) - S_L(i)))/(vpp - vmm)
+     else
 
-     end do
+        do i=0,Nr-1
+
+!          For values of fluid_cD lower than fluid_atmos we just average
+!          the right and left fluxes.  This helps in reducing large errors.
+
+           if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cD(l,i+1)<=fluid_atmos)) then
+
+              flux_D(i) = 0.5d0*(flux_DL(i) + flux_DR(i))
+              flux_E(i) = 0.5d0*(flux_EL(i) + flux_ER(i))
+              flux_S(i) = 0.5d0*(flux_SL(i) + flux_SR(i))
+
+!          Values of fluid_cD larger than fluid_atmos.
+
+           else
+
+!             Local speed of light.
+
+              aux = 0.5d0*(alpha(l,i  )/sqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
+                         + alpha(l,i+1)/sqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
+
+              if (shift=="none") then
+                 vllf = aux
+              else
+                 vllf = max(abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux), &
+                         abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
+              end if
+
+!             Calculate HLLE fluxes using the same maximum and minimum speeds.
+
+              flux_D(i) = 0.5d0*((flux_DL(i) + flux_DR(i)) - vllf*(D_R(i) - D_L(i)))
+              flux_E(i) = 0.5d0*((flux_EL(i) + flux_ER(i)) - vllf*(E_R(i) - E_L(i)))
+              flux_S(i) = 0.5d0*((flux_SL(i) + flux_SR(i)) - vllf*(S_R(i) - S_L(i)))
+
+           end if
+
+        end do
+
+     end if
 
 
 ! ************************
@@ -402,6 +426,7 @@
 ! *************************************
  
 ! For the moment I just copy the sources from one point in.
+! Normally for stars the fluid shouldn't reach the boundary.
 
   sfluid_cD(l,Nr) = sfluid_cD(l,Nr-1)
   sfluid_cE(l,Nr) = sfluid_cE(l,Nr-1)
@@ -455,6 +480,7 @@
 
 ! Sources for cosmological background when needed.
 ! Not yet implemented.
+
 
 ! ***************
 ! ***   END   ***
@@ -783,6 +809,7 @@
 
   integer i,l
 
+  real(8) vpp,vmm
   real(8) vllf,aux
 
 ! Numerical fluxes.
@@ -835,51 +862,85 @@
   call mp5reconstruct(FE,FE_L,FE_R,-1)
   call mp5reconstruct(FS,FS_L,FS_R,+1)
 
-
-! ***************************************
-! ***   LOCAL LAX-FRIEDRICHS SPEEDS   ***
-! ***************************************
-
-! Reconstruct characteristic speeds at cell boundaries.
+! Fluxes using local speed of sound.
 
   if (fluid_usesoundspeed) then
+
+!    Reconstruct characteristic speeds at cell boundaries.
+
      call mp5reconstruct(fluid_vcp(l,:),vp_L(:),vp_R(:),+1)
      call mp5reconstruct(fluid_vcm(l,:),vm_L(:),vm_R(:),+1)
-  end if
 
-! Find local Lax-Fredrichs speeds.
+!    Find fluxes.
 
-  do i=0,Nr-1
+     do i=0,Nr-1
 
-!    Use speed of sound.
+!       For values of fluid_cD lower than fluid_atmos we just average
+!       the right and left fluxes.  This helps in reducing large errors.
 
-     if (fluid_usesoundspeed) then
+        if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cD(l,i+1)<=fluid_atmos)) then
 
-        vllf = max(abs(vp_L(i)),abs(vp_R(i)),abs(vm_L(i)),abs(vm_R(i)))
+           FD(i) = 0.5d0*(FD_L(i) + FD_R(i))
+           FE(i) = 0.5d0*(FE_L(i) + FE_R(i))
+           FS(i) = 0.5d0*(FS_L(i) + FS_R(i))
 
-!    Use speed of light.
+!       Values of fluid_cD larger than fluid_atmos.
 
-     else
-
-        aux = 0.5d0*(alpha(l,i  )/sqrt(abs(A(l,i  )))/psi(l,i  )**2 &
-                   + alpha(l,i+1)/sqrt(abs(A(l,i+1)))/psi(l,i+1)**2)
- 
-        if (shift=="none") then
-           vllf = abs(aux)
         else
-           vllf = max(abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux), &
-                      abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
+
+!          Lax-Wendroff speed (the shift is already included when
+!          calculating the characteristic speeds in fluidprimitive.f90).
+
+           vllf = max(abs(vp_L(i)),abs(vp_R(i)),abs(vm_L(i)),abs(vm_R(i)))
+
+           FD(i) = 0.5d0*((FD_L(i) + FD_R(i)) - vllf*(D_R(i) - D_L(i)))
+           FE(i) = 0.5d0*((FE_L(i) + FE_R(i)) - vllf*(E_R(i) - E_L(i)))
+           FS(i) = 0.5d0*((FS_L(i) + FS_R(i)) - vllf*(S_R(i) - S_L(i)))
+
         end if
 
-     end if
+     end do
 
-!    Calculate fluxes according to LLF interface values.
+! Fluxed using local speed of light.
 
-     FD(i) = 0.5d0*(FD_L(i) + FD_R(i)) - 0.5d0*vllf*(D_R(i) - D_L(i))
-     FE(i) = 0.5d0*(FE_L(i) + FE_R(i)) - 0.5d0*vllf*(E_R(i) - E_L(i))
-     FS(i) = 0.5d0*(FS_L(i) + FS_R(i)) - 0.5d0*vllf*(S_R(i) - S_L(i))
+  else
 
-  end do
+     do i=0,Nr-1
+
+!       For values of fluid_cD lower than fluid_atmos we just average
+!       the right and left fluxes.  This helps in reducing large errors.
+
+        if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cD(l,i+1)<=fluid_atmos)) then
+
+           FD(i) = 0.5d0*(FD_L(i) + FD_R(i))
+           FE(i) = 0.5d0*(FE_L(i) + FE_R(i))
+           FS(i) = 0.5d0*(FS_L(i) + FS_R(i))
+
+!       Values of fluid_cD larger than fluid_atmos.
+
+        else
+
+!          Local speed of light.
+
+           aux = 0.5d0*(alpha(l,i  )/sqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
+                      + alpha(l,i+1)/sqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
+
+           if (shift=="none") then
+              vllf = aux
+           else
+              vllf = max(abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux), &
+                         abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
+           end if
+
+           FD(i) = 0.5d0*((FD_L(i) + FD_R(i)) - vllf*(D_R(i) - D_L(i)))
+           FE(i) = 0.5d0*((FE_L(i) + FE_R(i)) - vllf*(E_R(i) - E_L(i)))
+           FS(i) = 0.5d0*((FS_L(i) + FS_R(i)) - vllf*(S_R(i) - S_L(i)))
+
+        end if
+
+     end do
+
+  end if
 
 
 ! ***************
