@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidprimitive.f90,v 1.19 2025/10/01 18:43:25 malcubi Exp $
 
   subroutine fluidprimitive(l)
 
@@ -55,6 +54,11 @@
 ! the trial value of the pressure and the one obtained from
 ! the equation of state, and iterate until this difference
 ! is smaller than a tolerance set by "epsilon".
+!
+! Notice that since this procedure involves taking squqre roots
+! to calculate the Lorentz factor W, for double precision
+! numbers the round-off errors will be of order 10^-8.,
+! so don't expect convergence beyond this.
 
 ! Include modules.
 
@@ -73,8 +77,8 @@
   real(8) :: p1,p2,f1,f2
   real(8) :: rhoatmos,Eatmos,patmos
   real(8) :: W,res,aux
-  real(8) :: epsilon = 1.d-8   ! Tolerance (don't set it lower than this)
-  real(8) :: Wmax = 1.d5       ! Maximum allowed Lorentz factor
+  real(8) :: epsilon = 1.d-10 ! Tolerance
+  real(8) :: Wmax = 1.d5      ! Maximum allowed Lorentz factor
 
 
 ! ***************************************
@@ -95,11 +99,11 @@
   rhoatmos = fluid_atmos/10.d0
 
   patmos = fluid_kappa*rhoatmos**fluid_gamma
-  Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
+  Eatmos = fluid_kappa*rhoatmos**(fluid_gamma-1.d0)/(fluid_gamma-1.d0)
 
 ! Loop over grid points.
 
-  do i=1-ghost,Nr
+  do i=1,Nr
 
 !    Atmosphere: If the density is too low we run the risk of dividing
 !    by a very small quantity to recover the fluid speed, which will
@@ -165,13 +169,14 @@
 
         if (aux<=0.d0) then
            W = Wmax
-           if (fluid_cS(l,i)>0.d0) then
-              fluid_v(l,i) = + sqrt((1.d0 - 1.d0/Wmax)/(A(l,i)*exp(4.d0*phi(l,i))))
-           else
-              fluid_v(l,i) = - sqrt((1.d0 - 1.d0/Wmax)/(A(l,i)*exp(4.d0*phi(l,i))))
-           end if
-           print *, "Warning: Fluid speed is larger than light speed at level ",l," grid point ",i
+           print *, "Warning: Fluid speed larger than light speed at point ",i," radius",r(l,i)," time",t(l)
+           print *, aux,fluid_v(l,i),fluid_cS(l,i),fluid_cD(l,i),fluid_cE(l,i)
            print *
+           if (fluid_cS(l,i)>0.d0) then
+              fluid_v(l,i) = + sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
+           else
+              fluid_v(l,i) = - sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
+           end if
         else
            W = 1.d0/sqrt(abs(aux))
         end if
@@ -271,6 +276,24 @@
   20 continue
 
 
+! ************************
+! ***   GHOST POINTS   ***
+! ************************
+
+  if (rank==0) then
+     do i=1,ghost
+
+        fluid_rho(l,1-i) = + fluid_rho(l,i)
+        fluid_p(l,1-i)   = + fluid_p(l,i)
+        fluid_e(l,1-i)   = + fluid_e(l,i)
+
+        fluid_v(l,1-i)   = - fluid_v(l,i)
+        fluid_W(l,1-i)   = + fluid_W(l,i)
+
+     end do
+  end if
+
+
 ! ********************
 ! ***   ENTHALPY   ***
 ! ********************
@@ -278,6 +301,7 @@
 ! h  =  1 + e + (p+q)/rho
 
   fluid_h(l,:) = 1.d0 + fluid_e(l,:) + (fluid_p(l,:) + fluid_q(l,:))/fluid_rho(l,:)
+
 
 
 ! **************************
@@ -290,7 +314,7 @@
 
      if (fluid_EOS=="ideal") then
 
-!       Speed of sound for ideal gas equation of state:
+!       Speed of sound for an ideal gas equation of state:
 !
 !       vs^2  = gamma (gamma - 1) e / ( 1 + gamma e)
 !
@@ -329,22 +353,27 @@
 
 ! Characteristic speeds (in spherical symmetry, see page 262 of my book):
 !
-! v_+  =  [ alpha/(1 - A fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) + aux ]
+! v_+  =  [ alpha/(1 - A psi**4 fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) + aux ]
 !
-! v_-  =  [ alpha/(1 - A fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) - aux ]
+! v_-  =  [ alpha/(1 - A psi**4 fluid_v**2 fluid_vs**2) ] [ fluid_v ( 1 - fluid_vs**2) - aux ]
 !
 ! with:
 !
-! aux  =  fluid_vs (1 - A fluid_v**2) / A^(1/2)
+! aux  =  fluid_vs (1 - A psi**4 fluid_v**2) / ( A^(1/2) psi**2 )
 
   do i=1-ghost,Nr
 
-     aux = fluid_vs(l,i)*abs(1.d0 - A(l,i)*fluid_v(l,i)**2)/sqrt(A(l,i))
+     aux = fluid_vs(l,i)*abs(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2)/sqrt(A(l,i))/exp(2.d0*phi(l,i))
 
-     fluid_vcp(l,i) = alpha(l,i)/(1.d0 - A(l,i)*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
+     fluid_vcp(l,i) = alpha(l,i)/(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
                     *(fluid_v(l,i)*(1.d0 - fluid_vs(l,i)**2) + aux)
-     fluid_vcm(l,i) = alpha(l,i)/(1.d0 - A(l,i)*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
+     fluid_vcm(l,i) = alpha(l,i)/(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
                     *(fluid_v(l,i)*(1.d0 - fluid_vs(l,i)**2) - aux)
+
+     if (shift/="none") then
+        fluid_vcp(l,i) = - beta(l,i) + fluid_vcp(l,i)
+        fluid_vcm(l,i) = - beta(l,i) + fluid_vcm(l,i)
+     end if
 
   end do
 
@@ -370,38 +399,21 @@
 ! introduces a second order error. For rho we use the ADM
 ! energy density: rho = E + D.
 
-  do i=1-ghost,Nr
+  if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
 
-     if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
+     do i=1-ghost,Nr
+
         aux = dr(l)*D1_fluid_cS(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
-     if (aux>=0.d0) then
+
+        if (aux>=0.d0) then
            fluid_q(l,i) = 0.d0
         else
            fluid_q(l,i) = abs(aux)*(fluid_q1*fluid_vs(l,i) &
                         + fluid_q2*abs(aux)/(fluid_cE(l,i) + fluid_cD(l,i)))
         end if
-     else
-        fluid_q(l,i) = 0.d0
-     end if
 
-  end do
-
-
-! ************************
-! ***   GHOST POINTS   ***
-! ************************
-
-  if (rank==0) then
-     do i=1,ghost
-        fluid_rho(l,1-i) = + fluid_rho(l,i)
-        fluid_p(l,1-i)   = + fluid_p(l,i)
-        fluid_e(l,1-i)   = + fluid_e(l,i)
-        fluid_h(l,1-i)   = + fluid_h(l,i)
-        fluid_v(l,1-i)   = - fluid_v(l,i)
-        fluid_W(l,1-i)   = + fluid_W(l,i)
-        fluid_q(l,1-i)   = + fluid_q(l,i)
-        fluid_vs(l,1-i)  = + fluid_vs(l,i)
      end do
+
   end if
 
 
