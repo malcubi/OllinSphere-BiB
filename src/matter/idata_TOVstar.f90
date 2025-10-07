@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVstar.f90,v 1.14 2025/10/01 17:53:55 malcubi Exp $
 
   subroutine idata_TOVstar
 
@@ -670,29 +669,24 @@
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
 
-! Find pressure and internal energy.
-
-  if (fluid_EOS=="ideal") then
-     fluid_p = fluid_kappa*fluid_rho**fluid_gamma
-     fluid_e = fluid_p/fluid_rho/(fluid_gamma-1.d0)
-  end if
-
 ! Atmosphere.
 
   rhoatmos = fluid_atmos/10.d0
-
-  patmos = fluid_kappa*rhoatmos**fluid_gamma
-  Eatmos = patmos/rhoatmos/(fluid_gamma-1.d0)
 
   do l=0,Nl-1
      do i=1-ghost,Nr
         if (fluid_rho(l,i)<=fluid_atmos) then
            fluid_rho(l,i) = rhoatmos
-           fluid_p(l,i) = patmos
-           fluid_e(l,i) = Eatmos
         end if
      end do
   end do
+
+! Find pressure and internal energy.
+
+  if (fluid_EOS=="ideal") then
+     fluid_p = fluid_kappa*fluid_rho**fluid_gamma
+     fluid_e = fluid_kappa*fluid_rho**(fluid_gamma-1.d0)/(fluid_gamma-1.d0)
+  end if
 
 ! Find enthalpy: h = 1 + e + p/rho.
 
