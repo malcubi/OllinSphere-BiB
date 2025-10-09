@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_TOVcomplex.f90,v 1.3 2025/09/24 17:31:02 malcubi Exp $
 
   subroutine idata_TOVcomplex
 
@@ -222,7 +221,7 @@
 
   do l=0,Nl-1
      do i=1-ghost,Nr
-        if ((fluid_cD(l,i)>fluid_atmos).and.(fluid_rho(l,i)>fluid_atmos)) then
+        if (fluid_cD(l,i)>fluid_atmos) then
            rhoF(l,i) = fluid_cE(l,i) + fluid_cD(l,i)
         else
            rhoF(l,i) = 0.d0
