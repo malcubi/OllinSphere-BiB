@@ -197,7 +197,7 @@
      call reconstruct(flux_E,flux_EL,flux_ER,limiter,-1)
      call reconstruct(flux_S,flux_SL,flux_SR,limiter,+1)
 
-!    Find fluxes using local speed of sound.
+!    Fluxes using local speed of sound.
 
      if (fluid_usesoundspeed) then
 
@@ -242,14 +242,14 @@
 
         end do
 
-!    Find fluxes using local speed of light.
+!    Fluxes using local speed of light.
 
      else
 
         do i=0,Nr-1
 
 !          For values of fluid_cD lower than fluid_atmos we just average
-!          the right and left fluxes.  This helps in reducing large errors.
+!          the right and left fluxes. This helps in reducing large errors.
 
            if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cD(l,i+1)<=fluid_atmos)) then
 
@@ -270,7 +270,7 @@
                  vllf = aux
               else
                  vllf = max(abs(-0.5d0*(beta(l,i)+beta(l,i+1)) + aux), &
-                         abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
+                            abs(-0.5d0*(beta(l,i)+beta(l,i+1)) - aux))
               end if
 
 !             Calculate HLLE fluxes using the same maximum and minimum speeds.
@@ -809,7 +809,6 @@
 
   integer i,l
 
-  real(8) vpp,vmm
   real(8) vllf,aux
 
 ! Numerical fluxes.
@@ -901,7 +900,7 @@
 
      end do
 
-! Fluxed using local speed of light.
+! Fluxes using local speed of light.
 
   else
 
