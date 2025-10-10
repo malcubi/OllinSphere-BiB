@@ -907,12 +907,15 @@
   character(1000) :: fluid_method  = "hlle"     ! range=(llf,hlle,mp5)
   character(1000) :: fluid_limiter = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
 
-! Do we use the sound speed for the fluid methods?
-! using the sound speed is more accurate, but for
-! some equations if state it is difficult, so we
-! can use the speed of light instead.
+! Do we use the speed of sound for calculating 
+! fluxed in the different fluid methods?
+! Using the sound speed is more accurate, but for
+! cases when the density changes by many orders
+! of magnitude (like stars) it is less stable.
+! If the flag is set to false we use the speed
+! of light instead to calculate fluxes
 
-  logical :: fluid_usesoundspeed = .true.
+  logical :: fluid_usesoundspeed = .false.
 
 ! TOV initial data:
 !
