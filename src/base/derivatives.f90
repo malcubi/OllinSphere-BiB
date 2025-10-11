@@ -89,7 +89,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
         diff1(1) = - hidr*(3.d0*diffvar(l,1) - 4.d0*diffvar(l,2) + diffvar(l,3))
      end if
 
@@ -107,7 +107,7 @@
                  -           (diffvar(l,i+2) - diffvar(l,i-2)))/12.d0
      end do
 
-!    Point Nr-1:  4th order semi one-sided (1 point to the right, 5¡3 to the left).
+!    Point Nr-1:  4th order semi one-sided (1 point to the right, 3 to the left).
 
      i = Nr-1
 
@@ -123,15 +123,17 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
-        diff1(i) = - idr*(25.d0*diffvar(l,i) - 48.d0*diffvar(l,i+1) &
-                + 36.d0*diffvar(l,i+2) - 16.d0*diffvar(l,i+3) + 3.d0*diffvar(l,i+4))/12.d0
+        diff1(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
+                   - 20.d0/3.d0*diffvar(l,i+3) + 15.d0/4.d0*diffvar(l,i+4) - 6.d0/5.d0*diffvar(l,i+5) &
+                   + 1.d0/6.d0*diffvar(l,i+6)) ! Sixth order fully one-sided
 
         i = 2
-        diff1(i) = - idr*(3.d0*diffvar(l,i+1) + 10.d0*diffvar(l,i) - 18.d0*diffvar(l,i-1) &
-              + 6.d0*diffvar(l,i-2) - diffvar(l,i-3))/12.d0
+        diff1(i) = - idr*(1.d0/6.d0*diffvar(l,i-1) + 77.d0/60.d0*diffvar(l,i) - 5.d0/2.d0*diffvar(l,i+1) &
+                   + 5.d0/3.d0*diffvar(l,i+2) - 5.d0/6.d0*diffvar(l,i+3) + 0.25*diffvar(l,i+4) &
+                   - 1.d0/30.d0*diffvar(l,i+5)) ! Sixth order semi one-sided
 
      end if
 
@@ -176,7 +178,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diff1(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
@@ -250,7 +252,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diff1(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
@@ -379,7 +381,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
         diff2(1) = idr2*(2.d0*diffvar(l,1) - 5.d0*diffvar(l,2) &
                  + 4.d0*diffvar(l,3) - diffvar(l,4))
      end if
@@ -415,7 +417,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diff2(i) = idr2*(45.d0*diffvar(l,i) - 154.d0*diffvar(l,i+1) + 214.d0*diffvar(l,i+2) &
@@ -474,7 +476,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diff2(i) = idr2*(469.d0/90.d0*diffvar(l,i) - 22.3d0*diffvar(l,i+1) + 879.d0/20.d0*diffvar(l,i+2) &
@@ -555,7 +557,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diff2(i) = idr2*(6515.d0/1008.d0*diffvar(l,i) - 4609.d0/140.d0*diffvar(l,i+1) + 5869.d0/70.d0*diffvar(l,i+2) &
