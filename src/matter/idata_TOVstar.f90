@@ -620,8 +620,6 @@
 
            iaux = i/2 + 1
 
-           rm = rr(l-1,iaux)
-
            A_g(l-1,iaux) = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
            rho0_g(l-1,iaux) = (9.d0*(rho0_g(l,i)+rho0_g(l,i+1)) - (rho0_g(l,i-1)+rho0_g(l,i+2)))/16.d0
 
