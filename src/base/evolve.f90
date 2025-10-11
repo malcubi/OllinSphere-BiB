@@ -183,7 +183,7 @@
      else
 
         print *, 'Tracking Minkowski requires idata=minkowski ...'
-        print *, 'Aborting! (subroutine base/onestep.f90)'
+        print *, 'Aborting! (subroutine base/evolve.f90)'
         print *
         call die
 
