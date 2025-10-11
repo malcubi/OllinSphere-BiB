@@ -2,13 +2,13 @@
 #
 # Schwarzschild in isotropic coordinates, 1+log slicing, precollapsed lapse, Gammadriver shift.
 
-dr0 = 0.1		# Grid spacing
+dr0 = 0.05		# Grid spacing
 dtfac = 0.5		# Courant parameter
 
-Nrtotal = 300		# Number of grid points
-Nt = 2000		# Number of time steps
+Nrtotal = 1000		# Number of grid points
+Nt = 4000		# Number of time steps
 
-Nl = 4                  # Number of refinement levels
+Nl = 2                  # Number of refinement levels
 
 ilapse = psiminus2      # Precollapsed lapse alpha=1/psi**2
 
@@ -36,9 +36,9 @@ ahfind = .true.         # Look for apparent horizon
 ahfind_every = 10       # How often to look for horizons?
 
 directory = schwarz-shift	# Name of output directory
-Ninfo = 50		# How often do we want to output information to screen?
+Ninfo = 100		# How often do we want to output information to screen?
 Noutput0D = 10		# How often do we want 0D output?
-Noutput1D = 50		# How often do we want 1D output?
+Noutput1D = 100		# How often do we want 1D output?
 
 outvars0D = alpha,beta,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,expansion
 outvars1D = alpha,beta,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,expansion
