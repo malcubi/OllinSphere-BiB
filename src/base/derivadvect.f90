@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/derivadvect.f90,v 1.17 2023/02/14 18:50:38 malcubi Exp $
 
   module derivadvect
 
@@ -99,7 +98,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
         i = 1
         diffadv(i) = - hidr*(3.d0*diffvar(l,i) - 4.d0*diffvar(l,i+1) + diffvar(l,i+2))
      end if
@@ -160,7 +159,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diffadv(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
@@ -238,7 +237,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diffadv(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
@@ -335,7 +334,7 @@
 
 !    Check if we want one-sided derivatives at origin.
 
-     if (oflag) then
+     if ((oflag).and.(rank==0)) then
 
         i = 1
         diffadv(i) = - idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i+1) + 7.5d0*diffvar(l,i+2) &
