@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/prl/arrays.pl,v 1.53 2021/06/18 19:06:05 malcubi Exp $
+#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/prl/arrays.pl,v 1.54 2025/10/13 18:47:46 malcubi Exp $
 
 # This perl script creates the subroutines:
 #
