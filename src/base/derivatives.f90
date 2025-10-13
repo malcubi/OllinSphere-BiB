@@ -83,9 +83,7 @@
 
 !    Point Nr:  2nd order fully one-sided.
 
-     i = Nr
-
-     diff1(i) = hidr*(3.d0*diffvar(l,i) - 4.d0*diffvar(l,i-1) + diffvar(l,i-2))
+     diff1(Nr) = hidr*(3.d0*diffvar(l,Nr) - 4.d0*diffvar(l,Nr-1) + diffvar(l,Nr-2))
 
 !    Check if we want one-sided derivatives at origin.
 
