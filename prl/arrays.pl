@@ -676,6 +676,19 @@ while ($line=<INFILE>) {
                print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
                print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
+            } elsif ($var eq "alpha") {
+               print FILE_BOUNDINTERP  "  if (slicing/='maximal') then\n";
+               print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
+               print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
+               print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
+               print FILE_BOUNDINTERP  "     if (border==1) then\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+               print FILE_BOUNDINTERP  "     else\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "     end if\n";
+               print FILE_BOUNDINTERP  "  end if\n\n";
             } else {
                print FILE_BOUNDINTERP  "  interpvar => ",$var,"\n";
                print FILE_BOUNDINTERP  "  aux1 = interp(l-1,r0,.false.)\n";
@@ -706,6 +719,14 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
                print FILE_RESTRICTCOPY  "     end do\n";
                print FILE_RESTRICTCOPY  "  end if\n\n";
+            } elsif ($var eq "alpha") {
+               print FILE_RESTRICTCOPY  "  if (slicing/='maximal') then\n";
+               print FILE_RESTRICTCOPY  "     do i=1,Nr-ghost,2\n";
+               print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
+               print FILE_RESTRICTCOPY  "        interpvar => ",$var,"\n";
+               print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
+               print FILE_RESTRICTCOPY  "     end do\n";
+               print FILE_RESTRICTCOPY  "  end if\n\n";
             } else {
                print FILE_RESTRICTCOPY  "  do i=1,Nr-ghost,2\n";
                print FILE_RESTRICTCOPY  "     r0 = r(l,i) + delta\n";
@@ -724,6 +745,15 @@ while ($line=<INFILE>) {
          if ($intent =~ /EVOLVE/i) {
            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                print FILE_RESTRICTSEND  "  if (",$cond,") then\n";
+               print FILE_RESTRICTSEND  "     do i=imin,Nr-ghost,2\n";
+               print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
+               print FILE_RESTRICTSEND  "        interpvar => ",$var,"\n";
+               print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
+               print FILE_RESTRICTSEND  "     end do\n";
+               print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
+               print FILE_RESTRICTSEND  "  end if\n\n";
+            } elsif ($var eq "alpha") {
+               print FILE_RESTRICTSEND  "  if (slicing/='maximal') then\n";
                print FILE_RESTRICTSEND  "     do i=imin,Nr-ghost,2\n";
                print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTSEND  "        interpvar => ",$var,"\n";
