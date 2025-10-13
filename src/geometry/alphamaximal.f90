@@ -275,6 +275,28 @@
   end if
 
 
+! *****************************
+! ***   LAPSE DERIVATIVES   ***
+! *****************************
+
+! Now we need to calculate the derivatives
+! of the lapse.
+
+  do l=0,Nl-1
+
+     diffvar => alpha
+
+     D1_alpha(l,:) = diff1(l,+1)
+     D2_alpha(l,:) = diff2(l,+1)
+
+     auxarray(l,:) = D1_alpha(l,:)/r(l,:)/psi4(l,:)
+
+     diffvar => auxarray
+     DD_alphar(l,:) = diff1(l,+1)
+
+  end do
+
+
 ! ***************
 ! ***   END   ***
 ! ***************
