@@ -44,12 +44,14 @@
 
   integer i,l,lmin,lmax,NP
   integer sym
-  integer i0
+  integer i0,iaux
 
   real(8) u0,ub
   real(8) r0,aux,delta
+  real(8) interp           ! Interpolation function.
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: u,C0,C1,C2
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal), target :: u
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2
 
   character bound*(*),bd*10
 
@@ -202,12 +204,9 @@
 
         bd = "dirichlet"
 
-        r0  = (dble(Nrtotal)-0.5d0)*dr(l)
-        aux = (r0 - (dble(Nrtotal/2)-0.5d0)*dr(l-1))/dr(l-1)
-
-!       This is only second order, I need to fix it later.
-
-        ub = u(l-1,Nrtotal/2) + aux*(u(l-1,Nrtotal/2+1)-u(l-1,Nrtotal/2))
+        r0 = r(l,Nrtotal)
+        interpvar => u
+        ub = interp(l-1,r0,.false.)
 
      end if
 
@@ -326,18 +325,10 @@
 
   do l=lmax,lmin+1,-1
 
-!    Substract constant difference at edge of fine grid.
-
-     i0 = Nrtotal/2 - 1
-
-     delta = u(l-1,i0) - (9.d0*(u(l,2*i0)+u(l,2*i0-1)) - (u(l,2*i0-2)+u(l,2*i0+1)))/16.d0
-
-     u(l-1,:) = u(l-1,:) - delta
-
-!    Interpolate.
-
-     do i=1,Nrtotal-ghost,2
-        u(l-1,i/2+1) = (9.d0*(u(l,i)+u(l,i+1)) - (u(l,i-1)+u(l,i+2)))/16.d0
+     do i=1,Nr-ghost,2
+        r0 = r(l,i) + 0.5d0*dr(l)
+        interpvar => u
+        !u(l-1,i/2+1) = interp(l,r0,.true.)
      end do
 
 !    Fix symmetries.
