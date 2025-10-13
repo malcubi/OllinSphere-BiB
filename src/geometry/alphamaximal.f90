@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/alphamaximal.f90,v 1.26 2023/03/13 17:47:51 malcubi Exp $
 
   subroutine alphamaximal(lmin,lmax,maxbound,alpha0)
 

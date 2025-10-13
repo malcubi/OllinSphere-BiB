@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/sources_geometry.f90,v 1.72 2023/01/27 16:21:27 malcubi Exp $
 
   subroutine sources_geometry(l)
 
@@ -271,7 +270,7 @@
 !    sKTA(l,:) = sKTA(l,:) + alpha(l,:)*(RICA(l,:) - third*RSCAL(l,:))
 
      !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
+     do i=1-ghost,Nr
         sKTA(l,i) = sKTA(l,i) - alpha(l,i)/(A(l,i)*psi4(l,i)) &
              *(third*(D2_A(l,i)/A(l,i) - D2_B(l,i)/B(l,i) - 2.d0*A(l,i)*D1_Deltar(l,i) &
              - 2.d0*(D1_A(l,i)/A(l,i))**2 + (D1_B(l,i)/B(l,i))**2) &
