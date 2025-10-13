@@ -249,7 +249,7 @@
 
 !       Order of interpolation at boundary.
 
-        if (t1(l)==0.d0) then
+        if (t1(l)<=dt(l)) then
            border = 1
         else
            border = 2
@@ -322,65 +322,6 @@
 !    Auxiliary quantities for matter and geometry.
 
      call auxiliary(l)
-
-
-!    ***************************
-!    ***   MAXIMAL SLICING   ***
-!    ***************************
-
-!    If we are using maximal slicing, we must now solve for
-!    the lapse.  This must be done after updating the matter
-!    variables (since maximal slicing has a matter source term).
-!
-!    But notice that since not all grids are at the same
-!    time level, we must solve for maximal sicing only at the
-!    current grid level!
-
-     if (slicing=="maximal") then
-
-!       If we are at the coarse grid, we solve maximal slicing
-!       only at this level, using the physical boundary condition.
-
-        if (l==0) then
-
-           call alphamaximal(0,0,maximalbound,1.d0)
-
-!       If we are on a fine grid, we also solve maximal slicing
-!       only at this level, but interpolate the boundary from
-!       the coarser level (this is essentially the same code
-!       as above for fine grid boundaries, but only for the lapse).
-
-        else
-
-!          Find interpolation point for boundary.
-
-           r0 = (dble(Nrtotal)-0.5d0)*dr(l)
-
-!          Interpolate lapse.
-
-           interpvar => alpha
-           aux1 = interp(l-1,r0,.false.)
-
-!          Make sure all processors have the same value!
-
-           call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)
-
-!          Now interpolate in time.
-
-           aux3 = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*alpha_p(l,Nr)
-
-!          And make sure all processors have the value
-!          for the actual boundary.
-
-           call MPI_BCAST(aux3,1,MPI_DOUBLE_PRECISION,size-1,MPI_COMM_WORLD,ierr)
-
-!          Solve maximal slicing.
-
-           call alphamaximal(l,l,"dirichlet",aux3)
-
-        end if
-
-     end if
 
 
 !    ***********************************
