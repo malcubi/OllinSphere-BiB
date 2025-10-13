@@ -11,6 +11,7 @@
   use param
   use arrays
   use procinfo
+  use derivatives
 
 ! Extra variables.
 
@@ -296,11 +297,9 @@
 !    ***   MAXIMAL SLICING   ***
 !    ***************************
 
-!    If we are using maximal slicing, we must now solve for
-!    the lapse.  We have in fact already solved for maximal
-!    slicing one grid level at a time in the routine "onestep.f90".
-!    But when we get to this point all grid levels coincide in
-!    time, so we do a full solve for maximal slicing across grids.
+!    If we are using maximal slicing, we must now
+!    solve for the lapse. We also need to calculate
+!    the derivatives of the lapse.
 
      if (slicing=="maximal") then
         call alphamaximal(0,Nl-1,maximalbound,1.d0)
