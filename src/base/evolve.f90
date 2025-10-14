@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/evolve.f90,v 1.54 2025/10/13 18:44:37 malcubi Exp $
 
   subroutine evolve
 
@@ -101,6 +100,14 @@
 ! Call initial data routine.
 
   call initial
+
+! For fluid spacetimes adjust atmosphere value
+! dependinmg on the maximum initial density.
+
+  if (contains(mattertype,"fluid").or.contains(mattertype,"dust")) then
+     fluid_atmos = fluid_atmos*maxval(fluid_rho)
+     !print *, maxval(fluid_rho),fluid_atmos
+  end if
 
 ! Make sure we have correct symmetries at the origin.
 ! Symmetries at the origin are only needed for processor 0
