@@ -136,7 +136,6 @@
   Rsol = G*Msol/c**2
   !print *, Rsol
 
-
 ! ******************************
 ! ***   SURFACE PARAMETERS   ***
 ! ******************************
@@ -380,10 +379,12 @@
               rho0_g(l,i) = 0.d0
            end if
 
-!          If the density becomes smaller than fluid_atmos
-!          we have reached the surface of the star.
+!          If the density becomes too small we
+!          have reached the surface of the star.
+!          Here we take the small value to be
+!          fluid_atmos*TOV_rho0.
 
-           if (rho0_g(l,i)<=fluid_atmos) then
+           if (rho0_g(l,i)<=TOV_rho0*fluid_atmos) then
 
               if (.not.foundsurf) then
 
@@ -669,11 +670,11 @@
 
 ! Atmosphere.
 
-  rhoatmos = fluid_atmos/10.d0
+  rhoatmos = TOV_rho0*fluid_atmos/10.d0
 
   do l=0,Nl-1
      do i=1-ghost,Nr
-        if (fluid_rho(l,i)<=fluid_atmos) then
+        if (fluid_rho(l,i)<=TOV_rho0*fluid_atmos) then
            fluid_rho(l,i) = rhoatmos
         end if
      end do
