@@ -3,10 +3,10 @@
 # TOV star initial data, 1+log slicing, no shift.
 #
 # In this example I take fluid_gamma=2, fluid_kappa=100
-# and TOV_rho0 = 0.00128, which shoud correspond to a
-# stable star with mass M=1.4 and radius R=9.58
-# (or M=1.4 solar masses and radius R=14.14 km
-# assuming units such that c=G=Msol=1)
+# and TOV_rho0 = 0.00128, which should correspond to a
+# stable star with mass M=1.4 and radius R=9.58, or
+# M=1.4 solar masses and radius R=14.14 km
+# in units such that c=G=Msol=1.
 
 #spacetime = background   # Uncomment this for static spacetime (Cowling) approximation
 
@@ -31,7 +31,7 @@ fluid_method = mp5        # Numerical method for fluid (hlle or mp5)
 fluid_limiter = mc        # Type of limiter
 fluid_gamma = 2.0         # Adiabatic index
 fluid_kappa = 100.0       # Polytropic constant
-fluid_atmos = 1.d-8       # Artificial atmosphere value
+fluid_atmos = 1.d-6       # Artificial atmosphere value (rescaled with max(rho) at t=0)
 
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 0.00128   	  # Central density for TOV star
