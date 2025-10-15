@@ -71,7 +71,27 @@
 ! end.  This is much better since this way the lapse remains
 ! smooth at the surface of the star.
 !
+! SOME SPECIAL TEST CASES:
 !
+! 1) gamma = 2, kappa = 100, rho0 = 0.00128
+!
+!    This is a TOV star with a stiff equation of state (gamma=2),
+!    and should result in a star with mass M=1.4 and radius R=9.58
+!    in code units.  If we assume that the units are such that
+!    c=C=Msol=1, then the radius is R=14.14 km.
+!
+! 2) gamma=4/3, kappa=0.4654, rho0=1.d-10 (very small)
+!
+!    This is a TOV star with an ultra-relativistic fluid (gamma=4/3)
+!    but newtonian gravity (very small rho0, so that alpha~A~1).
+!    It is the Chandrasekhar limit, so it corresponds to a mass
+!    of M=1.44 (in units such that c=G=Msol=1).  The mass should
+!    not depend of rho0 as long as it is very small, but the
+!    radius does depend on rho0 (for rho0=1.d-10) it should be
+!    R~5718 or R~8446 km (it can vary a little depending resolution).
+!    The value of kappa=0.4654 is obtained from the corresponding
+!    Lane-Emden solution taking cG=Msol=1).
+
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
@@ -103,7 +123,7 @@
   real(8) J1_TOV,J2_TOV                 ! Functions for sources of differential equations.
   real(8) rm,aux                        ! Auxiliary quantities.
   real(8) half,smallpi                  ! Numbers.
-  real(8) rhoatmos,Eatmos,patmos        ! Atmosphere values
+  real(8) rhoatmos,Eatmos,patmos        ! Atmosphere values.
   real(8) c,G,Msol,Rsol
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr            ! Radial coordinate.
@@ -119,15 +139,15 @@
 
   smallpi = acos(-1.d0)
 
-! Speed of light in IS.
+! Speed of light in SI.
 
   c = 2.99792458d8
 
-! Newton's constant in IS.
+! Newton's constant in SI.
 
   G = 6.6743d-11
 
-! Solar mass in IS.
+! Solar mass in SI.
 
   Msol = 1.988920d30
 
@@ -135,6 +155,7 @@
 
   Rsol = G*Msol/c**2
   !print *, Rsol
+
 
 ! ******************************
 ! ***   SURFACE PARAMETERS   ***
@@ -379,12 +400,10 @@
               rho0_g(l,i) = 0.d0
            end if
 
-!          If the density becomes too small we
+!          If the density becomes negative we
 !          have reached the surface of the star.
-!          Here we take the small value to be
-!          fluid_atmos*TOV_rho0.
 
-           if (rho0_g(l,i)<=TOV_rho0*fluid_atmos) then
+           if (rho0_g(l,i)<=0.d0) then
 
               if (.not.foundsurf) then
 
@@ -431,6 +450,20 @@
 
      end do
 
+!    ****************************************
+!    ***   WARNING IF SURFACE NOT FOUND   ***
+!    ****************************************
+
+!    Check if we didn't find the surface.
+
+     if (.not.foundsurf) then
+        print *
+        print *, 'WARNING: Did not reach surface of star, consider moving the outer boundary further away.'
+        print *, '         Setting radius to edge of grid ...'
+        print *
+        TOV_rad = rr(0,Nrtotal)
+     end if
+
 
 !    ************************
 !    ***   PERTURBATION   ***
@@ -464,17 +497,6 @@
                           + exp(-(rr(:,i)+TOV_r0)**2/TOV_s0**2))
            end do
         end if
-
-!       If the perturbation is smaller than the
-!       atmosphere set it to zero.
-
-        do l=Nl-1,0,-1
-           do i=1-ghost,Nrtotal
-              if (rho0_g(l,i)<=TOV_rho0*fluid_atmos) then
-                 rho0_g(l,i) = 0.d0
-              end if
-           end do
-        end do
 
 !       Solve again Hamiltonian constraint.
 
@@ -668,7 +690,7 @@
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
 
-! Atmosphere.
+! Set atmosphere.
 
   rhoatmos = TOV_rho0*fluid_atmos/10.d0
 
