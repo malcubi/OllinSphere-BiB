@@ -470,7 +470,7 @@
 
         do l=Nl-1,0,-1
            do i=1-ghost,Nrtotal
-              if (rho0_g(l,i)<=fluid_atmos) then
+              if (rho0_g(l,i)<=TOV_rho0*fluid_atmos) then
                  rho0_g(l,i) = 0.d0
               end if
            end do
