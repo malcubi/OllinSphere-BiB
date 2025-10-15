@@ -78,7 +78,7 @@
 !    This is a TOV star with a stiff equation of state (gamma=2),
 !    and should result in a star with mass M=1.4 and radius R=9.58
 !    in code units.  If we assume that the units are such that
-!    c=C=Msol=1, then the radius is R=14.14 km.
+!    c=G=Msol=1, then the radius is R=14.14 km.
 !
 ! 2) gamma=4/3, kappa=0.4654, rho0=1.d-10 (very small)
 !
@@ -86,11 +86,11 @@
 !    but newtonian gravity (very small rho0, so that alpha~A~1).
 !    It is the Chandrasekhar limit, so it corresponds to a mass
 !    of M=1.44 (in units such that c=G=Msol=1).  The mass should
-!    not depend of rho0 as long as it is very small, but the
-!    radius does depend on rho0 (for rho0=1.d-10) it should be
-!    R~5718 or R~8446 km (it can vary a little depending resolution).
+!    not depend on rho0 as long as it is very small, but the
+!    radius does depend on rho0. For rho0=1.d-10 it should be
+!    R~5718 or R~8446 km (it can vary a little depending on resolution).
 !    The value of kappa=0.4654 is obtained from the corresponding
-!    Lane-Emden solution taking cG=Msol=1).
+!    Lane-Emden solution taking c=G=Msol=1.
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
