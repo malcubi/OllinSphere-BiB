@@ -105,7 +105,7 @@
 ! dependinmg on the maximum initial density.
 
   if (contains(mattertype,"fluid").or.contains(mattertype,"dust")) then
-     fluid_atmos = fluid_atmos*maxval(fluid_rho)
+     fluid_atmos = fluid_atmos*maxval(rho)
      !print *, maxval(fluid_rho),fluid_atmos
   end if
 
