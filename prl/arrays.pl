@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/prl/arrays.pl,v 1.54 2025/10/13 18:47:46 malcubi Exp $
-
 # This perl script creates the subroutines:
 #
 # arrays.f90
@@ -713,7 +711,7 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                $cond = $1;
                print FILE_RESTRICTCOPY  "  if (",$cond,") then\n";
-               print FILE_RESTRICTCOPY  "     do i=1,Nr-ghost,2\n";
+               print FILE_RESTRICTCOPY  "     do i=1,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTCOPY  "        interpvar => ",$var,"\n";
                print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
@@ -721,14 +719,14 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTCOPY  "  end if\n\n";
             } elsif ($var eq "alpha") {
                print FILE_RESTRICTCOPY  "  if (slicing/='maximal') then\n";
-               print FILE_RESTRICTCOPY  "     do i=1,Nr-ghost,2\n";
+               print FILE_RESTRICTCOPY  "     do i=1,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTCOPY  "        interpvar => ",$var,"\n";
                print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
                print FILE_RESTRICTCOPY  "     end do\n";
                print FILE_RESTRICTCOPY  "  end if\n\n";
             } else {
-               print FILE_RESTRICTCOPY  "  do i=1,Nr-ghost,2\n";
+               print FILE_RESTRICTCOPY  "  do i=1,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTCOPY  "     r0 = r(l,i) + delta\n";
                print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
                print FILE_RESTRICTCOPY  "     ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
@@ -745,7 +743,7 @@ while ($line=<INFILE>) {
          if ($intent =~ /EVOLVE/i) {
            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                print FILE_RESTRICTSEND  "  if (",$cond,") then\n";
-               print FILE_RESTRICTSEND  "     do i=imin,Nr-ghost,2\n";
+               print FILE_RESTRICTSEND  "     do i=imin,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTSEND  "        interpvar => ",$var,"\n";
                print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
@@ -754,7 +752,7 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTSEND  "  end if\n\n";
             } elsif ($var eq "alpha") {
                print FILE_RESTRICTSEND  "  if (slicing/='maximal') then\n";
-               print FILE_RESTRICTSEND  "     do i=imin,Nr-ghost,2\n";
+               print FILE_RESTRICTSEND  "     do i=imin,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTSEND  "        interpvar => ",$var,"\n";
                print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
@@ -762,7 +760,7 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
                print FILE_RESTRICTSEND  "  end if\n\n";
             } else {
-               print FILE_RESTRICTSEND  "  do i=imin,Nr-ghost,2\n";
+               print FILE_RESTRICTSEND  "  do i=imin,Nr-(2*ghost-1),2\n";
                print FILE_RESTRICTSEND  "     r0 = r(l,i) + delta\n";
                print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
                print FILE_RESTRICTSEND  "     w(i/2) = interp(l,r0,.true.)\n";
@@ -781,13 +779,20 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                print FILE_RESTRICTRECV  "  if (",$cond,") then\n";
                print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
-               print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-ghost,2\n";
+               print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(2*ghost-1),2\n";
                print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
                print FILE_RESTRICTRECV  "     end do\n";
                print FILE_RESTRICTRECV  "  end if\n\n";
+            } elsif ($var eq "alpha") {
+               print FILE_RESTRICTSEND  "  if (slicing/='maximal') then\n";
+               print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
+               print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(2*ghost-1),2\n";
+               print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
+               print FILE_RESTRICTRECV  "     end do\n\n";
+               print FILE_RESTRICTSEND  "  end if\n\n";
             } else {
                print FILE_RESTRICTRECV  "  call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
-               print FILE_RESTRICTRECV  "  do i=imin,Nrl(p)-ghost,2\n";
+               print FILE_RESTRICTRECV  "  do i=imin,Nrl(p)-(2*ghost-1),2\n";
                print FILE_RESTRICTRECV  "     ",$var,"(l-1,i/2+k) = w(i/2)\n";
                print FILE_RESTRICTRECV  "  end do\n\n";
             }
