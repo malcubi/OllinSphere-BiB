@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/onestep.f90,v 1.81 2025/10/13 18:45:47 malcubi Exp $
 
   recursive subroutine onestep(l)
 
@@ -282,7 +281,22 @@
 !       with the same boundary value (aux2), but this doesn't matter
 !       as it will be fixed when we synchronize below.
 
-        imax = ghost-1 ! imax=0 goes unstable with dissipation (don't know why). 
+!       For intermediate fine grid levels we need to interpolate
+!       bounday values for the first few grid points from the coarse
+!       grid (from i=Nr-ghost+1 to i=Nr in order to have enough points
+!       for the interior evolution).
+!
+!       But when the fine grid reaches the same level as the coarse
+!       grid we need to interpolate more grid points from the coarse
+!       grid in order to avoid contamination from the "bad" boundary
+!       values. Trial and error shows that the best results are obtained
+!       interpolating from i=Nr-2*ghost+1 to i=Nr.
+
+        if (tl==tp) then
+           imax = 2*ghost-1
+        else
+           imax = ghost-1
+        end if
 
         do i=0,imax
            r0 = (dble(Nrtotal-i)-0.5d0)*dr(l)

@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/restrict.f90,v 1.17 2023/02/23 18:51:44 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/restrict.f90,v 1.18 2025/10/28 19:43:13 malcubi Exp $
 
   subroutine restrict(l,all)
 
@@ -96,7 +96,7 @@
      If (all) then
         include '../auto/restrict_copy.inc'
      else
-        do i=1,Nr-ghost,2
+        do i=1,Nr-(2*ghost-1),2
            r0 = r(l,i) + delta
            interpvar => restrictvar
            restrictvar(l-1,i/2+1) = interp(l,r0,.true.)
@@ -157,7 +157,7 @@
      if (all) then
         include '../auto/restrict_send.inc'
      else
-        do i=imin,Nr-ghost,2
+        do i=imin,Nr-(2*ghost-1),2
            r0 = r(l,i) + delta
            interpvar => restrictvar
            w(i/2) = interp(l,r0,.true.)
@@ -238,7 +238,7 @@
               include '../auto/restrict_recv.inc'
            else
               call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-              do i=imin,Nrl(p)-ghost,2
+              do i=imin,Nrl(p)-(2*ghost-1),2
                  restrictvar(l-1,i/2+k) = w(i/2)
               end do
            end if
