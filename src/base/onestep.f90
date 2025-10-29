@@ -281,7 +281,11 @@
 !       with the same boundary value (aux2), but this doesn't matter
 !       as it will be fixed when we synchronize below.
 
-        imax = ghost-1
+        if (tp==tl) then
+           imax = ghost+2
+        else
+           imax = ghost-1
+        end if
 
         do i=0,imax
            r0 = (dble(Nrtotal-i)-0.5d0)*dr(l)
