@@ -121,7 +121,7 @@
 ! dmaxwellF/dr  =  - alpha A maxwellE
 !
 !
-!  For the boundary conditions at the origin we take:
+! For the boundary conditions at the origin we take:
 !
 ! A(r=0)        = 1,     d A(r=0)     = 0
 !                         r
@@ -249,6 +249,7 @@
 
      if (rank==0) then
         write(*,'(A)') ' Using physical normalization at origin: procaPhi(r=0) = proca_phi0'
+        print *
      end if
 
 ! Alternative normalization.
@@ -258,7 +259,8 @@
      proca_phi0  = proca_phi0 /sqrt(4.d0*smallpi)
 
      if (rank==0) then
-        write(*,'(A,E16.10)') ' Using harmonic normalization at origin: procaPhi(r=0) = proca_phi0 /sqrt(4pi) = ', proca_phi0
+        write(*,'(A,ES23.16)') ' Using harmonic normalization at origin: procaPhi(r=0) = proca_phi0 /sqrt(4pi) = ', proca_phi0
+        print *
      end if
 
   end if
@@ -272,6 +274,24 @@
 ! ********************************
 ! ***   CHARGE NORMALIZATION   ***
 ! ********************************
+
+! Standard normalization.
+
+  if (charge_factor=="standard") then
+
+     if (rank==0) then
+        write(*,'(A)') ' Using standard charge normalization'
+        print *
+     end if
+
+  else
+
+     if (rank==0) then
+        write(*,'(A)') ' Using DIFFERENT charge normalization'
+        print *
+     end if
+
+  end if
 
 
 ! *************************************
@@ -694,7 +714,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES22.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',proca_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',proca_omega,'    Residual: ',res
 
      end do
 
@@ -791,8 +811,8 @@
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled)      = ', proca_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)          = ', omega_new
+        write(*,'(A,ES23.16)') ' Omega (not-rescaled)      = ', proca_omega
+        write(*,'(A,ES23.16)') ' Omega (rescaled)          = ', omega_new
      end if
 
 !    Rescale procaF and maxwellF.
@@ -845,7 +865,7 @@
      omega_new = omega_new + cproca_q*Ffac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (gauge transformed) = ', omega_new
+        write(*,'(A,ES23.16)') ' Omega (gauge transformed) = ', omega_new
         print *
      end if
 

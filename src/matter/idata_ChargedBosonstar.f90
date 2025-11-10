@@ -231,6 +231,7 @@
 
      if (rank==0) then
         write(*,'(A)') ' Using physical normalization at origin: phi(r=0) = phi0'
+        print *
      end if
 
 ! Alternative normalization.
@@ -240,7 +241,8 @@
      boson_phi0 = boson_phi0/sqrt(4.d0*smallpi)
 
      if (rank==0) then
-        write(*,'(A,E16.10)') ' Using harmonic normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', boson_phi0
+        write(*,'(A,ES23.16)') ' Using harmonic normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', boson_phi0
+        print *
      end if
 
   end if
@@ -746,7 +748,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES22.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
 
      end do
 
@@ -766,7 +768,7 @@
 !    Output value of omega to screen.
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (eigenvalue)        = ', boson_omega
+        write(*,'(A,E23.16)') ' Omega (eigenvalue)        = ', boson_omega
      end if
 
 
@@ -863,14 +865,14 @@
               do while (rr(0,i)<10.d0)
                  i=i+1
               end do
-              write(*,'(A,E22.16)') ' Omega (Pugliese r=10)     = ', 1.d0 - (complex_q/boson_omega)*F_g(0,i)
+              write(*,'(A,ES23.16)') ' Omega (Pugliese r=10)     = ', 1.d0 - (complex_q/boson_omega)*F_g(0,i)
            end if
         end if
 
 !       Output Pugliese frequency extrapolated to infinity.
 
         if (rank==0) then
-           write(*,'(A,E22.16)') ' Omega (Pugliese r=infty)  = ', 1.d0 - (complex_q/boson_omega)*Ffac
+           write(*,'(A,ES23.16)') ' Omega (Pugliese r=infty)  = ', 1.d0 - (complex_q/boson_omega)*Ffac
            write(*,*)
         end if
 
@@ -919,7 +921,7 @@
      omega_new = boson_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (lapse rescaled)    = ', omega_new
+        write(*,'(A,ES23.16)') ' Omega (lapse rescaled)    = ', omega_new
      end if
 
 !    Rescale electric potential F.
@@ -962,7 +964,7 @@
      omega_new = omega_new - complex_q*Ffac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (gauge transformed) = ', omega_new
+        write(*,'(A,ES23.16)') ' Omega (gauge transformed) = ', omega_new
         print *
      end if
 
