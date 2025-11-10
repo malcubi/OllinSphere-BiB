@@ -70,9 +70,9 @@
   end if
 
 
-! *********************************************
-! ***   OUTPUT TOTAL BOSON NUMBER AND R99   ***
-! *********************************************
+! **********************************************************
+! ***   OUTPUT TOTAL BOSON NUMBER AND EFFECTIVE RADIUS   ***
+! **********************************************************
 
 ! Calculate the radius for which we have 99% of the
 ! total boson number. We do this only on the coarse grid,
@@ -137,7 +137,9 @@
      if (rank==0)  then
         write(*,'(A,ES23.16)') ' Total boson number NB  = ',NBTOT
         write(*,'(A,ES23.16)') ' Total rest mass (m*NB) = ',NBTOT*complex_mass
-        write(*,'(A,ES23.16)') ' Effective radius R99 from NB(r) = ',R99
+        if (idata=="bosonstar") then
+           write(*,'(A,ES23.16)') ' Effective radius R99 from NB(r) = ',R99
+        end if
         print *
      end if
 
