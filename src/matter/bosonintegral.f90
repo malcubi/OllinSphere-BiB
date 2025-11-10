@@ -135,8 +135,10 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0)  then
-        write(*,'(A,E19.12)') ' Total boson number NB        = ',NBTOT
-        write(*,'(A,E19.12)') ' Total boson rest mass (m*NB) = ',NBTOT*complex_mass
+        write(*,'(A,ES23.16)') ' Total boson number NB  = ',NBTOT
+        write(*,'(A,ES23.16)') ' Total rest mass (m*NB) = ',NBTOT*complex_mass
+        write(*,'(A,ES23.16)') ' Effective radius R99 from NB(r) = ',R99
+        print *
      end if
 
   end if
