@@ -106,6 +106,11 @@
 
   call idata_TOVstar
 
+! Now calculate mass integral before adding scalar field.
+
+  r_area = r*psi**2*sqrt(B)
+  call massintegral
+
 
 ! ************************************************
 ! ***   NOW ADD A COMPLEX SCALAR FIELD PULSE   ***

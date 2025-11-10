@@ -419,13 +419,13 @@
 
                  TOV_rad = rr(l,irad-1) - dr(l)*rho0_g(l,irad-1)/(rho0_g(l,irad) - rho0_g(l,irad-1))
 
-                 write(*,'(A,E19.12)') ' Radius of TOV star = ',TOV_rad
+                 write(*,'(A,ES23.16)') ' Radius of TOV star = ',TOV_rad
 
 !                We also output the radius in km assuming our units are
 !                such that c=G=Msol=1.  For this we need to multiply
 !                the result with G*Msol/c^2 ~ 1.477.
 
-                 write(*,'(A,E19.12)') ' Radius of TOV star in km (taking c=G=Msol=1) = ',TOV_rad*Rsol/1.d3
+                 write(*,'(A,ES23.16)') ' Radius of TOV star in km (taking c=G=Msol=1) = ',TOV_rad*Rsol/1.d3
                  print *
 
 !                Set fluid density equal to zero.
