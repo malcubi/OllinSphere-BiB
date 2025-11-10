@@ -140,17 +140,19 @@
 ! have an electric fiels, this number does not mean
 ! much as it converges very slowly, so we don't output it.
 
-  if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
+  if (t(0)==0.d0) then
 
      MTOT = mass_int(0,Nr)
 
      if (size==1) then
-        write(*,'(A,E19.12)') ' Total integrated mass M = ',MTOT
+        write(*,'(A,ES23.16)') ' Total integrated mass M = ',MTOT
+        print *
      else
         if (rank==0) then
            p = size-1
            call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-           write(*,'(A,E19.12)') ' Total integrated mass M = ',MTOT
+           write(*,'(A,ES23.16)') ' Total integrated mass M = ',MTOT
+           print *
         else if (rank==size-1) then
            call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
         end if
@@ -178,7 +180,7 @@
 
   if ((t(0)==0.d0).and.(.not.contains(mattertype,"electric"))) then
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Maximum of compactness function (M(r)/r_area) = ',CMAX
+        write(*,'(A,ES23.16)') ' Maximum of compactness function (M(r)/r_area) = ',CMAX
         print *
      end if
   end if
@@ -192,7 +194,7 @@
 
   if ((t(0)==0.d0).and.(idata=="TOVstar")) then
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Total compactness M/R = ',MTOT/TOV_rad
+        write(*,'(A,ES23.16)') ' Total compactness M/R = ',MTOT/TOV_rad
         print *
      end if
   end if
@@ -272,8 +274,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Effective radius R99 from M(r) = ',R99
-        write(*,'(A,E19.12)') ' Effective compactness M/R99    = ',MTOT/R99
+        write(*,'(A,ES23.16)') ' Effective radius R99 from M(r) = ',R99
+        write(*,'(A,ES23.16)') ' Effective compactness M/R99    = ',MTOT/R99
         print *
      end if
 

@@ -8,13 +8,16 @@
 
 ! This is the integrated Proca charge:
 !
-!                /                          /                 1/2      6   2
-! complex_NB  =  | cproca_Qdens dV  =  4 pi | cproca_Qdens [ A   B  psi ] r dr
-!                /                          /
+!                 /                          /                 1/2      6   2
+! cproca_Qint  =  | cproca_Qdens dV  =  4 pi | cproca_Qdens [ A   B  psi ] r dr
+!                 /                          /
 !
 ! Notice that this assumes that the spacetime is REGULAR at the
 ! origin, so it will not work for eternal black holes such as
 ! Schwarzschild or Reissner-Nordstrom.
+!
+! NOTE:  This is NOT an electric charge, but rather the
+! number of Proca particles.
 
 ! Include modules.
 
@@ -132,8 +135,9 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Total Proca charge (Q) =',QTOT
-        write(*,'(A,E19.12)') ' R99 =',R99
+        write(*,'(A,ES23.16)') ' Total Proca charge N  = ',QTOT
+        write(*,'(A,ES23.16)') ' Total rest mass (m*N) = ',QTOT*cproca_mass
+        write(*,'(A,ES23.16)') ' Effective radius R99 from N(r)= ',R99
         print *
      end if
 
