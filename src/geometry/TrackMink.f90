@@ -83,31 +83,37 @@
 
 ! To update the position of the coordinate lines I first calculate
 ! the interval of the point we are considering to the points to
-! the left and right onn the previous time step (forming a triangle):
+! the left and right on the previous time step (forming a triangle):
 !
 !                     ...   o  o  x  o  o  ...
 !                     ...   o  x  o  x  o  ...
-
+!
 ! The idea is then to find that point in Minkowski spacetime that is
 ! at precisely those distances from the previous points whose positions
 ! are known.  Notice that one would expect two possible solutions,
 ! one in the past and one on the future, but I lock onto the correct
 ! one by choosing a initial guess in the future.
+!
+! At the last grid point we modify the molecule above slighlty to:
+!
+!                     ...   o  o  x
+!                     ...   o  x  x
+
 
 ! Copy old positions.
 
-  R_MINK_P = R_MINK
-  T_MINK_P = T_MINK
+  R_MINK_P(l,:) = R_MINK(l,:)
+  T_MINK_P(l,:) = T_MINK(l,:)
 
 ! Loop over grid points.
 
   do i=1,Nr
 
-!    As initial guess I assume that the observer did not move in space
-!    and advanced one coarse time step in time.
+!    As initial guess I assume that the coordinate lines did not move
+!    in space and advanced one time step in time.
  
      R_guess = R_MINK(l,i)
-     T_guess = T_MINK(l,i) + dt(0)
+     T_guess = T_MINK(l,i) + dt(l)
 
 !    Calculate interval to point on the left on previous time step.
 !    First we average the lapse, shift and metric components, and then
@@ -161,9 +167,11 @@
         phi_avg   = 0.5d0*(phi(l,Nr) + phi_p(l,Nr))
         A_avg     = 0.5d0*(A(l,Nr) + A_p(l,Nr))
 
+        gammarr = exp(4.d0*phi_avg)*A_avg
+
         dright = - (alpha_avg*dt(l))**2
 
-       if (shift/="none") then
+        if (shift/="none") then
            beta_avg = 0.5d0*(beta(l,Nr) + beta_p(l,Nr))
            dright = dright + gammarr*(beta_avg*dt(l))**2
         end if
@@ -264,6 +272,12 @@
 ! ***********************
 
   100 continue
+
+! Here we do some special output.  It is not enough to just
+! output the arrays R_MINK, T_MINK, R_MINK_S, T_MINK_S.
+! In practice it is much more interesting to output
+! the pairs (R_MINK,T_MINK), or (R_MINK,T_MINK_S) in
+! order to see the actual slices in Minkowski coordinates. 
 
 ! Do output only every Noutput1D time steps.
 ! Notice that for refinement levels we need
@@ -443,7 +457,7 @@
 !
 ! det        Determinant of Jacobian.
 !
-! epsilon    Toletance.
+! epsilon    Tolerance.
 
 
 ! **************************
