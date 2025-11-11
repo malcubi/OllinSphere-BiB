@@ -1004,6 +1004,10 @@
 
   logical :: TrackMinkowski = .false.
 
+! Schwarzschild.
+
+  logical :: TrackSchwarzschild = .false.
+
 
 ! ***************
 ! ***   END   ***
