@@ -199,6 +199,27 @@
 
   end if
 
+! Schwarzschild.
+
+  if (TrackSchwarzschild) then
+
+     if (idata=="schwarzschild") then
+
+        do l=0,Nl-1
+           call trackschwarz(l)
+        end do
+
+     else
+
+        print *, 'Tracking Schwarzschild requires idata=schwarzschild ...'
+        print *, 'Aborting! (subroutine base/evolve.f90)'
+        print *
+        call die
+
+     end if
+
+  end if
+
 
 ! ************************
 ! ***   FIND SOURCES   ***
