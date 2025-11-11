@@ -359,6 +359,12 @@
      call trackmink(l)
   end if
 
+! Schwarzschild.
+
+  if (TrackSchwarzschild) then
+     call trackschwarz(l)
+  end if
+
 
 ! **********************************
 ! ***   ARE THERE FINER GRIDS?   ***
