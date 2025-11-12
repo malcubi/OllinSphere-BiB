@@ -287,7 +287,8 @@
   else
 
      if (rank==0) then
-        write(*,'(A)') ' Using DIFFERENT charge normalization'
+        write(*,'(A)') ' Non-standrad charge normalization not yet implemented'
+        call die
         print *
      end if
 
