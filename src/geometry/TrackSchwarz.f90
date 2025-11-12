@@ -25,7 +25,8 @@
   logical error                          ! Error in finding solution.
 
   integer i,l,p                          ! Counters
-  integer imin,imax,Naux                 ! Auxiliary.
+  integer imax,Naux                      ! Auxiliary.
+  integer, save :: imin = 1              ! Minimum value of i.
   integer status(MPI_STATUS_SIZE)
 
   real(8) CSI_guess,CSI_left,CSI_right   ! R positions.
@@ -35,6 +36,8 @@
   real(8) ra_left,ra_right               ! Average areal radius to left and right.
   real(8) gammarr                        ! Physical radial metric: grr = exp(4*phi)*A
   real(8) dleft,dright                   ! Left and right physical intervals.
+  real(8) interp                         ! Interpolation function.
+  real(8) r0,aux
 
   real(8), dimension (1-ghost:Nrmax) :: var1,var2  !  Arrays for output.
 
@@ -45,6 +48,8 @@
 ! **********************
 ! ***   INITIALIZE   ***
 ! **********************
+
+  print *, "Tracking Schwarzschild not yet working correctly, DO NOT USE!"
 
 ! Initialize output files flags.
 
@@ -59,11 +64,7 @@
 
      firstcall(l) = .true.
 
-!    Find Schwarzschild areal radius.
-
-     r_area(l,:) = r(l,:)*psi(l,:)**2*sqrt(B(l,:))
-
-!    Set Kruskal ETA to zero.
+!    Set Kruskal ETA to zero initially.
 
      ETA_SCHWARZ(l,:) = 0.d0
 
@@ -73,32 +74,42 @@
 !                           1/2
 !    CSI  =  (r_area/2M - 1)    exp(r_area/4M)
 !
-!    where r_area is the usual Schwarzschild areal
-!    radius calculated above.  The expression above
-!    is valid outside the horizon, which in the isotropic
-!    coordinates of our initial data corresponds to r>M/2.
+!    where r_area is the usual Schwarzschild areal radius.
+!    The expression above is valid outside the horizon,
+!    which in the isotropic coordinates of our initial
+!    data corresponds to r>M/2.
 !
-!    Remember also that r>M/2 is not the interior of
+!    Remember also that r<M/2 is not the interior of
 !    the black hole, but rather the other side of the
 !    Einstein-Rosen bridge, so in that case we just
 !    change the sign of CSI.
 !
 !    Notice that we ignore the ghost point to the left
-!    of the origin since they make no sense here.
-!    Also, for very small r we fiund very large CSI
-!    because as r goes to zero we are in fact approaching
-!   infinity on the other side of the wormhole.
+!    of the origin since they make no sense here. Also,
+!    for very small r we find very large negative values
+!    of CSI because as r goes to zero we are in fact
+!    approaching infinity on the other side of the wormhole.
 
      CSI_SCHWARZ(l,:) = 0.d0
 
-     do i=1,Nr
+     do i=2,Nr
+        aux = r(l,i)*psi(l,i)**2*dsqrt(B(l,i))
         if (r(l,i)>=0.5d0*BHmass) then
-           CSI_SCHWARZ(l,i) = + dsqrt(r_area(l,i)/2.d0/BHmass - 1.d0) &
-                                *dexp(r_area(l,i)/4.d0/BHmass)
+           CSI_SCHWARZ(l,i) = + dsqrt(abs(0.5d0*aux/BHmass-1.d0))*dexp(0.25d0*aux/BHmass)
         else
-           CSI_SCHWARZ(l,i) = - dsqrt(r_area(l,i)/2.d0/BHmass - 1.d0) &
-                                *dexp(r_area(l,i)/4.d0/BHmass)
+           CSI_SCHWARZ(l,i) = - dsqrt(abs(0.5d0*aux/BHmass-1.d0))*dexp(0.25d0*aux/BHmass)
         end if
+     end do
+
+!    Find imin. We fix it so that the values of CSI don't change
+!    too much on the left boundary.  Remember that CSI grows
+!    exponetially (to negative values) as the radial coordinate
+!    r approaches 0.
+
+     imin = 1
+
+     do i=1,Nr-1
+        if (CSI_SCHWARZ(l,i+1)-CSI_SCHWARZ(l,i)>0.05d0) imin=i
      end do
 
 !    Jump to output.
@@ -132,12 +143,10 @@
 
 ! Copy old positions.
 
-  CSI_SCHWARZ_p(l,:) = CSI_SCHWARZ(l,:)
-  ETA_SCHWARZ_p(l,:) = ETA_SCHWARZ(l,:)
+  CSI_SCHWARZ_P(l,:) = CSI_SCHWARZ(l,:)
+  ETA_SCHWARZ_P(l,:) = ETA_SCHWARZ(l,:)
 
 ! Loop over grid points.
-
-  imin = 30
 
   do i=imin,Nr
 
@@ -156,42 +165,56 @@
 !    the interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
 
-     if (i==imin) then
+     if (i>imin) then
 
-        alpha_avg = 0.5d0*(alpha(l,imin) + alpha_p(l,imin))
-        phi_avg   = 0.5d0*(  phi(l,imin) +   phi_p(l,imin))
-        A_avg     = 0.5d0*(    A(l,imin) +     A_p(l,imin))
-        B_avg     = 0.5d0*(    B(l,imin) +     B_p(l,imin))
+        r0 = 0.5d0*(r(l,i)+r(l,i-1))
 
-        ra_left = r(l,imin)*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+        CSI_left = CSI_SCHWARZ_P(l,i-1)
+        ETA_left = ETA_SCHWARZ_P(l,i-1)
 
-        gammarr = exp(4.d0*phi_avg)*A_avg
+        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i-1))
+        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i-1))
+        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i-1))
+
+        if (i<Nr-2) then
+        !if (.false.) then
+           interpvar => phi
+           phi_avg = interp(l,r0,.false.)
+        else
+           phi_avg = 0.5d0*(phi(l,i) + phi(l,i-1))
+        end if
+
+        gammarr = dexp(4.d0*phi_avg)*A_avg
+
+        dleft = - (alpha_avg*dt(l))**2 + gammarr*dr(l)**2
+
+        if (shift/="none") then
+           print *, 'Shift term not implemented'
+        end if
+
+       ra_left = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
+     else
+
+        r0 = r(l,i)
+
+        CSI_left = CSI_SCHWARZ_P(l,i)
+        ETA_left = ETA_SCHWARZ_P(l,i)
+
+        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i))
+        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i))
+        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i))
+        phi_avg   = 0.5d0*(  phi(l,i) +   phi_p(l,i))
+
+        ra_left = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
+        gammarr = dexp(4.d0*phi_avg)*A_avg
 
         dleft = - (alpha_avg*dt(l))**2
 
         if (shift/="none") then
-           beta_avg = 0.5d0*(beta(l,i) + beta_p(l,imin))
-           dleft = dleft + gammarr*(beta_avg*dt(l))**2 + 2.d0*gammarr*beta_avg*dr(l)*dt(l)
+           print *, 'Shift term not implemented'
         end if
-
-        CSI_left = CSI_SCHWARZ_P(l,imin)
-        ETA_left = ETA_SCHWARZ_P(l,imin)
-
-     else
-
-        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i-1))
-        phi_avg   = 0.5d0*(  phi(l,i) +   phi_p(l,i-1))
-        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i-1))
-        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i-1))
-
-        ra_left = 0.5d0*(r(l,i)+r(l,i-1))*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
-        gammarr = exp(4.d0*phi_avg)*A_avg
-
-        dleft = - (alpha_avg*dt(l))**2 + gammarr*dr(l)**2
-
-        CSI_left = CSI_SCHWARZ_P(l,i-1)
-        ETA_left = ETA_SCHWARZ_P(l,i-1)
 
      end if
 
@@ -204,37 +227,26 @@
 !    the interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
 
-     if (i==Nr) then
+     if (i<Nr) then
 
-        alpha_avg = 0.5d0*(alpha(l,Nr) + alpha_p(l,Nr))
-        phi_avg   = 0.5d0*(  phi(l,Nr) +   phi_p(l,Nr))
-        A_avg     = 0.5d0*(    A(l,Nr) +     A_p(l,Nr))
-        B_avg     = 0.5d0*(    B(l,Nr) +     B_p(l,Nr))
+        r0 = 0.5d0*(r(l,i)+r(l,i+1))
 
-        ra_right = r(l,Nr)*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
-        gammarr = exp(4.d0*phi_avg)*A_avg
-
-        dright = - (alpha_avg*dt(l))**2
-
-        if (shift/="none") then
-           beta_avg = 0.5d0*(beta(l,Nr) + beta_p(l,Nr))
-           dright = dright + gammarr*(beta_avg*dt(l))**2
-        end if
-
-        CSI_right = CSI_SCHWARZ_P(l,Nr)
-        ETA_right = ETA_SCHWARZ_P(l,Nr)
-
-     else
+        CSI_right = CSI_SCHWARZ_P(l,i+1)
+        ETA_right = ETA_SCHWARZ_P(l,i+1)
 
         alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i+1))
-        phi_avg   = 0.5d0*(  phi(l,i) +   phi_p(l,i+1))
         A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i+1))
         B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i+1))
 
-        ra_right = 0.5d0*(r(l,i)+r(l,i+1))*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+        if (i<Nr-2) then
+        !if (.false.) then
+           interpvar => phi
+           phi_avg = interp(l,r0,.false.)
+        else
+           phi_avg = 0.5d0*(phi(l,i) + phi(l,i+1))
+        end if
 
-        gammarr = exp(4.d0*phi_avg)*A_avg
+        gammarr = dexp(4.d0*phi_avg)*A_avg
 
         dright = - (alpha_avg*dt(l))**2 + gammarr*dr(l)**2
 
@@ -243,22 +255,43 @@
            dright = dright + gammarr*(beta_avg*dt(l))**2 - 2.d0*gammarr*beta_avg*dr(l)*dt(l)
         end if
 
-        CSI_right = CSI_SCHWARZ_P(l,i+1)
-        ETA_right = ETA_SCHWARZ_P(l,i+1)
+        ra_right = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
+     else
+
+        CSI_right = CSI_SCHWARZ_P(l,Nr)
+        ETA_right = ETA_SCHWARZ_P(l,Nr)
+
+        alpha_avg = 0.5d0*(alpha(l,Nr) + alpha_p(l,Nr))
+        A_avg     = 0.5d0*(    A(l,Nr) +     A_p(l,Nr))
+        B_avg     = 0.5d0*(    B(l,Nr) +     B_p(l,Nr))
+        phi_avg   = 0.5d0*(  phi(l,Nr) + phi_p(l,Nr))
+
+        ra_right = r(l,Nr)*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
+        gammarr = dexp(4.d0*phi_avg)*A_avg
+
+        dright = - (alpha_avg*dt(l))**2
+
+        if (shift/="none") then
+           beta_avg = 0.5d0*(beta(l,Nr) + beta_p(l,Nr))
+           dright = dright + gammarr*(beta_avg*dt(l))**2
+        end if
 
      end if
 
 !    Now solve for the position of the point that has precisely those
 !    intervals in Kruskal-Szekeres coordinates.
 
-     call solvepointkruskal(BHmass,CSI_guess,ETA_guess,CSI_left,ETA_left,CSI_right,ETA_right,dleft,dright,ra_left,ra_right,error)
+     error = .false.
+     call solvepointkruskal(error,CSI_guess,ETA_guess,CSI_left,ETA_left,CSI_right,ETA_right,dleft,dright,ra_left,ra_right,BHmass)
 
 !    Error message.
 
      if (error) then
           print *, 'Newton-Raphson iterations did not converge at point',i,'  , r =',r(l,i), ' , level l =',l
-          print *, 'Aborting! (subroutine geometry/trackschwarz.f90)'
-          print *
+          !print *, 'Aborting! (subroutine geometry/trackschwarz.f90)'
+          !print *
           !call die
      end if
 
@@ -267,9 +300,17 @@
      CSI_SCHWARZ(l,i) = CSI_guess
      ETA_SCHWARZ(l,i) = ETA_guess
 
-  end do
+     aux = r(l,i)*dexp(2.d0*phi(l,i))
 
-  goto 10
+     !if (r(l,i)<0.5d0*BHmass) then
+     !   print *, i,CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i), &
+     !   -dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*cosh(t(l)/4.d0),dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*sinh(t(l)/4.d0)
+     !else
+     !   print *, i,CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i), &
+     !   +dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*cosh(t(l)/4.d0),dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*sinh(t(l)/4.d0)
+     !end if
+
+  end do
 
 ! For parallel runs synchronize across processors.
 
@@ -302,8 +343,6 @@
      end if
 
   end if
-
-  10 continue
 
 
 ! ***********************
@@ -429,7 +468,7 @@
 
 
 
-  subroutine solvepointkruskal(M,csi,eta,csi1,eta1,csi2,eta2,d1,d2,ra1,ra2,error)
+  subroutine solvepointkruskal(error,csi,eta,csi1,eta1,csi2,eta2,d1,d2,ra1,ra2,M)
 
 ! ***************************
 ! ***   SOLVE FOR POINT   ***
@@ -525,18 +564,18 @@
 
 !    Check if we achieved desired tolerance.
 
-     norm = dabs(delta(1)) + dabs(delta(2))
+     norm = dabs(res(1)) + dabs(res(2))
 
      if (norm<epsilon) then
-        !d1 = aux1*((csi - csi1)**2 - (eta - eta1)**2)
-        !d2 = aux2*((csi - csi2)**2 - (eta - eta2)**2)
+        d1 = aux1*((csi - csi1)**2 - (eta - eta1)**2)
+        d2 = aux2*((csi - csi2)**2 - (eta - eta2)**2)
         return
      end if
 
   end do
 
-! If we get here we the algorithm did not converge, so we
-! set the error flag to .true.
+! If we get here the algorithm did not converge,
+! so we set the error flag to .true.
 
   error = .true.
 
