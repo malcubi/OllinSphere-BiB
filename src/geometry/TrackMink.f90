@@ -137,6 +137,9 @@
         dleft = dleft + gammarr*(beta_avg*dt(l))**2 + 2.d0*gammarr*beta_avg*dr(l)*dt(l)
      end if
 
+     R_left  = R_MINK_P(l,i-1)
+     T_left  = T_MINK_P(l,i-1)
+
 !    Calculate interval to point on the right on previous time step.
 !    First we average the lapse, shift and metric components, and then
 !    we find the interval.  Notice the sign of the mixed term, it is
@@ -161,6 +164,9 @@
            dright = dright + gammarr*(beta_avg*dt(l))**2 - 2.d0*gammarr*beta_avg*dr(l)*dt(l)
         end if
 
+        R_right = R_MINK_P(l,i+1)
+        T_right = T_MINK_P(l,i+1)
+
      else
 
         alpha_avg = 0.5d0*(alpha(l,Nr) + alpha_p(l,Nr))
@@ -176,31 +182,24 @@
            dright = dright + gammarr*(beta_avg*dt(l))**2
         end if
 
+        R_right = R_MINK_P(l,Nr)
+        T_right = T_MINK_P(l,Nr)
+
      end if
 
 !    Now solve for the position of the point that has precisely those
 !    intervals in Minkowski coordinates.
 
-     R_left  = R_MINK_P(l,i-1)
-     T_left  = T_MINK_P(l,i-1)
-
-     if (i<Nr) then
-        R_right = R_MINK_P(l,i+1)
-        T_right = T_MINK_P(l,i+1)
-     else
-        R_right = R_MINK_P(l,Nr)
-        T_right = T_MINK_P(l,Nr)
-     end if
-
+     error = .false.
      call solvepointmink(R_guess,T_guess,R_left,T_left,R_right,T_right,dleft,dright,error)
 
 !    Error message.
 
      if (error) then
           print *, 'Newton-Raphson iterations did not converge at r =',r(l,i), ' level l =',l
-          print *, 'Aborting! (subroutine geometry/trackmink.f90)'
-          print *
-          call die
+          !print *, 'Aborting! (subroutine geometry/trackmink.f90)'
+          !print *
+          !call die
      end if
 
 !    Save new coordinates.
@@ -498,14 +497,14 @@
 
 !    Check if we achieved desired tolerance.
 
-     epsilon = dabs(delta(1)) + dabs(delta(2))
+     epsilon = dabs(res(1)) + dabs(res(2))
 
      if (epsilon < 1.0d-10) return
 
   end do
 
-! If we get here we the algorithm did not converge, so we
-! set the error flag to .true.
+! If we get here the algorithm did not converge,
+! so we set the error flag to .true.
 
   error = .true.
 
