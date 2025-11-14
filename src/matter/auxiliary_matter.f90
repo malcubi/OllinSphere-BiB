@@ -346,7 +346,7 @@
      D1_eF(l,:) = diff1(l,+1)
 
      diffvar => eH
-     D1_eH(l,:) = diff1(l,+1)
+     D1_eH(l,:) = diff1(l,-1)
 
 !    Advective derivatives.
 
