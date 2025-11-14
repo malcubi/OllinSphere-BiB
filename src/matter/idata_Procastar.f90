@@ -169,7 +169,7 @@
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval. 
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,aux               ! Auxiliary quantities.
-  real(8) :: epsilon = 1.d-8            ! Tolerance.
+  real(8) :: epsilon = 1.d-10           ! Tolerance.
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                    ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g           ! Global arrays for radial metric and lapse.
