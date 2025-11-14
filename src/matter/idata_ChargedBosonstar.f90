@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedBosonstar.f90,v 1.25 2024/02/28 23:42:16 malcubi Exp $
 
   subroutine idata_chargedboson
 
@@ -180,12 +179,12 @@
   real(8) F_rk,E_rk                     ! Runge-Kutta values of (F,E).
   real(8) V_rk,K_rk                     ! Runge-Kutta values of (V,K) (potential and kinetic term).
   real(8) J1_CB,J2_CB,J3_CB             ! Functions for sources of differential equations.
-  real(8) J4_CB,J5_CB,J6_CB             ! Functions for sources of differential equations.
+  real(8) J4_CB,J5_CB,J6_CB,J7_CB       ! Functions for sources of differential equations.
   real(8) res,res_old                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval. 
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,Ffac,aux          ! Auxiliary quantities.
-  real(8) :: epsilon = 1.d-8            ! Tolerance.
+  real(8) :: epsilon = 1.d-10           ! Tolerance.
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                 ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g        ! Radial metric and lapse global arrays.
@@ -768,7 +767,7 @@
 !    Output value of omega to screen.
 
      if (rank==0) then
-        write(*,'(A,E23.16)') ' Omega (eigenvalue)        = ', boson_omega
+        write(*,'(A,ES23.16)') ' Omega (eigenvalue)        = ', boson_omega
      end if
 
 
@@ -939,9 +938,9 @@
      piI_g = (omega_new/alpha_g)*phi_g
 
 
-!    *********************************************
-!    ***  OUTPUT GAUGE TRANSFORMED FREQUENCY   ***
-!    *********************************************
+!    **********************************************
+!    ***   OUTPUT GAUGE TRANSFORMED FREQUENCY   ***
+!    **********************************************
 
 !    Here we output the gauge transformed frequency.
 !    But we don't really do the gauge transformation
@@ -1149,7 +1148,7 @@
                  k21 = delta*J2_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
 
                  k51 = delta*J5_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
-                 k61 = delta*J6_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
+                 k61 = delta*J7_CB(A_rk,alpha_rk,phi_rk,xi_rk,piI_rK,F_rk,E_rk,V_rk,K_rk,rm)
 
               end if
 
@@ -1184,7 +1183,7 @@
               k22 = delta*J2_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
 
               k52 = delta*J5_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
-              k62 = delta*J6_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
+              k62 = delta*J7_CB(A_rk,alpha_rk,phi_rk,xi_rk,piI_rK,F_rk,E_rk,V_rk,K_rk,rm)
 
 !             III) Third Runge-Kutta step.
 
@@ -1205,7 +1204,7 @@
               k23 = delta*J2_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
 
               k53 = delta*J5_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
-              k63 = delta*J6_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
+              k63 = delta*J7_CB(A_rk,alpha_rk,phi_rk,xi_rk,piI_rK,F_rk,E_rk,V_rk,K_rk,rm)
 
 !             IV) Fourth Runge-Kutta step.
 
@@ -1232,7 +1231,7 @@
               k24 = delta*J2_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
 
               k54 = delta*J5_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
-              k64 = delta*J6_CB(A_rk,alpha_rk,phi_rk,xi_rk,F_rk,E_rk,V_rk,K_rk,rm)
+              k64 = delta*J7_CB(A_rk,alpha_rk,phi_rk,xi_rk,piI_rK,F_rk,E_rk,V_rk,K_rk,rm)
 
 !             Advance variables to next grid point.
 
@@ -1470,9 +1469,9 @@
 
   rho = K + V
   
-!              /                      /            2              2       2      2    \          2 \
-! d(A)/dr  = A | (1 - A)/r + 4 pi r A | 2 V  +  phi  (omega - q F) / alpha  +  xi / A | + r (A E)  |
-!              \                      \                                               /            /
+!              /                                   2 \
+! d(A)/dr  = A | (1 - A)/r + 8 pi r A rho + r (A E)  |
+!              \                                     /
 
   J1_CB = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho + rm*(A*E)**2)
 
@@ -1670,9 +1669,8 @@
 
   DA = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho + rm*(A*E)**2)
 
-!                 /                  \
-! d(E)/dr  =  - E | 2/r  +  d A/(2A) |  +  4 pi rho_e
-!                 \          r       /
+! d(E)/dr  =  - E [ 2/r  +  d A/(2A) ]  +  4 pi rho_e
+!                            r
 !
 ! where the charge density is given by:
 !
@@ -1683,4 +1681,55 @@
         + 4.d0*smallpi*complex_q*phi**2*(boson_omega - complex_q*F)/alpha
 
   end function J6_CB
+
+
+
+
+
+
+
+! **************************************************
+! ***   RADIAL DERIVATIVE OF E, SECOND VERSION   ***
+! **************************************************
+
+! The radial derivative of E comes from the
+! Gauss constraint.  This is the same es J6 above,
+! but without assuming the Pi_I = omega Phi / alpha.
+
+  function J7_CB(A,alpha,phi,xi,piI,F,E,V,K,rm)
+
+  use param
+
+  implicit none
+
+  real(8) J7_CB
+  real(8) A,alpha,phi,xi,piI,F,E
+  real(8) V,K,rm,rho,rhoe
+  real(8) DA,smallpi
+
+! Numbers.
+
+  smallpi = acos(-1.d0)
+
+! Energy density for scalar field.
+
+  rho = K + V
+
+! Radial derivative of A (identical to function J1_CB).
+
+  DA = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho + rm*(A*E)**2)
+
+! d(E)/dr  =  - E [ 2/r  +  d A/(2A) ]  +  4 pi rho_e
+!                            r        
+!
+! where the charge density is given by:
+!
+!              
+! rho_e = q phi ( Pi - q F phi / alpha)
+
+  J7_CB = - E*(2.d0/rm + 0.5d0*DA/A) &
+        + 4.d0*smallpi*complex_q*phi*(piI - complex_q*F*phi/alpha)
+
+  end function J7_CB
+
 
