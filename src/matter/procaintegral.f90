@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/procaintegral.f90,v 1.3 2025/09/24 17:25:02 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/procaintegral.f90,v 1.4 2025/11/14 18:28:16 malcubi Exp $
 
   subroutine procaintegral
 
@@ -6,7 +6,7 @@
 ! ***   CALCULATION OF INTEGRATED PROCA CHARGE   ***
 ! **************************************************
 
-! This is the integrated Proca charge:
+! This is the integrated Proca charge (number of particles):
 !
 !                 /                          /                 1/2      6   2
 ! cproca_Qint  =  | cproca_Qdens dV  =  4 pi | cproca_Qdens [ A   B  psi ] r dr
@@ -15,9 +15,6 @@
 ! Notice that this assumes that the spacetime is REGULAR at the
 ! origin, so it will not work for eternal black holes such as
 ! Schwarzschild or Reissner-Nordstrom.
-!
-! NOTE:  This is NOT an electric charge, but rather the
-! number of Proca particles.
 
 ! Include modules.
 
