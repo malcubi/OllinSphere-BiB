@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_ChargedProcastar.f90,v 1.6 2024/08/28 17:27:18 malcubi Exp $
 
   subroutine idata_chargedprocastar
 
@@ -201,7 +200,7 @@
   real(8) omega_new,omega_old,domega     ! Trial frequency and frequency interval. 
   real(8) half,smallpi                   ! Numbers.
   real(8) rm,alphafac,Ffac,aux           ! Auxiliary quantities.
-  real(8) :: epsilon = 1.d-8             ! Tolerance.
+  real(8) :: epsilon = 1.d-10            ! Tolerance.
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                        ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g               ! Radial metric and lapse global arrays.
@@ -287,8 +286,7 @@
   else
 
      if (rank==0) then
-        write(*,'(A)') ' Non-standrad charge normalization not yet implemented'
-        call die
+        write(*,'(A)') ' Using DIFFERENT charge normalization'
         print *
      end if
 
@@ -1490,17 +1488,17 @@
   
   real(8) J5_CPS
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
-  real(8) rho,ecurrent
+  real(8) rho,echarge
 
 ! The radial derivative of maxwellE comes from the Gauss constraint
 ! and takes the form:
 !
-! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi ecurrent
+! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
 !
-!              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi ecurrent
+!              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi echarge
 !
 ! where in the second equality we used the Hamiltonian constraint
-! to eliminate dA/dr, and with "ecurrent" the electric current of
+! to eliminate dA/dr, and with "echarge" the charge density of
 ! the Proca field.
 !
 ! For the energy density we have:
@@ -1509,18 +1507,18 @@
 ! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
 !
 !
-! And for the electric current we have:
+! And for the charge density we have:
 !
-! ecurrent = (q / 4 pi) procaA procaE
+! echarge = (q / 4 pi) procaA procaE
 
   rho = A*(procaE**2 + maxwellE**2) + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A)
 
-  ecurrent = cproca_q*procaA*procaE
+  echarge = cproca_q*procaA*procaE
 
 ! Notice that we don't divide by the factors of 8*pi and 4*pi
 ! in the last expressions since they cancel.
 
-  J5_CPS = - maxwellE*((5.d0-A)/(2.d0*rm) + 0.5d0*rm*A*rho) + ecurrent
+  J5_CPS = - maxwellE*((5.d0-A)/(2.d0*rm) + 0.5d0*rm*A*rho) + echarge
 
   end function J5_CPS
 
