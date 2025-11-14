@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/electric.f90,v 1.16 2024/06/25 18:06:27 malcubi Exp $
 
   subroutine sources_electric(l)
 
@@ -154,7 +153,7 @@
 ! spherical wave. Notice that for a localized charge
 ! distribution that does not extend all the way to the boundary
 ! the right hand side below should vanish since we expect
-! to have sPhi ~ 1/r (of courdse this is only exactly true
+! to have sPhi ~ 1/r (of course this is only exactly true
 ! for Minkowski).
 
   sePhi(l,Nr) = - (D1_ePhi(l,Nr) + ePhi(l,Nr)/r(l,Nr))
