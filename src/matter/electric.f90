@@ -164,7 +164,7 @@
 ! so here I recalculate the sources close to the boundary to
 ! fourth order.
 
-  if ((order/="two").or.(order/="four")) then
+  if ((order/="two").and.(order/="four")) then
 
      do i=Nr-ghost+2,Nr-1
 
