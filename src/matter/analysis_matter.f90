@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/analysis_matter.f90,v 1.59 2025/10/01 17:50:01 malcubi Exp $
 
   subroutine analysis_matter
 
