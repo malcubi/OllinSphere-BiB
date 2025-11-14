@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/massintegral.f90,v 1.45 2025/11/14 18:28:48 malcubi Exp $
 
   subroutine massintegral
 
