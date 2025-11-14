@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/chargeintegral.f90,v 1.6 2025/10/01 17:51:29 malcubi Exp $
 
   subroutine chargeintegral
 
