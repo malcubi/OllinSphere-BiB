@@ -149,50 +149,21 @@
 ! is no magnetic field), so it needs no boundary condition.
 ! For the potentials we do need a boundary condition.
 
-! Boundary conditions for ePhi:  We assume a simple outgoing
-! spherical wave. Notice that for a localized charge
-! distribution that does not extend all the way to the boundary
-! the right hand side below should vanish since we expect
-! to have sPhi ~ 1/r (of course this is only exactly true
-! for Minkowski).
+! For ePhi and eAr I have experimented with radiative boundary
+! conditions to both, assuming that far away they behave as
+! f(r-t)/r.  It turns out that the best well behaved case
+! case is to aply the radiative condition only to eAr, and
+! leave ePhi to evolve freely all the way to the boundary.
+! This seems to be stable and the Gauss constraint converges
+! to zero.
 
-  sePhi(l,Nr) = - (D1_ePhi(l,Nr) + ePhi(l,Nr)/r(l,Nr))
+! Boundary conditions for ePhi.
 
-! The variable eAr in fact does not need a boundary condition,
-! but ... it turns out that for this type of first order system
-! the higher order one-sided derivatives cause instabilities,
-! so here I recalculate the sources close to the boundary to
-! fourth order.
+  !sePhi(l,Nr) = - (D1_ePhi(l,Nr) + ePhi(l,Nr)/r(l,Nr))
 
-  if ((order/="two").and.(order/="four")) then
+! Boundary condition for eAr.
 
-     do i=Nr-ghost+2,Nr-1
-
-        aux = (3.d0*eH(l,i+1) + 10.d0*eH(l,i) - 18.d0*eH(l,i-1) + 6.d0*eH(l,i-2) - eH(l,i-3))/12.d0/dr(l)
-
-        sePhi(l,i) = one/(A(l,i)*psi4(l,i))*(eH(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                   - 2.d0*D1_phi(l,i) - 2.d0/r(l,i)) - aux) + trK(l,i)*eF(l,i)
-
-        aux = (3.d0*eF(l,i+1) + 10.d0*eF(l,i) - 18.d0*eF(l,i-1) + 6.d0*eF(l,i-2) - eF(l,i-3))/12.d0/dr(l)
-
-        seAr(l,i) = - alpha(l,i)*A(l,i)*psi4(l,i)*electric(l,i) - aux
-
-        if (shift/="none") then
-           sePhi(l,i) = sePhi(l,i) + beta(l,i)*DA_ePhi(l,i)
-           seAr(l,i)  = seAr(l,i) + beta(l,i)*DA_eAr(l,i) + eAr(l,i)*D1_beta(l,i)
-        end if
-
-     end do
-
-!    Source for eAr at last point.
-
-     seAr(l,Nr) = - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*electric(l,Nr) - D1_eF(l,Nr)
-
-     if (shift/="none") then
-        seAr(l,Nr) = seAr(l,Nr) + beta(l,Nr)*DA_eAr(l,Nr) + eAr(l,Nr)*D1_beta(l,Nr)
-     end if
-
-  end if
+  seAr(l,Nr) = - (D1_eAr(l,Nr) + eAr(l,Nr)/r(l,Nr))
 
 
 ! ***************
