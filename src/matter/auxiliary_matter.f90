@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/auxiliary_matter.f90,v 1.31 2025/03/04 20:06:52 malcubi Exp $
 
   subroutine auxiliary_matter(l)
 
