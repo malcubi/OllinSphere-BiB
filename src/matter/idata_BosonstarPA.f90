@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarPA.f90,v 1.119 2024/05/21 19:10:42 malcubi Exp $
 
   subroutine idata_BosonstarPA
 
@@ -164,7 +163,7 @@
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval.
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,aux               ! Auxiliary quantities.
-  real(8) :: epsilon = 1.d-8            ! Tolerance.
+  real(8) :: epsilon = 1.d-10           ! Tolerance.
  
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                 ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g        ! Radial metric and lapse global arrays.
