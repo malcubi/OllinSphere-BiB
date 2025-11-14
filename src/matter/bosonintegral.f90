@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/bosonintegral.f90,v 1.18 2025/10/01 17:50:53 malcubi Exp $
 
   subroutine bosonintegral
 
