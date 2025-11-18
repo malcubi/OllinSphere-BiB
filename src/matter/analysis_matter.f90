@@ -194,6 +194,16 @@
                + 6.d0*D1_phi + two/r) + proca_mass**2*procaPhi
      end if
 
+!    Boundary. The calculation above is done all the way to
+!    the boundary with one-sided differences, but this introduces
+!    large artificial errors, so I fix it here.
+  
+     if (rank==size-1) then
+        Cproca(:,Nr  ) = Cproca(:,Nr-3)
+        Cproca(:,Nr-1) = Cproca(:,Nr-3)
+        Cproca(:,Nr-2) = Cproca(:,Nr-3)
+     end if
+
 !    Proca eigenfields.
 
      if (allocated(wp_proca)) then
@@ -218,23 +228,33 @@
 
      if (allocated(Ccomplexproca_R)) then
 
-         Ccomplexproca_R = D1_cprocaE_R + cprocaE_R*(half*D1_AB2/AB2 &
-               + 6.d0*D1_phi + two/r) + cproca_mass**2*cprocaPhi_R
+        Ccomplexproca_R = D1_cprocaE_R + cprocaE_R*(half*D1_AB2/AB2 &
+           + 6.d0*D1_phi + two/r) + cproca_mass**2*cprocaPhi_R
 
-!        Aditional term added for non-zero angular momentum of constituent fields.
+!       Aditional term added for non-zero angular momentum of constituent fields.
 
-         if (cproca_l/=0) then
-             Ccomplexproca_R = Ccomplexproca_R - dble(cproca_l*(cproca_l+1))*cprocaXi_R/(B*psi4)/r**2
-         end if
+        if (cproca_l/=0) then
+           Ccomplexproca_R = Ccomplexproca_R - dble(cproca_l*(cproca_l+1))*cprocaXi_R/(B*psi4)/r**2
+        end if
 
-!        Charge terms if needed.  For a charged Proca field we need
-!        to add a term of the form:
+!       Charge terms if needed.  For a charged Proca field we need
+!       to add a term of the form:
 !
-!        Ccomplexproca_R = Ccomplexproca_R - q eAr cprocaE_I
+!       Ccomplexproca_R = Ccomplexproca_R - q eAr cprocaE_I
 
-         if (cproca_q/=0.d0) then
-            Ccomplexproca_R = Ccomplexproca_R - cproca_q*eAr*cprocaE_I
-         end if
+        if (cproca_q/=0.d0) then
+           Ccomplexproca_R = Ccomplexproca_R - cproca_q*eAr*cprocaE_I
+        end if
+
+!       Boundary. The calculation above is done all the way to
+!       the boundary with one-sided differences, but this introduces
+!       large artificial errors, so I fix it here.
+  
+        if (rank==size-1) then
+           Ccomplexproca_R(:,Nr  ) = Ccomplexproca_R(:,Nr-3)
+           Ccomplexproca_R(:,Nr-1) = Ccomplexproca_R(:,Nr-3)
+           Ccomplexproca_R(:,Nr-2) = Ccomplexproca_R(:,Nr-3)
+        end if
 
      end if
 
@@ -242,23 +262,33 @@
 
      if (allocated(Ccomplexproca_I)) then
 
-         Ccomplexproca_I = D1_cprocaE_I + cprocaE_I*(half*D1_AB2/AB2 &
-               + 6.d0*D1_phi + two/r) + cproca_mass**2*cprocaPhi_I
+        Ccomplexproca_I = D1_cprocaE_I + cprocaE_I*(half*D1_AB2/AB2 &
+           + 6.d0*D1_phi + two/r) + cproca_mass**2*cprocaPhi_I
                
-!        Aditional term added for non-zero angular momentum of constituent fields.
+!       Aditional term added for non-zero angular momentum of constituent fields.
 
-         if (cproca_l/=0) then
-             Ccomplexproca_I = Ccomplexproca_I - dble(cproca_l*(cproca_l+1))*cprocaXi_I/(B*psi4)/r**2
-         end if
+        if (cproca_l/=0) then
+           Ccomplexproca_I = Ccomplexproca_I - dble(cproca_l*(cproca_l+1))*cprocaXi_I/(B*psi4)/r**2
+        end if
 
-!        Charge terms if needed.  For a charged Proca field we need
-!        to add a term of the form:
+!       Charge terms if needed.  For a charged Proca field we need
+!       to add a term of the form:
 !
-!        Ccomplexproca_I = Ccomplexproca_I + q eAr cprocaE_R
+!       Ccomplexproca_I = Ccomplexproca_I + q eAr cprocaE_R
 
-         if (cproca_q/=0.d0) then
-             Ccomplexproca_I = Ccomplexproca_I + cproca_q*eAr*cprocaE_R
-         end if
+        if (cproca_q/=0.d0) then
+           Ccomplexproca_I = Ccomplexproca_I + cproca_q*eAr*cprocaE_R
+        end if
+
+!       Boundary. The calculation above is done all the way to
+!       the boundary with one-sided differences, but this introduces
+!       large artificial errors, so I fix it here.
+  
+        if (rank==size-1) then
+           Ccomplexproca_I(:,Nr  ) = Ccomplexproca_I(:,Nr-3)
+           Ccomplexproca_I(:,Nr-1) = Ccomplexproca_I(:,Nr-3)
+           Ccomplexproca_I(:,Nr-2) = Ccomplexproca_I(:,Nr-3)
+        end if
 
      end if
 
@@ -494,6 +524,16 @@
      if (allocated(Celectric)) then
         Celectric = D1_electric + electric*(half*D1_AB2/AB2 &
                   + 6.d0*D1_phi + two/r) - 4.d0*smallpi*echarge
+     end if
+
+!    Boundary. The calculation above is done all the way to
+!    the boundary with one-sided differences, but this introduces
+!    large artificial errors, so I fix it here.
+  
+     if (rank==size-1) then
+        Celectric(:,Nr  ) = Celectric(:,Nr-3)
+        Celectric(:,Nr-1) = Celectric(:,Nr-3)
+        Celectric(:,Nr-2) = Celectric(:,Nr-3)
      end if
 
 !    Electric eigenfields.
