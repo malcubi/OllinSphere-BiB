@@ -201,7 +201,7 @@
   real(8) omega_new,omega_old,domega     ! Trial frequency and frequency interval. 
   real(8) half,smallpi                   ! Numbers.
   real(8) rm,alphafac,Ffac,aux           ! Auxiliary quantities.
-  real(8) :: epsilon = 1.d-8             ! Tolerance.
+  real(8) :: epsilon = 1.d-9             ! Tolerance.
 
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: rr                        ! Radial coordinate.
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: A_g,alpha_g               ! Radial metric and lapse global arrays.
@@ -625,8 +625,9 @@
 
 !             Check if solution is already very small.
 
-              if (abs(procaF_g(l,i))+abs(procaF_g(l,i-1))<epsilon) then
+              if (abs(procaA_g(l,i))+abs(procaA_g(l,i-1))<epsilon) then
                  procaF_g(l,i) = 0.d0
+                 procaA_g(l,i) = 0.d0
               end if
 
            end do
@@ -670,12 +671,12 @@
 
         res_old = res
 
-        if (abs(procaF_g(0,Nrtotal))+abs(procaF_g(0,Nrtotal-1))<epsilon) then
+        if (abs(procaA_g(0,Nrtotal))+abs(procaA_g(0,Nrtotal-1))<epsilon) then
            res = epsilon/2.d0
            goto 100
         else
            aux = abs(cproca_mass**2 - (proca_omega/alpha_g(0,Nrtotal))**2)
-           res = (procaF_g(0,Nrtotal) - procaF_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaF_g(0,Nrtotal)
+           res = (procaA_g(0,Nrtotal) - procaA_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaA_g(0,Nrtotal)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega
