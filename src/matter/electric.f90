@@ -150,9 +150,9 @@
 ! For the potentials we do need a boundary condition.
 
 ! For ePhi and eAr I have experimented with radiative boundary
-! conditions to both, assuming that far away they behave as
+! conditions for both, assuming that far away they behave as
 ! f(r-t)/r.  It turns out that the best well behaved case
-! case is to aply the radiative condition only to eAr, and
+! is to aply the radiative condition only to eAr, and
 ! leave ePhi to evolve freely all the way to the boundary.
 ! This seems to be stable and the Gauss constraint converges
 ! to zero.
