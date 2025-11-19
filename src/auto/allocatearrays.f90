@@ -5832,6 +5832,28 @@
   end if
 
   if (contains(mattertype,"complexproca")) then
+     if (contains(outvars0D,"Ccomplexproca_norm").or. &
+         contains(outvars1D,"Ccomplexproca_norm")) then
+        if (trim(status)=='on') then
+           allocate(Ccomplexproca_norm(0:Nl-1,1-ghost:Nrmax))
+           Ccomplexproca_norm = 0.d0
+        else
+           deallocate(Ccomplexproca_norm)
+        end if
+     end if
+  else if (contains(outvars0D,"Ccomplexproca_norm").or. &
+           contains(outvars1D,"Ccomplexproca_norm")) then
+     if (rank==0) then
+        print *
+        print *, 'Error in parfile: array Ccomplexproca_norm has no storage,'
+        print *, 'so no output for it is possible.'
+        print *, 'Aborting! (subroutine allocatearrays.f90)'
+        print *
+     end if
+     call die
+  end if
+
+  if (contains(mattertype,"complexproca")) then
      if (trim(status)=='on') then
         allocate(cproca_Qdens(0:Nl-1,1-ghost:Nrmax))
         cproca_Qdens = 0.d0
@@ -6322,6 +6344,50 @@
      if (rank==0) then
         print *
         print *, 'Error in parfile: array dirac_PiGI has no storage,'
+        print *, 'so no output for it is possible.'
+        print *, 'Aborting! (subroutine allocatearrays.f90)'
+        print *
+     end if
+     call die
+  end if
+
+  if (contains(mattertype,"dirac")) then
+     if (contains(outvars0D,"dirac_F_norm").or. &
+         contains(outvars1D,"dirac_F_norm")) then
+        if (trim(status)=='on') then
+           allocate(dirac_F_norm(0:Nl-1,1-ghost:Nrmax))
+           dirac_F_norm = 0.d0
+        else
+           deallocate(dirac_F_norm)
+        end if
+     end if
+  else if (contains(outvars0D,"dirac_F_norm").or. &
+           contains(outvars1D,"dirac_F_norm")) then
+     if (rank==0) then
+        print *
+        print *, 'Error in parfile: array dirac_F_norm has no storage,'
+        print *, 'so no output for it is possible.'
+        print *, 'Aborting! (subroutine allocatearrays.f90)'
+        print *
+     end if
+     call die
+  end if
+
+  if (contains(mattertype,"dirac")) then
+     if (contains(outvars0D,"dirac_G_norm").or. &
+         contains(outvars1D,"dirac_G_norm")) then
+        if (trim(status)=='on') then
+           allocate(dirac_G_norm(0:Nl-1,1-ghost:Nrmax))
+           dirac_G_norm = 0.d0
+        else
+           deallocate(dirac_G_norm)
+        end if
+     end if
+  else if (contains(outvars0D,"dirac_G_norm").or. &
+           contains(outvars1D,"dirac_G_norm")) then
+     if (rank==0) then
+        print *
+        print *, 'Error in parfile: array dirac_G_norm has no storage,'
         print *, 'so no output for it is possible.'
         print *, 'Aborting! (subroutine allocatearrays.f90)'
         print *
