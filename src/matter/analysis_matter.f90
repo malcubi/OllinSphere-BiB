@@ -128,7 +128,7 @@
         complex_Bdens_r2 = complex_Bdens*r**2
      end if
 
-!    The total boson number (integrated boson charge) is:
+!    The integrated boson charge is:
 !
 !                        /r                2
 !    complex_NB  =  4 pi |  complex_Bdens R  dR
@@ -224,6 +224,7 @@
   if (contains(mattertype,"complexproca")) then
 
 !    Complex Proca Gauss constraint:  Div(E) + m^2 Phi = 0.
+
 !    Real part.
 
      if (allocated(Ccomplexproca_R)) then
@@ -303,7 +304,7 @@
      end if
 
      if (allocated(cprocaB_norm)) then
-        cprocaA_norm = sqrt(cprocaB_R**2 + cprocaB_I**2)
+        cprocaB_norm = sqrt(cprocaB_R**2 + cprocaB_I**2)
      end if
 
      if (allocated(cprocaE_norm)) then
@@ -311,7 +312,11 @@
      end if
 
      if (allocated(cprocaXi_norm)) then
-        cprocaE_norm = sqrt(cprocaXi_R**2 + cprocaXi_I**2)
+        cprocaXi_norm = sqrt(cprocaXi_R**2 + cprocaXi_I**2)
+     end if
+
+     if (allocated(Ccomplexproca_norm)) then
+        Ccomplexproca_norm = sqrt(Ccomplexproca_R**2 + Ccomplexproca_I**2)
      end if
 
 !    Proca charge density times r**2.
@@ -320,7 +325,13 @@
         cproca_Qdens_r2 = cproca_Qdens*r**2
      end if
 
-!    Call subroutine for integrated Proca charge.
+!    The integrated Proca charge is:
+!
+!                        /r               2
+!    complex_NB  =  4 pi |  cproca_Qdens R  dR
+!                        /0
+!
+!    with R the Schwarzschild radius.
 
      if (allocated(cproca_Qint)) then
 
@@ -376,7 +387,17 @@
         wmI_dirac = dirac_FI - dirac_GI
      end if
 
-!    The total particle number (integrated particle number) is:
+!    Norms.
+
+     if (allocated(dirac_F_norm)) then
+        dirac_F_norm = sqrt(dirac_FR**2 + dirac_FI**2)
+     end if
+
+     if (allocated(dirac_G_norm)) then
+        dirac_G_norm = sqrt(dirac_GR**2 + dirac_GI**2)
+     end if
+
+!    The integrated particle number is:
 !
 !                        /r             2
 !    dirac_Nint  =  4 pi |  dirac_dens R  dR
