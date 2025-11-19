@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexproca.f90,v 1.16 2024/07/23 20:12:18 malcubi Exp $
 
   subroutine sources_complexproca(l)
 
@@ -228,62 +227,22 @@
 ! is no magnetic field), so it needs no boundary condition.
 ! For the potentials we do need a boundary condition.
 
-! Boundary conditions for procaPhi. We assume a simple outgoing
-! spherical wave.  We also add a contribution to the source (-E/2).
-! This term comes from expressing ePhi in terms of incoming and
-! outgoing eigenfields, and then assuming the incoming eigenfield
-! is very small.
+! For procaPhi and procaA I have experimented with radiative boundary
+! conditions for both, assuming that far away they behave as f(r-t)/r.
+! It turns out that the best well behaved case is to aply the radiative
+! condition only to procaA, and leave procaPhi to evolve freely all the
+! way to the boundary. This seems to be stable and the Gauss constraint
+! converges to zero.
 
-  scprocaPhi_R(l,Nr) = - (D1_cprocaPhi_R(l,Nr) + cprocaPhi_R(l,Nr)/r(l,Nr)) - 0.5d0*cprocaE_R(l,Nr)
-  scprocaPhi_I(l,Nr) = - (D1_cprocaPhi_I(l,Nr) + cprocaPhi_I(l,Nr)/r(l,Nr)) - 0.5d0*cprocaE_I(l,Nr)
+! Boundary conditions for procaPhi.
 
-! The variable procaA in fact does not need a boundary condition,
-! but ... it turns out that for this type of first order system
-! the higher order one-sided derivatives cause instabilities,
-! so here I recalculate the sources close to the boundary to
-! fourth order.
+  !scprocaPhi_R(l,Nr) = - (D1_cprocaPhi_R(l,Nr) + cprocaPhi_R(l,Nr)/r(l,Nr))
+  !scprocaPhi_I(l,Nr) = - (D1_cprocaPhi_I(l,Nr) + cprocaPhi_I(l,Nr)/r(l,Nr))
 
-  do i=Nr-ghost+2,Nr-1
+! Boundary condition for procaA.
 
-     aux = (3.d0*cprocaH_R(l,i+1) + 10.d0*cprocaH_R(l,i) - 18.d0*cprocaH_R(l,i-1) &
-         + 6.d0*cprocaH_R(l,i-2) - cprocaH_R(l,i-3))/12.d0/dr(l)
-     scprocaPhi_R(l,i) = one/(A(l,i)*psi4(l,i))*(cprocaH_R(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                       - 2.d0*D1_phi(l,i) - 2.d0/r(l,i)) - aux) + trK(l,i)*cprocaF_R(l,i)
-
-     aux = (3.d0*cprocaH_I(l,i+1) + 10.d0*cprocaH_I(l,i) - 18.d0*cprocaH_I(l,i-1) &
-         + 6.d0*cprocaH_I(l,i-2) - cprocaH_I(l,i-3))/12.d0/dr(l)
-     scprocaPhi_I(l,i) = one/(A(l,i)*psi4(l,i))*(cprocaH_I(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                       - 2.d0*D1_phi(l,i) - 2.d0/r(l,i)) - aux) + trK(l,i)*cprocaF_I(l,i)
-
-     aux = (3.d0*cprocaF_R(l,i+1) + 10.d0*cprocaF_R(l,i) - 18.d0*cprocaF_R(l,i-1) &
-         + 6.d0*cprocaF_R(l,i-2) - cprocaF_R(l,i-3))/12.d0/dr(l)
-     scprocaA_R(l,i) = - alpha(l,i)*A(l,i)*psi4(l,i)*cprocaE_R(l,i) - aux
-
-     aux = (3.d0*cprocaF_I(l,i+1) + 10.d0*cprocaF_I(l,i) - 18.d0*cprocaF_I(l,i-1) &
-         + 6.d0*cprocaF_I(l,i-2) - cprocaF_I(l,i-3))/12.d0/dr(l)
-     scprocaA_I(l,i) = - alpha(l,i)*A(l,i)*psi4(l,i)*cprocaE_I(l,i) - aux
-
-     if (shift/="none") then
-
-        scprocaA_R(l,i) = scprocaA_R(l,i) + beta(l,i)*DA_cprocaA_R(l,i) + cprocaA_R(l,i)*D1_beta(l,i)
-        scprocaA_I(l,i) = scprocaA_I(l,i) + beta(l,i)*DA_cprocaA_I(l,i) + cprocaA_I(l,i)*D1_beta(l,i)
-
-        scprocaPhi_R(l,i) = scprocaPhi_R(l,i) + beta(l,i)*DA_cprocaPhi_R(l,i)
-        scprocaPhi_I(l,i) = scprocaPhi_I(l,i) + beta(l,i)*DA_cprocaPhi_I(l,i)
-
-     end if
-
-  end do
-
-! Source for procaA at last point.
-
-  scprocaA_R(l,Nr) = - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_R(l,Nr) - D1_cprocaF_R(l,Nr)
-  scprocaA_I(l,Nr) = - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_I(l,Nr) - D1_cprocaF_I(l,Nr)
-
-  if (shift/="none") then
-     scprocaA_R(l,Nr) = scprocaA_R(l,Nr) + beta(l,Nr)*DA_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)*D1_beta(l,Nr)
-     scprocaA_I(l,Nr) = scprocaA_I(l,Nr) + beta(l,Nr)*DA_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)*D1_beta(l,Nr)
-  end if
+  scprocaA_R(l,Nr) = - (D1_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)/r(l,Nr))
+  scprocaA_I(l,Nr) = - (D1_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)/r(l,Nr))
 
 
 ! ***************
