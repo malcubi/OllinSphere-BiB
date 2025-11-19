@@ -2031,6 +2031,11 @@
      savevar => cprocaXi_norm
   end if
 
+  if (varname=='Ccomplexproca_norm') then
+     exists = .true.
+     savevar => Ccomplexproca_norm
+  end if
+
   if (varname=='cproca_Qdens') then
      exists = .true.
      savevar => cproca_Qdens
@@ -2173,6 +2178,16 @@
   if (varname=='dirac_PiGI') then
      exists = .true.
      savevar => dirac_PiGI
+  end if
+
+  if (varname=='dirac_F_norm') then
+     exists = .true.
+     savevar => dirac_F_norm
+  end if
+
+  if (varname=='dirac_G_norm') then
+     exists = .true.
+     savevar => dirac_G_norm
   end if
 
   if (varname=='dirac_dens') then
