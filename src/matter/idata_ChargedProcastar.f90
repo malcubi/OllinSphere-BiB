@@ -1,5 +1,4 @@
 
-
   subroutine idata_chargedprocastar
 
 ! ***************************************************************
@@ -37,7 +36,7 @@
 ! so we are in electrostatics and we can take the Maxwell
 ! vector potential equal to zero, eAr=0.
 !
-! The standard ansatz for the metric for boson stars is:
+! The standard ansatz for the metric for Proca stars is:
 !
 !   2          2   2        2     2      2
 ! ds  = - alpha  dt  +  A dr  +  r dOmega
@@ -139,7 +138,7 @@
 !
 !
 ! maxwellE(r=0) = 0
-
+!
 ! Notice that in the final solution we don't want alpha(r=0)=1,
 ! but rather alpha=1 at infinity.  But this is no problem as the
 ! slicing condition above is linear in alpha so we can always
@@ -611,21 +610,23 @@
 !             Check if solution is blowing up. This helps to reduce
 !             the need for a very fine tuned initial guess.
 
-              if (abs(procaF_g(l,i))>2.d0*proca_phi0 ) then
+              if ((abs(procaF_g(l,i))>2.d0*proca_phi0).or. &
+                      (procaF_g(l,i)/=procaF_g(l,i)).or. &
+                      (procaA_g(l,i)/=procaA_g(l,i))) then
                  if (.not.left) then
                     omega_left = omega_left + domega
-                    boson_omega = omega_left
+                    proca_omega = omega_left
                     goto 100
                  else if (.not.right) then
                     omega_right = omega_right - domega
-                    boson_omega = omega_right
+                    proca_omega = omega_right
                     goto 100
                  end if
               end if
 
 !             Check if solution is already very small.
 
-              if (abs(procaA_g(l,i))+abs(procaA_g(l,i-1))<epsilon) then
+              if (abs(procaF_g(l,i))+abs(procaF_g(l,i-1))<epsilon) then
                  procaF_g(l,i) = 0.d0
                  procaA_g(l,i) = 0.d0
               end if
@@ -671,12 +672,12 @@
 
         res_old = res
 
-        if (abs(procaA_g(0,Nrtotal))+abs(procaA_g(0,Nrtotal-1))<epsilon) then
+        if (abs(procaF_g(0,Nr))+abs(procaF_g(0,Nr-1))<epsilon) then
            res = epsilon/2.d0
            goto 100
         else
-           aux = abs(cproca_mass**2 - (proca_omega/alpha_g(0,Nrtotal))**2)
-           res = (procaA_g(0,Nrtotal) - procaA_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*procaA_g(0,Nrtotal)
+           aux = abs(cproca_mass**2 - (proca_omega/alpha_g(0,Nr))**2)
+           res = (procaF_g(0,Nr) - procaF_g(0,Nr-1))/dr(0) + dsqrt(aux)*procaF_g(0,Nr)
         end if
 
 !       Secant method:  Having found the difference for the two values of omega
@@ -812,7 +813,7 @@
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,ES23.16)') ' Omega (not-rescaled)      = ', proca_omega
+        write(*,'(A,ES23.16)') ' Omega (not rescaled)      = ', proca_omega
         write(*,'(A,ES23.16)') ' Omega (rescaled)          = ', omega_new
      end if
 
