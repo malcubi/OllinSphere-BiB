@@ -591,6 +591,7 @@
   real(8), allocatable, dimension (:,:), target :: cprocaB_norm
   real(8), allocatable, dimension (:,:), target :: cprocaE_norm
   real(8), allocatable, dimension (:,:), target :: cprocaXi_norm
+  real(8), allocatable, dimension (:,:), target :: Ccomplexproca_norm
   real(8), allocatable, dimension (:,:), target :: cproca_Qdens
   real(8), allocatable, dimension (:,:), target :: cproca_Qdens_r2
   real(8), allocatable, dimension (:,:), target :: cproca_Qflux
@@ -631,6 +632,8 @@
   real(8), allocatable, dimension (:,:), target :: dirac_PiFI
   real(8), allocatable, dimension (:,:), target :: dirac_PiGR
   real(8), allocatable, dimension (:,:), target :: dirac_PiGI
+  real(8), allocatable, dimension (:,:), target :: dirac_F_norm
+  real(8), allocatable, dimension (:,:), target :: dirac_G_norm
   real(8), allocatable, dimension (:,:), target :: dirac_dens
   real(8), allocatable, dimension (:,:), target :: dirac_flux
   real(8), allocatable, dimension (:,:), target :: dirac_Nint
