@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/proca.f90,v 1.22 2025/11/18 19:58:12 malcubi Exp $
 
   subroutine sources_proca(l)
 
