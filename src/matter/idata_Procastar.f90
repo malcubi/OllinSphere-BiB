@@ -32,7 +32,7 @@
 ! at t=0 procaPhi is purely real while procaA is purely
 ! imaginary.
 !
-! The standard ansatz for the metric for boson stars is:
+! The standard ansatz for the metric for Proca stars is:
 !
 !   2          2   2        2     2      2
 ! ds  = - alpha  dt  +  A dr  +  r dOmega
@@ -230,7 +230,7 @@
 
   end if
 
-! Rescale the tolerance with boson_phi0, so the final tolerance
+! Rescale the tolerance with proca_phi0, so the final tolerance
 ! is measured with respect to this value.
 
   epsilon = epsilon*proca_phi0
@@ -507,14 +507,16 @@
 !             Check if solution is blowing up. This helps to reduce
 !             the need for a very fine tuned initial guess.
 
-              if (abs(procaF_g(l,i))>2.d0*proca_phi0) then
+              if ((abs(procaF_g(l,i))>2.d0*proca_phi0).or. &
+                      (procaF_g(l,i)/=procaF_g(l,i)).or. &
+                      (procaA_g(l,i)/=procaA_g(l,i))) then
                  if (.not.left) then
                     omega_left = omega_left + domega
-                    boson_omega = omega_left
+                    proca_omega = omega_left
                     goto 100
                  else if (.not.right) then
                     omega_right = omega_right - domega
-                    boson_omega = omega_right
+                    proca_omega = omega_right
                     goto 100
                  end if
               end if
@@ -523,6 +525,7 @@
 
               if (abs(procaF_g(l,i))+abs(procaF_g(l,i-1))<epsilon) then
                  procaF_g(l,i) = 0.d0
+                 procaA_g(l,i) = 0.d0
               end if
 
            end do
@@ -563,7 +566,7 @@
 
         res_old = res
 
-        if (abs(procaF_g(0,Nrtotal)) + abs(procaF_g(0,Nrtotal-1))<epsilon) then
+        if (abs(procaF_g(0,Nrtotal))+abs(procaF_g(0,Nrtotal-1))<epsilon) then
            res = epsilon/2.d0
            goto 100
         else
@@ -694,7 +697,7 @@
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', proca_omega
+        write(*,'(A,E22.16)') ' Omega (not rescaled) = ', proca_omega
         write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
         print *
      end if
