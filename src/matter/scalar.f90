@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/scalar.f90,v 1.20 2023/02/20 19:48:12 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/scalar.f90,v 1.21 2025/11/20 21:17:42 malcubi Exp $
 
   subroutine sources_scalar(l)
 
@@ -56,6 +56,8 @@
   implicit none
 
   integer i,l
+
+  real(8) aux
 
 
 ! *******************
@@ -229,7 +231,13 @@
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
+!    *******************************
+!    ***   ASYMPTOTICALLY FLAT   ***
+!    *******************************
+
      if (.not.cosmic_run) then
+
+        aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
 
         sscalar_pi(l,Nr) = - (D1_scalar_pi(l,Nr) + scalar_pi(l,Nr)/r(l,Nr))
 
@@ -238,6 +246,11 @@
         if (scalarpotential/="none") then
            sscalar_pi(l,Nr) = sscalar_pi(l,Nr) - 0.5d0*scalar_VP(l,Nr)
         end if
+
+
+!    ************************
+!    ***   COSMOLOGICAL   ***
+!    ************************
 
 !    Cosmological runs need to include the lapse and metric coefficients
 !    that are ignored in the asymptotically flat case.
