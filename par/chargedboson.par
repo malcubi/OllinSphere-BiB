@@ -6,9 +6,10 @@ dr0 = 0.02		   # Grid spacing
 dtfac = 0.5		   # Courant parameter
 
 Nrtotal = 3000		   # Number of grid points
-Nt = 5000   		   # Number of time steps
+Nt = 10000   		   # Number of time steps
 
-Nl = 4                     # Number of refinement levels2
+Nl = 1                     # Number of refinement levels
+
 slicing = 1+log 	   # Type of slicing condition
 gauge_f = 2.0	           # Coefficient for harmonic slicing
 
@@ -18,12 +19,13 @@ order = four  		   # Order for spatial finite differencing (two,four)
 boundtype = constraint     # Constraint preserving boundary condition
 
 mattertype = complex,electric    # Complex scalar field + electric field
+
 complexpotential = phi2    # Type of scalar potential
 complex_mass = 1.0         # Mass of complex scalar field
-complex_q = 0.5            # Charge of complex scalar field
+complex_q    = 0.5         # Charge of complex scalar field
 charge_factor = jetzer     # Charge normalization (standard,jetzer)
 
-geodiss    = 0.05	   # Dissipation coefficient for geometry
+geodiss    = 0.01	   # Dissipation coefficient for geometry
 scalardiss = 0.05	   # Dissipation coefficient for scalar field
 elecdiss   = 0.05          # Dissipation coefficient for electric field
 

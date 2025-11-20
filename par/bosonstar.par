@@ -5,10 +5,10 @@
 dr0 = 0.02		# Grid spacing
 dtfac = 0.5		# Courant parameter
 
-Nrtotal = 1500		# Number of grid points
-Nt = 500   		# Number of time steps
+Nrtotal = 3000		# Number of grid points
+Nt = 10000   		# Number of time steps
 
-Nl = 4                  # Number of refinement levels
+Nl = 1                  # Number of refinement levels
 
 slicing = 1+log 	# Type of slicing condition
 gauge_f = 2.0	        # Coefficient for harmonic slicing
@@ -22,20 +22,20 @@ mattertype = complex    # Complex scalar field
 complexpotential = phi2 # Type of scalar potential
 complex_mass = 1.0      # Mass of scalar field
 
-geodiss    = 0.01       # Dissipation coefficient for geometry
-scalardiss = 0.01       # Dissipation coefficient
-
 idata = bosonstar	# Type of initial data
 boson_gauge = PA        # Gauge for boson star data (PA=polar-areal,CF=conformally flat)
 boson_factor = physical # Normalization factor for boson star (physical,harmonic)
-boson_phi0 =  0.05       # Central value of scalar field
-omega_left   =  1.141266  # First trial omega
-omega_right  =  1.141267  # Second trial omega
+boson_phi0  = 0.05      # Central value of scalar field
+omega_left  = 1.1412663557  # First trial omega
+omega_right = 1.1412663558  # Second trial omega
+
+geodiss    = 0.01       # Dissipation coefficient for geometry
+scalardiss = 0.01       # Dissipation coefficient
 
 directory = bosonstar	# Name of output directory
-Ninfo = 25		# How often do we want to output information to screen?
+Ninfo = 100		# How often do we want to output information to screen?
 Noutput0D = 10		# How often do we want 0D output?
-Noutput1D = 25		# How often do we want 1D output?
+Noutput1D = 100		# How often do we want 1D output?
 
 outvars0D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int,compactness,virial1
 outvars1D = alpha,phi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int,compactness,virial1
