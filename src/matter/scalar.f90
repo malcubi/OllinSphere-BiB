@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/scalar.f90,v 1.21 2025/11/20 21:17:42 malcubi Exp $
 
   subroutine sources_scalar(l)
 
@@ -239,7 +238,7 @@
 
         aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
 
-        sscalar_pi(l,Nr) = - (D1_scalar_pi(l,Nr) + scalar_pi(l,Nr)/r(l,Nr))
+        sscalar_pi(l,Nr) = - aux*(D1_scalar_pi(l,Nr) + scalar_pi(l,Nr)/r(l,Nr))
 
 !       Potential term.
 
