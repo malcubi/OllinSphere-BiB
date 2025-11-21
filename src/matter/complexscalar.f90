@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexscalar.f90,v 1.28 2023/02/20 19:48:12 malcubi Exp $
 
   subroutine sources_complex(l)
 
@@ -86,6 +85,8 @@
   logical contains
 
   integer i,l,sym
+
+  real(8) aux
 
 
 ! *******************
@@ -278,10 +279,17 @@
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
+!    *******************************
+!    ***   ASYMPTOTICALLY FLAT   ***
+!    *******************************
+
      if (.not.cosmic_run) then
 
-        scomplex_piR(l,Nr) = - (D1_complex_piR(l,Nr) + complex_piR(l,Nr)/r(l,Nr))
-        scomplex_piI(l,Nr) = - (D1_complex_piI(l,Nr) + complex_piI(l,Nr)/r(l,Nr))
+        aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
+        !aux = 1.d0
+
+        scomplex_piR(l,Nr) = - aux*(D1_complex_piR(l,Nr) + complex_piR(l,Nr)/r(l,Nr))
+        scomplex_piI(l,Nr) = - aux*(D1_complex_piI(l,Nr) + complex_piI(l,Nr)/r(l,Nr))
 
 !       Potential term.
 
@@ -289,6 +297,11 @@
            scomplex_piR(l,Nr) = scomplex_piR(l,Nr) - 0.5d0*complex_VPR(l,Nr)
            scomplex_piI(l,Nr) = scomplex_piI(l,Nr) - 0.5d0*complex_VPI(l,Nr)
         end if
+
+
+!    ************************
+!    ***   COSMOLOGICAL   ***
+!    ************************
 
 !    Cosmological runs need to include the lapse and metric coefficients
 !    that are ignored in the asymptotically flat case.
