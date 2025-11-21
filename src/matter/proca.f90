@@ -154,20 +154,36 @@
 ! there is no magnetic field), so it needs no boundary condition.
 ! For the potentials we do need a boundary condition.
 
-! For procaPhi and procaA I have experimented with radiative boundary
-! conditions for both, assuming that far away they behave as f(r-t)/r.
-! It turns out that the best well behaved case is to aply the radiative
-! condition only to procaA, and leave procaPhi to evolve freely all the
-! way to the boundary. This seems to be stable and the Gauss constraint
-! converges to zero.
+! In order to impose the boundary condition we assume that far
+! away procaPhi and procaA behave as an outgoing spherical waves:
+!
+! u(r,t)  ~  g(r-vt)/r
+!
+! This can be shown to imply:
+!
+! du/dt   ~  - v (dPi/dr + Pi/r)
+!
+! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
+!
+! I have experimented with radiative boundary conditions for both
+! procaPhi and ProcaA. It turns out that the best well behaved case
+! is to aply the radiative condition only to procaA, and leave procaPhi
+! to evolve freely all the way to the boundary. This seems to be stable
+! and the Gauss constraint converges to zero.
 
-! Boundary condition for procaPhi.
+  if ((boundtype/="static").and.(boundtype/="flat")) then
 
-  !sprocaPhi(l,Nr) = - (D1_procaPhi(l,Nr) + procaPhi(l,Nr)/r(l,Nr))
+     aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
 
-! Boundary condition for procA.
+!    Boundary condition for procaPhi.
 
-  sprocaA(l,Nr) = - (D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr))
+     !sprocaPhi(l,Nr) = - aux*(D1_procaPhi(l,Nr) + procaPhi(l,Nr)/r(l,Nr))
+
+!    Boundary condition for procA.
+
+     sprocaA(l,Nr) = - aux*(D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr))
+
+  end if
 
 
 ! ***************
