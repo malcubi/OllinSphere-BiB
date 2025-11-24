@@ -150,13 +150,13 @@
 ! For the potentials we do need a boundary condition.
 
 ! In order to impose the boundary condition we assume that far
-! away ePhi and eAr behave as an outgoing spherical waves:
+! away ePhi and eAr behave as outgoing spherical waves:
 !
 ! u(r,t)  ~  g(r-vt)/r
 !
 ! This can be shown to imply:
 !
-! du/dt  ~  - v (dPi/dr + Pi/r)
+! du/dt  ~  - v (du/dr + u/r)
 !
 ! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
 !
