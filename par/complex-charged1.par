@@ -7,12 +7,14 @@
 # imaginary parts are different, and overlap in some region,
 # we will have a non-zero initial current density.
 # (see J. Torres and M. Alcubierre, Gen. Rel. Grav. (2014) 46:1773)
+#
+# In this case the amplitude is not enough to form a black hole.
 
-dr0 = 0.1		   # Grid spacing
+dr0 = 0.05		   # Grid spacing
 dtfac = 0.5		   # Courant parameter
 
-Nrtotal = 200		   # Number of grid points
-Nt = 500        	   # Number of time steps
+Nrtotal = 1000		   # Number of grid points
+Nt = 4000        	   # Number of time steps
 
 Nl = 1                     # Number of refinement levels
 
@@ -40,9 +42,9 @@ complexI_r0 = 10.2	   # Center of perturbation
 complexI_s0 = 1.0	   # Width of perturbation
 
 directory = complex-charged1	   # Name of output directory
-Ninfo = 50		   # How often do we want to output information to screen?
-Noutput0D = 1		   # How often do we want 0D output?
-Noutput1D = 50		   # How often do we want 1D output?
+Ninfo = 100		   # How often do we want to output information to screen?
+Noutput0D = 10		   # How often do we want 0D output?
+Noutput1D = 100		   # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int,eQ_surf
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,electric,ePhi,eAr,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,echarge,ecurrent,Celectric,rho,mass_sch,mass_int,eQ_int,eQ_surf
