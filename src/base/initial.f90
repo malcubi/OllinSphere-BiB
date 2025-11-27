@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/initial.f90,v 1.92 2025/09/04 16:02:50 malcubi Exp $
 
   subroutine initial
 
