@@ -646,6 +646,31 @@
   end if
 
 
+! *******************************
+! ***   COMPLEX PROCA PULSE   ***
+! *******************************
+
+! This initial data corresponds to a small initial pulse
+! in the proca field.
+
+  if (idata=="complexprocapulse") then
+
+     if (contains(mattertype,"complexproca")) then
+
+        call idata_complexprocapulse
+
+     else
+
+        print *, 'Complex Proca pulse initial data needs "complexproca" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
+
+     end if
+
+  end if
+
+
 ! **********************
 ! ***   BOSON STAR   ***
 ! **********************
