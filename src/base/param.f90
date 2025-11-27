@@ -700,6 +700,8 @@
 ! proca_r0:          Center of initial profile.
 ! proca_s0:          Width of initial profile.
 ! proca_t0:          Transition width of initial profile (for top-hat profile).
+!
+! procabound:        Boundary condition for Proca field.
 
   real(8) :: proca_mass = 1.d0
 
@@ -709,6 +711,7 @@
   real(8) :: proca_t0 = 1.d0
 
   character(1000) :: procaprofile = "gaussian"    ! range=(gaussian,tophat)
+  character(1000) :: procabound   = "radPhi"      ! range=(radPhi,radA)
 
 
 ! *******************************
