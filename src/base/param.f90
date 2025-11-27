@@ -267,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,TOVcomplex,blastwave,scalarDM,complexDM,ghostwormhole,duststep)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,complexprocapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,TOVcomplex,blastwave,scalarDM,complexDM,ghostwormhole,duststep)
 
 
 ! *********************
@@ -750,6 +750,16 @@
   real(8) :: proca_PhiR_a0 = 0.d0
   real(8) :: proca_PhiR_r0 = 0.d0
   real(8) :: proca_PhiR_s0 = 1.d0
+  real(8) :: proca_PhiR_t0 = 1.d0
+
+  real(8) :: proca_PhiI_a0 = 0.d0
+  real(8) :: proca_PhiI_r0 = 0.d0
+  real(8) :: proca_PhiI_s0 = 1.d0
+  real(8) :: proca_PhiI_t0 = 1.d0
+
+  real(8) :: proca_AR_a0 = 0.d0
+  real(8) :: proca_AR_r0 = 1.d0
+  real(8) :: proca_AR_s0 = 1.d0
 
   real(8) :: proca_AI_a0 = 0.d0
   real(8) :: proca_AI_r0 = 1.d0
