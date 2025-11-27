@@ -155,21 +155,33 @@
 ! For the potentials we do need a boundary condition.
 
 ! In order to impose the boundary condition we assume that far
-! away procaPhi and procaA behave as an outgoing spherical waves:
+! away procaPhi and procaA behave as outgoing spherical waves:
 !
 ! u(r,t)  ~  g(r-vt)/r
 !
 ! This can be shown to imply:
 !
-! du/dt   ~  - v (dPi/dr + Pi/r)
+! du/dt   ~  - v (du/dr + u/r)
 !
 ! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
 !
 ! I have experimented with radiative boundary conditions for both
 ! procaPhi and ProcaA. It turns out that the best well behaved case
-! is to aply the radiative condition only to procaA, and leave procaPhi
+! is to aply the radiative condition only to procaP, and leave procaA
 ! to evolve freely all the way to the boundary. This seems to be stable
 ! and the Gauss constraint converges to zero.
+!
+! This is the opposite from what happened with the Maxwell field,
+! where the best behaved case was applying the radiative condition
+! tio the vector potential.  This might be because the Maxwell field
+! is long range while the Proca field is not (it is massive).
+!
+! The extra second term when applying the radiative condition
+! to A improves it, and makes when used makes the radiative
+! condition for A almost identical to the radiative condition
+! for Phi.  But it seems that it is easier to just apply the
+! condition to Phi.  I leave it there just in case it works
+! better in some cases.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
@@ -177,11 +189,23 @@
 
 !    Boundary condition for procaPhi.
 
-     !sprocaPhi(l,Nr) = - aux*(D1_procaPhi(l,Nr) + procaPhi(l,Nr)/r(l,Nr))
+     if (procabound=="radPhi") then
 
-!    Boundary condition for procA.
+        sprocaPhi(l,Nr) = - aux*(D1_procaPhi(l,Nr) + procaPhi(l,Nr)/r(l,Nr))
 
-     sprocaA(l,Nr) = - aux*(D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr))
+!    Boundary condition for procaA.
+
+     else if (procabound=="radA") then
+
+        sprocaA(l,Nr) = - aux*(D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr))
+
+!       Extra term for boundary condition for procaA.
+!       (I need to explain where this comes from).
+
+        sprocaA(l,Nr) = sprocaA(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*procaE(l,Nr) &
+                      + (alpha(l,Nr)*procaPhi(l,Nr) - aux*procaA(l,Nr))/r(l,Nr)
+
+     end if
 
   end if
 
