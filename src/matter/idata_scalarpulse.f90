@@ -617,6 +617,14 @@
      call distribute(0,Nl-1,psi,u)
   end if
 
+! Find derivative of psi.
+
+  diffvar => psi
+
+  do l=0,Nl-1
+     D1_psi(l,:) = diff1(l,+1)
+  end do
+
 
 ! ***************************************
 ! ***   FIND CONFORMAL FUNCTION phi   ***
@@ -625,10 +633,17 @@
 ! Find phi and chi.
 
   phi = dlog(psi)
+  D1_phi = D1_psi/psi
 
   if (chimethod) then
      chi = one/psi**chipower
+     D1_chi = - dble(chipower)*D1_psi/psi**chipower
   end if
+
+! Find psi2 and psi4.
+
+  psi2 = psi**2
+  psi4 = psi**4
 
 
 ! ***************
