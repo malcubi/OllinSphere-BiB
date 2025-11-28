@@ -7,7 +7,7 @@
 
 ! This initial data leaves the lapse, shift, conformal
 ! spatial metric and extrinsic curvature as in Minkowski
-! (which have already been set up in "initial".)
+! (which have already been set up in "initial").
 !
 ! For this initial data we need to solve first the Gauss
 ! constraint, which for a Proca field has the form:
@@ -19,8 +19,8 @@
 ! with E^i the electric Proca field and Phi the scalar
 ! potential.
 !
-! We do this by assuming we have a conformally flat
-! metric and rescaling the electric field and scalar
+! We do this by assuming we have a known conformal
+! metric, and rescale the electric field and scalar
 ! potential as:
 !
 !  i    ^i      6                  ^       6
@@ -33,7 +33,7 @@
 ! __2        2  ^
 ! \/  V  =  m  Phi
 !
-! where we take the flat space Laplacian.
+! where we take the conformal space Laplacian.
 ! 
 ! We can then choose the conformal scalar potential Phi
 ! freely and solve for V.  Once we have V we find its
@@ -62,13 +62,13 @@
 ! rho  =  1/(8 pi) [ E E  +  m  Phi ]
 !                     r
 !
-!                       ^r 2     8     2  ^ 2      12
-!      =  1/(8 pi) [ A (E ) / psi  +  m  Phi  / psi  ]
+!                      ^ 2     8     2  ^ 2      12
+!      =  1/(8 pi) [ A E  / psi  +  m  Phi  / psi  ]
 !
-! so that:
+! where now E := E^r, so that:
 !
-!         5                     ^r 2     3     2  ^ 2      7
-! 2 pi psi  rho  =  (1/4) [ A ( E ) / psi  +  m  Phi  / psi  ]
+!         5                   ^ 2     3     2  ^ 2      7
+! 2 pi psi  rho  =  (1/4) [ A E  / psi  +  m  Phi  / psi  ]
 !
 !
 ! Both in the Gauss and Hamiltonian constraints the Laplacian
@@ -77,10 +77,6 @@
 ! __2           2
 ! \/ psi  =  [ d psi  +  (2/r - d A/2A + d B/B) d psi ] / A
 !               r                r        r      r
-!
-! For the moment, in the routine below we always take A=B=1, so the
-! Laplacian simplifies.  But this won't be correct for a transformed
-! radial coordinate.
 !
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
@@ -112,19 +108,21 @@
   real(8) :: epsilon = 1.d-10
 
   real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: CL0,CL1,CL2,CLA,AL
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2,CA
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: VG,EG,PhiG,AG
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: AG,VG,EG,PhiG
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: PsiG,Psi_old
 
 ! VG       Global auxiliary potential.
 ! EG       Global electric field.
 ! PhiG     Global scalar potential.
+
 ! PsiG     Global conformal factor.
-! AG       Global radial metric coefficient.
+! AL,AG    Local and global radial metric coefficient.
+
 ! CL0,C0   Local and global coefficient of first derivative in ODE.
 ! CL1,C1   Local and global coefficient of linear term in ODE.
 ! CL2,C2   Local and global source term in ODE.
-! CLA      Auxiliary local and global array.
+! CLA      Auxiliary local array.
 
 
 ! *******************
@@ -142,6 +140,9 @@
 
   VG   = zero
   EG   = zero
+  PhiG = zero
+
+  AG   = one
   PsiG = one
 
 
@@ -181,17 +182,24 @@
 
   end if
 
-! Now fill in global array PhiG.
+! Remember that the vector potential is zero.
+
+  procaA = 0.d0
+
+
+! *************************************
+! ***   FILL IN GLOBAL ARRAY PhiG   ***
+! *************************************
+
+! Single processor run.
 
   if (size==1) then
 
-!    Single processor run.
-
      phiG = procaPhi
 
-  else
+! Parallel run.
 
-!    Parallel run.
+  else
 
      Naux = (Nrmax + ghost)
 
@@ -248,8 +256,8 @@
 ! ***   GLOBAL RADIAL METRIC COEFFICIENT   ***
 ! ********************************************
 
-! For parallel runs we need to find the global
-! array for the radial metric coefficient.
+! In case the initial conformal metric is not flat,
+! we need to copy the global metric array A.
 
 ! Copy A into AL.
 
@@ -317,7 +325,7 @@
 ! d  V  + (2/r) d V  =  m  Phi
 !  r             r
 !
-! We solve it by direct matrix inversion.
+! We solve this by direct matrix inversion.
 
   if (rank==0) then
      print *, 'Solving Gauss constraint ...'
@@ -387,7 +395,7 @@
 
      call invertmatrix(lmin,lmax,0.d0,VG,C0,C1,C2,+1,"robin")
 
-! Other processors send local coefficientes (CL0,CL1) to processor 0.
+! Other processors send local coefficientes (CL0,CL1,CL2) to processor 0.
 
   else
 
@@ -407,7 +415,7 @@
 ! The conformal electric field is minus the gradient
 ! of the auxiliary potential V.   We take into account
 ! the possibility that A is non-trivial when we raise
-! the iundex to find E^r.
+! the index to find E^r.
 
   do l=0,Nl-1
 
@@ -433,7 +441,7 @@
            EG(l,i) = - idr*(8.d0*(VG(l,i+1) - VG(l,i-1)) - (VG(l,i+2) - VG(l,i-2)))/12.d0/AG(l,i)
         end do
 
-!       Boundary.  We use sixth-order left-sided differences
+!       Boundary. We use sixth-order left-sided differences
 !       to improve the boundary behavior.
 
         EG(l,Nrtotal-1) = - idr*(1.d0/6.d0*VG(l,Nrtotal) + 77.d0/60.d0*VG(l,Nrtotal-1) &
@@ -459,11 +467,21 @@
 ! ***   SOLVE HAMILTONIAN CONSTRAINT   ***
 ! ****************************************
 
-! The Hamiltonian constraint has the final form:
+! The Hamiltonian constraint has the form:
 !
-!  2                                    ^r 2     3     2  ^ 2      7
-! d psi  +  (2/r) d psi  =  - (1/4) [ ( E ) / psi  +  m  Phi  / psi  ]
-!  r               r
+! __2                  5
+! \/ psi  =  - 2 pi psi rho
+!
+! where the Laplacian of psi is:
+!
+! __2           2
+! \/ psi  =  [ d psi  +  (2/r - d A/2A + d B/B) d psi ] / A
+!               r                r        r      r
+!
+! and the energy denisty term is given by:
+!
+!         5                     ^ 2     3     2  ^ 2      7
+! 2 pi psi  rho  =  (1/4) [ A  E  / psi  +  m  Phi  / psi  ]
 !
 ! This equation is clearly not linear in psi, we solve it
 ! using Newton's iterative method.
@@ -586,7 +604,7 @@
 !
 !       so that:
 !
-!       F(u_old) - F'(u:old)*u_old  =  - 1/u_old^3 ( E^2 + 2 m^2 Phi^2 / u_old^4 ) 
+!       F(u_old) - F'(u:old)*u_old  =  - 1/u_old^3 ( E^2 + 2 m^2 Phi^2 / u_old^4 )
 
         C1 = - 0.25d0*AG*(3.d0*AG*EG**2 + 7.d0*proca_mass**2*PhiG**2/Psi_old**4)/Psi_old**4
         C2 = - AG*(AG*EG**2 + 2.d0*proca_mass**2*PhiG**2/Psi_old**4)/Psi_old**3
@@ -624,7 +642,7 @@
         print *
      end if
 
-! Other processors send local coefficientes to processor 0.
+! Other processors send local coefficients to processor 0.
 
   else
 
@@ -654,16 +672,12 @@
   procaE   = procaE/psi**6
   procaPhi = procaPhi/psi**6
 
-! Remember that the vector potential is zero.
-
-  procaA = 0.d0
-
 
 ! ***************************************
 ! ***   FIND CONFORMAL FUNCTION phi   ***
 ! ***************************************
 
-! Find derivatie of psi.
+! Find derivative of psi.
 
   diffvar => psi
 
@@ -673,11 +687,11 @@
 
 ! Find phi.
 
-  phi  = dlog(psi)
+  phi = dlog(psi)
   D1_phi = D1_psi/psi
 
   if (chimethod) then
-     chi  = one/psi**chipower
+     chi = one/psi**chipower
      D1_chi = - dble(chipower)*D1_psi/psi**chipower
   end if
 
