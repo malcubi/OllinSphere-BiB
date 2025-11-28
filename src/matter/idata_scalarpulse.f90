@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_scalarpulse.f90,v 1.70 2024/03/11 16:52:16 malcubi Exp $
 
   subroutine idata_scalarpulse
 
