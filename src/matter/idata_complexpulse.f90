@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_complexpulse.f90,v 1.41 2025/09/08 19:47:05 malcubi Exp $
 
   subroutine idata_complexpulse
 
