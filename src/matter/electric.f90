@@ -162,7 +162,7 @@
 !
 ! I have experimented with radiative boundary conditions for both
 ! ePhi and eAr.  It turns out that the best well behaved case
-! is to aply the radiative condition only to procaA, and leave procaPhi
+! is to apply the radiative condition only to procaA, and leave procaPhi
 ! to evolve freely all the way to the boundary. This seems to be stable
 ! and the Gauss constraint converges to zero.
 
