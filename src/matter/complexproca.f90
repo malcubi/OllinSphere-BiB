@@ -228,35 +228,58 @@
 ! For the potentials we do need a boundary condition.
 
 ! In order to impose the boundary condition we assume that far
-! away procaPhi and procaA behave as an outgoing spherical waves:
+! away procaPhi and procaA behave as outgoing spherical waves:
 !
 ! u(r,t)  ~  g(r-vt)/r
 !
 ! This can be shown to imply:
 !
-! du/dt   ~  - v (dPi/dr + Pi/r)
+! du/dt   ~  - v (du/dr + u/r)
 !
 ! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
 !
 ! I have experimented with radiative boundary conditions for both
 ! procaPhi and ProcaA. It turns out that the best well behaved case
-! is to aply the radiative condition only to procaA, and leave procaPhi
+! is to aply the radiative condition only to procaPhi, and leave procaA
 ! to evolve freely all the way to the boundary. This seems to be stable
 ! and the Gauss constraint converges to zero.
+!
+! This is the opposite from what happened with the Maxwell field,
+! where the best behaved case was applying the radiative condition
+! tio the vector potential.  This might be because the Maxwell field
+! is long range while the Proca field is not (it is massive).
+!
+! The extra second term when applying the radiative condition
+! to A improves it, and makes when used makes the radiative
+! condition for A almost identical to the radiative condition
+! for Phi.  But it seems that it is easier to just apply the
+! condition to Phi.  I leave it there just in case it works
+! better in some cases.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
      aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
 
-!    Boundary conditions for procaPhi.
+!    Boundary condition for procaPhi.
 
-     !scprocaPhi_R(l,Nr) = - aux*(D1_cprocaPhi_R(l,Nr) + cprocaPhi_R(l,Nr)/r(l,Nr))
-     !scprocaPhi_I(l,Nr) = - aux*(D1_cprocaPhi_I(l,Nr) + cprocaPhi_I(l,Nr)/r(l,Nr))
+     if (procabound=="radPhi") then
+
+        scprocaPhi_R(l,Nr) = - aux*(D1_cprocaPhi_R(l,Nr) + cprocaPhi_R(l,Nr)/r(l,Nr))
+        scprocaPhi_I(l,Nr) = - aux*(D1_cprocaPhi_I(l,Nr) + cprocaPhi_I(l,Nr)/r(l,Nr))
 
 !    Boundary condition for procaA.
 
-     scprocaA_R(l,Nr) = - (D1_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)/r(l,Nr))
-     scprocaA_I(l,Nr) = - (D1_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)/r(l,Nr))
+     else if (procabound=="radA") then
+
+        scprocaA_R(l,Nr) = - aux*(D1_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)/r(l,Nr))
+        scprocaA_I(l,Nr) = - aux*(D1_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)/r(l,Nr))
+
+        scprocaA_R(l,Nr) = scprocaA_R(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_R(l,Nr) &
+                         + (alpha(l,Nr)*cprocaPhi_R(l,Nr) - aux*cprocaA_R(l,Nr))/r(l,Nr)
+        scprocaA_I(l,Nr) = scprocaA_I(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_I(l,Nr) &
+                         + (alpha(l,Nr)*cprocaPhi_I(l,Nr) - aux*cprocaA_I(l,Nr))/r(l,Nr)
+
+     end if
 
   end if
 
