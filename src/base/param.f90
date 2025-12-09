@@ -710,8 +710,8 @@
   real(8) :: proca_s0 = 1.d0
   real(8) :: proca_t0 = 1.d0
 
-  character(1000) :: procaprofile = "gaussian"    ! range=(gaussian,tophat)
-  character(1000) :: procabound   = "radPhi"      ! range=(radPhi,radA)
+  character(1000) :: procaprofile = "gaussian"  ! range=(gaussian,tophat)
+  character(1000) :: procabound   = "radA"      ! range=(radPhi,radA)
 
 
 ! *******************************
