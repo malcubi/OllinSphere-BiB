@@ -1,0 +1,55 @@
+# Test parameter file:
+#
+# TOV star initial data, 1+log slicing, no shift.
+
+#spacetime = background
+
+dr0 = 0.025		  # Grid spacing
+dtfac = 0.5		  # Courant parameter
+
+Nrtotal = 2000		  # Number of grid points
+Nt = 1200000		  # Number of time steps
+
+Nl = 1                    # Number of refinement levels
+
+slicing = 1+log 	  # Type of slicing condition
+gauge_f = 2.0	          # Coefficient for harmonic slicing
+
+integrator = rk4	  # Type of integration method (icn,rk4)
+order = four  		  # Order for spatial finite differencing (two,four)
+
+boundtype = constraint    # Constraint preserving boundary condition
+
+mattertype = fluid        # Perfect fluid
+fluid_method = hlle       # Numerical method for fluid (hlle,mp5)
+fluid_limiter = mc        # Type of limiter
+fluid_gamma = 2.0         # Adiabatic index (5/3 for a monoatomic non-relativistic gas)
+fluid_kappa = 100.0       # Polytropic constant
+fluid_atmos = 1.d-8       # Artificial atmosphere value
+
+fluid_usesoundspeed = .true.  # Use speed of light instead of speed of sound for fluid methods
+
+idata = TOVstar		  # Type of initial data
+TOV_rho0 = 0.00128   	  # Central density for TOV star
+
+TOVgauss = .false.        # Add perturbation
+TOV_a0 = 0.01             # Amplitude of perturbation
+TOV_r0 = 0.d0             # Center of perturbation
+TOV_s0 = 1.d0             # Width of perturbation
+
+fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
+fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
+
+geodiss = 0.01            # Dissipation coefficient for geometry
+
+directory = TOVstar-hlle_N=1_K=100_dr=0.025_dyn_sound     # Name of output directory
+Ninfo = 800		  # How often do we want to output information to screen?
+Noutput0D = 80		  # How often do we want 0D output?
+Noutput1D = 800           # How often do we want 1D output?
+
+output_r1 = 5.0           # Output of array values at r1
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int,sfluid_cD
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int,sfluid_cD
+
+
