@@ -173,7 +173,7 @@
 ! the system becomes overdetermined).
 !
 ! One can improve the condition for A by adding the source term
-! coming from the electric field.. When doing this the condition
+! coming from the electric field. When doing this the condition
 ! for A seems to work better that the condition for Phi.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
