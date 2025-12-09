@@ -165,6 +165,10 @@
 ! is to apply the radiative condition only to procaA, and leave procaPhi
 ! to evolve freely all the way to the boundary. This seems to be stable
 ! and the Gauss constraint converges to zero.
+!
+! The main reason why applying the condition to A works better in this
+! case is that for stationary charged configurations Phi is typically
+! non-trivial (it is the electrostatic potential), while A is zero.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
