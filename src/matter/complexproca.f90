@@ -67,11 +67,11 @@
   end if
 
 ! Charge terms if needed. In the case of a charged Proca field we need
-! to add the following term to the source:
+! to add the following terms to the source:
 !
 ! scprocaE_R  =  scprocaE_R - q alpha ePhi cprocaE_I
 !
-! scprocaE_I  =  scprocaE_R + q alpha ePhi cprocaE_R
+! scprocaE_I  =  scprocaE_I + q alpha ePhi cprocaE_R
 
   if (cproca_q/=0.d0) then
      scprocaE_R(l,:) = scprocaE_R(l,:) - cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_I(l,:)
@@ -102,7 +102,7 @@
 ! case of a Proca field is not a choice but must always
 ! be satisfied. It has the form:
 !
-!                                                           4
+!                                                            4
 ! d procaPhi  =  beta d procaPhi  -  d (alpha procaA) / A psi
 !  t                   r              r
 !
@@ -136,7 +136,7 @@
 ! scprocaPhi_R  =  scprocaPhi_R - q alpha [ ePhi cprocaPhi_I - eAr cprocaA_I /(A psi4)
 !               + (A psi4 / cproca_mass**2) electric cprocaE_I ]
 !
-! scprocaPhi_I  =  scprocaPhi_R + q alpha [ ePhi cprocaPhi_R - eAr cprocaA_R /(A psi4)
+! scprocaPhi_I  =  scprocaPhi_I + q alpha [ ePhi cprocaPhi_R - eAr cprocaA_R /(A psi4)
 !               + (A psi4 / cproca_mass**2) electric cprocaE_R ]
 
   if (cproca_q/=0.d0) then
@@ -239,45 +239,38 @@
 ! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
 !
 ! I have experimented with radiative boundary conditions for both
-! procaPhi and ProcaA. It turns out that the best well behaved case
-! is to apply the radiative condition only to procaPhi, and leave procaA
-! to evolve freely all the way to the boundary. This seems to be stable
-! and the Gauss constraint converges to zero.
+! procaPhi and ProcaA.  Applying the radiative condition to Phi
+! works reasonably well, but applying it to A directly introduces
+! larger errors.  Applying it to both at the same time is bad,
+! it introduces constraint violations (which makes sense since
+! the system becomes overdetermined).
 !
-! This is the opposite from what happened with the Maxwell field,
-! where the best behaved case was applying the radiative condition
-! tio the vector potential.  This might be because the Maxwell field
-! is long range while the Proca field is not (it is massive).
-!
-! The extra second term when applying the radiative condition
-! to A improves it, and makes when used makes the radiative
-! condition for A almost identical to the radiative condition
-! for Phi.  But it seems that it is easier to just apply the
-! condition to Phi.  I leave it there just in case it works
-! better in some cases.
+! One can improve the condition for A by adding the source term
+! coming from the electric field.. When doing this the condition
+! for A seems to work better that the condition for Phi.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
      aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
+     aux = 1.d0
 
 !    Boundary condition for procaPhi.
 
      if (procabound=="radPhi") then
 
         scprocaPhi_R(l,Nr) = - aux*(D1_cprocaPhi_R(l,Nr) + cprocaPhi_R(l,Nr)/r(l,Nr))
+
         scprocaPhi_I(l,Nr) = - aux*(D1_cprocaPhi_I(l,Nr) + cprocaPhi_I(l,Nr)/r(l,Nr))
 
 !    Boundary condition for procaA.
 
      else if (procabound=="radA") then
 
-        scprocaA_R(l,Nr) = - aux*(D1_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)/r(l,Nr))
-        scprocaA_I(l,Nr) = - aux*(D1_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)/r(l,Nr))
+        scprocaA_R(l,Nr) = - aux*(D1_cprocaA_R(l,Nr) + cprocaA_R(l,Nr)/r(l,Nr)) &
+                         - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_R(l,Nr)
 
-        scprocaA_R(l,Nr) = scprocaA_R(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_R(l,Nr) &
-                         + (alpha(l,Nr)*cprocaPhi_R(l,Nr) - aux*cprocaA_R(l,Nr))/r(l,Nr)
-        scprocaA_I(l,Nr) = scprocaA_I(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_I(l,Nr) &
-                         + (alpha(l,Nr)*cprocaPhi_I(l,Nr) - aux*cprocaA_I(l,Nr))/r(l,Nr)
+        scprocaA_I(l,Nr) = - aux*(D1_cprocaA_I(l,Nr) + cprocaA_I(l,Nr)/r(l,Nr)) &
+                         - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*cprocaE_I(l,Nr)
 
      end if
 

@@ -166,22 +166,15 @@
 ! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
 !
 ! I have experimented with radiative boundary conditions for both
-! procaPhi and ProcaA. It turns out that the best well behaved case
-! is to apply the radiative condition only to procaPhi, and leave procaA
-! to evolve freely all the way to the boundary. This seems to be stable
-! and the Gauss constraint converges to zero.
+! procaPhi and ProcaA.  Applying the radiative condition to Phi
+! works reasonably well, but applying it to A directly introduces
+! larger errors.  Applying it to both at the same time is bad,
+! it introduces constraint violations (which makes sense since
+! the system becomes overdetermined).
 !
-! This is the opposite from what happened with the Maxwell field,
-! where the best behaved case was applying the radiative condition
-! tio the vector potential.  This might be because the Maxwell field
-! is long range while the Proca field is not (it is massive).
-!
-! The extra second term when applying the radiative condition
-! to A improves it, and makes when used makes the radiative
-! condition for A almost identical to the radiative condition
-! for Phi.  But it seems that it is easier to just apply the
-! condition to Phi.  I leave it there just in case it works
-! better in some cases.
+! One can improve the condition for A by adding the source term
+! coming from the electric field.. When doing this the condition
+! for A seems to work better that the condition for Phi.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
@@ -197,13 +190,8 @@
 
      else if (procabound=="radA") then
 
-        sprocaA(l,Nr) = - aux*(D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr))
-
-!       Extra term for boundary condition for procaA.
-!       (I need to explain where this comes from).
-
-        sprocaA(l,Nr) = sprocaA(l,Nr) - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*procaE(l,Nr) &
-                      + (alpha(l,Nr)*procaPhi(l,Nr) - aux*procaA(l,Nr))/r(l,Nr)
+        sprocaA(l,Nr) = - aux*(D1_procaA(l,Nr) + procaA(l,Nr)/r(l,Nr)) &
+                      - alpha(l,Nr)*A(l,Nr)*psi4(l,Nr)*procaE(l,Nr)
 
      end if
 
