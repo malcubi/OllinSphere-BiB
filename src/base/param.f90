@@ -1020,6 +1020,7 @@
 ! Schwarzschild.
 
   logical :: TrackSchwarzschild = .false.
+  real(8) :: TrackSchwarz_rmin  = 0.1d0
 
 
 ! ***************
