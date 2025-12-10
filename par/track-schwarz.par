@@ -1,0 +1,45 @@
+# Test parameter file:
+#
+# Tracking Schwarzschild spacetime
+
+#adjuststep = .true.    # Adjust time step
+
+dr0 = 0.0025       	# Grid spacing
+dtfac = 0.5	        # Courant parameter
+
+Nrtotal = 4000	        # Number of grid points
+Nt = 100                 # Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+slicing = 1+log         # Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+geodiss = 0.01		# Dissipation for geometric variables
+
+chimethod = .true.      # Use chi method for conformal factor
+chipower  = 4           # Power of 1/psi in definition of chi
+regular2 = .true.       # Puncture regularization
+dorigin = onesided      # One sided derivatives at origin
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+idata = schwarzschild   # Type of initial data
+
+TrackSchwarzschild = .true. # Track Schwarzschild spacetime
+TrackSchwarz_rmin = 0.1
+
+ahfind = .true.         # Look for apparent horizon
+ahfind_every = 1        # How often to look for horizons?
+
+directory = track-schwarz # Name of output directory
+Ninfo = 10 	        # How often do we want to output information to screen?
+Noutput0D = 1	        # How often do we want 0D output?
+Noutput1D = 10	        # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,CSI_SCHWARZ,ETA_SCHWARZ,AB2,r_area
+outvars1D = alpha,phi,psi,chi,A,B,trK,KTA,Deltar,lambda,Klambda,ham,mom,mass_sch,CSI_SCHWARZ,ETA_SCHWARZ,AB2,r_area
+
