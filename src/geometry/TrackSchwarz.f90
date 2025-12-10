@@ -26,7 +26,7 @@
 
   integer i,l,p                          ! Counters
   integer imax,Naux                      ! Auxiliary.
-  integer, save :: imin = 1              ! Minimum value of i.
+  integer, save :: imin = 0.1            ! Minimum value of i.
   integer status(MPI_STATUS_SIZE)
 
   real(8) CSI_guess,CSI_left,CSI_right   ! R positions.
@@ -68,6 +68,11 @@
 
      ETA_SCHWARZ(l,:) = 0.d0
 
+!    Find imin.
+
+     imin = int(TrackSchwarz_rmin/dr(l))
+     print *, imin
+
 !    Find Kruskal CSI. At t=0 the transformation of
 !    coordinates is, for r_area > 2M:
 !
@@ -92,24 +97,13 @@
 
      CSI_SCHWARZ(l,:) = 0.d0
 
-     do i=2,Nr
+     do i=imin,Nr
         aux = r(l,i)*psi(l,i)**2*dsqrt(B(l,i))
         if (r(l,i)>=0.5d0*BHmass) then
            CSI_SCHWARZ(l,i) = + dsqrt(abs(0.5d0*aux/BHmass-1.d0))*dexp(0.25d0*aux/BHmass)
         else
            CSI_SCHWARZ(l,i) = - dsqrt(abs(0.5d0*aux/BHmass-1.d0))*dexp(0.25d0*aux/BHmass)
         end if
-     end do
-
-!    Find imin. We fix it so that the values of CSI don't change
-!    too much on the left boundary.  Remember that CSI grows
-!    exponetially (to negative values) as the radial coordinate
-!    r approaches 0.
-
-     imin = 1
-
-     do i=1,Nr-1
-        if (CSI_SCHWARZ(l,i+1)-CSI_SCHWARZ(l,i)>0.05d0) imin=i
      end do
 
 !    Jump to output.
@@ -161,6 +155,7 @@
 !    we find the interval. Notice the sign of the mixed term, it is
 !    negative since seen from the current point, the point in the
 !    last time level is in the past (-dt) and to the left (-dr).
+!
 !    Also remember that beta is the contravariant shift, and 
 !    the interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
@@ -172,12 +167,11 @@
         CSI_left = CSI_SCHWARZ_P(l,i-1)
         ETA_left = ETA_SCHWARZ_P(l,i-1)
 
-        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i-1))
-        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i-1))
-        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i-1))
+        alpha_avg = 0.5d0*(alpha(l,i) + alpha(l,i-1))
+        A_avg     = 0.5d0*(    A(l,i) +     A(l,i-1))
+        B_avg     = 0.5d0*(    B(l,i) +     B(l,i-1))
 
         if (i<Nr-2) then
-        !if (.false.) then
            interpvar => phi
            phi_avg = interp(l,r0,.false.)
         else
@@ -192,8 +186,6 @@
            print *, 'Shift term not implemented'
         end if
 
-       ra_left = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
      else
 
         r0 = r(l,i)
@@ -201,14 +193,10 @@
         CSI_left = CSI_SCHWARZ_P(l,i)
         ETA_left = ETA_SCHWARZ_P(l,i)
 
-        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i))
-        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i))
-        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i))
-        phi_avg   = 0.5d0*(  phi(l,i) +   phi_p(l,i))
-
-        ra_left = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
-        gammarr = dexp(4.d0*phi_avg)*A_avg
+        alpha_avg = alpha(l,i)
+        A_avg = A(l,i)
+        B_avg = B(l,i)
+        phi_avg = phi(l,i)
 
         dleft = - (alpha_avg*dt(l))**2
 
@@ -218,11 +206,14 @@
 
      end if
 
+     ra_left = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
 !    Calculate interval to point on the right on previous time step.
 !    First we average the lapse, shift and metric components, and then
 !    we find the interval.  Notice the sign of the mixed term, it is
 !    negative since seen from the current point, the point in the
 !    last time level is in the past (-dt) and to the right (+dr).
+!
 !    Also remember that beta is the contravariant shift, and 
 !    the interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
@@ -234,12 +225,11 @@
         CSI_right = CSI_SCHWARZ_P(l,i+1)
         ETA_right = ETA_SCHWARZ_P(l,i+1)
 
-        alpha_avg = 0.5d0*(alpha(l,i) + alpha_p(l,i+1))
-        A_avg     = 0.5d0*(    A(l,i) +     A_p(l,i+1))
-        B_avg     = 0.5d0*(    B(l,i) +     B_p(l,i+1))
+        alpha_avg = 0.5d0*(alpha(l,i) + alpha(l,i+1))
+        A_avg     = 0.5d0*(    A(l,i) +     A(l,i+1))
+        B_avg     = 0.5d0*(    B(l,i) +     B(l,i+1))
 
         if (i<Nr-2) then
-        !if (.false.) then
            interpvar => phi
            phi_avg = interp(l,r0,.false.)
         else
@@ -251,37 +241,33 @@
         dright = - (alpha_avg*dt(l))**2 + gammarr*dr(l)**2
 
         if (shift/="none") then
-           beta_avg = 0.5d0*(beta(l,i) + beta_p(l,i+1))
-           dright = dright + gammarr*(beta_avg*dt(l))**2 - 2.d0*gammarr*beta_avg*dr(l)*dt(l)
+          print *, 'Shift term not implemented'
         end if
 
-        ra_right = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
      else
+
+        r0 = r(l,Nr)
 
         CSI_right = CSI_SCHWARZ_P(l,Nr)
         ETA_right = ETA_SCHWARZ_P(l,Nr)
 
-        alpha_avg = 0.5d0*(alpha(l,Nr) + alpha_p(l,Nr))
-        A_avg     = 0.5d0*(    A(l,Nr) +     A_p(l,Nr))
-        B_avg     = 0.5d0*(    B(l,Nr) +     B_p(l,Nr))
-        phi_avg   = 0.5d0*(  phi(l,Nr) + phi_p(l,Nr))
-
-        ra_right = r(l,Nr)*dexp(2.d0*phi_avg)*dsqrt(B_avg)
-
-        gammarr = dexp(4.d0*phi_avg)*A_avg
+        alpha_avg = alpha(l,Nr)
+        A_avg     = A(l,Nr)
+        B_avg     = B(l,Nr)
+        phi_avg   = phi(l,Nr)
 
         dright = - (alpha_avg*dt(l))**2
 
         if (shift/="none") then
-           beta_avg = 0.5d0*(beta(l,Nr) + beta_p(l,Nr))
-           dright = dright + gammarr*(beta_avg*dt(l))**2
+          print *, 'Shift term not implemented'
         end if
 
      end if
 
-!    Now solve for the position of the point that has precisely those
-!    intervals in Kruskal-Szekeres coordinates.
+     ra_right = r0*dexp(2.d0*phi_avg)*dsqrt(B_avg)
+
+!    Now solve for the position of the point that has precisely
+!    those intervals in Kruskal-Szekeres coordinates.
 
      error = .false.
      call solvepointkruskal(error,CSI_guess,ETA_guess,CSI_left,ETA_left,CSI_right,ETA_right,dleft,dright,ra_left,ra_right,BHmass)
@@ -301,14 +287,6 @@
      ETA_SCHWARZ(l,i) = ETA_guess
 
      aux = r(l,i)*dexp(2.d0*phi(l,i))
-
-     !if (r(l,i)<0.5d0*BHmass) then
-     !   print *, i,CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i), &
-     !   -dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*cosh(t(l)/4.d0),dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*sinh(t(l)/4.d0)
-     !else
-     !   print *, i,CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i), &
-     !   +dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*cosh(t(l)/4.d0),dsqrt(aux/2.d0-1.d0)*dexp(aux/4.d0)*sinh(t(l)/4.d0)
-     !end if
 
   end do
 
@@ -529,7 +507,7 @@
 
 ! Start iterations.
 
-  Nmax = 5000
+  Nmax = 10000
 
   do k=1,Nmax
 
