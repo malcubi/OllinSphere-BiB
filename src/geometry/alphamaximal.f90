@@ -281,17 +281,33 @@
 ! Now we need to calculate the derivatives
 ! of the lapse.
 
-  do l=0,Nl-1
+  do l=lmin,lmax
+
+!    Derivatives of lapse.
 
      diffvar => alpha
-
      D1_alpha(l,:) = diff1(l,+1)
      D2_alpha(l,:) = diff2(l,+1)
+
+!                                   4
+!    DD_alphar = d ( d alpha / r psi )
+!                 r   r
 
      auxarray(l,:) = D1_alpha(l,:)/r(l,:)/psi4(l,:)
 
      diffvar => auxarray
      DD_alphar(l,:) = diff1(l,+1)
+
+!    Second covariant derivative of lapse.
+
+     Dcov2_alpha(l,:) = 1.d0/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
+                      - D1_alpha(l,:)*(0.5d0*D1_A(l,:)/A(l,:) + 2.d0*D1_phi(l,:)))
+
+!    Laplacian of lapse.
+
+     Lapla_alpha(l,:) = 1.d0/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
+                      - D1_alpha(l,:)*(0.5d0*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) &
+                      - 2.d0*D1_phi(l,:) - 2.d0/r(l,:)))
 
   end do
 
