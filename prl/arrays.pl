@@ -718,13 +718,13 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTCOPY  "     end do\n";
                print FILE_RESTRICTCOPY  "  end if\n\n";
             } elsif ($var eq "alpha") {
-               print FILE_RESTRICTCOPY  "  if (slicing/='maximal') then\n";
+               print FILE_RESTRICTCOPY  "  !if (slicing/='maximal') then\n";
                print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
                print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
                print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
                print FILE_RESTRICTCOPY  "     end do\n";
-               print FILE_RESTRICTCOPY  "  end if\n\n";
+               print FILE_RESTRICTCOPY  "  !end if\n\n";
             } else {
                print FILE_RESTRICTCOPY  "  interpvar => ",$var,"\n";
                print FILE_RESTRICTCOPY  "  do i=1,Nr-(ghost+1),2\n";
@@ -751,14 +751,14 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
                print FILE_RESTRICTSEND  "  end if\n\n";
             } elsif ($var eq "alpha") {
-               print FILE_RESTRICTSEND  "  if (slicing/='maximal') then\n";
+               print FILE_RESTRICTSEND  "  !if (slicing/='maximal') then\n";
                print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
                print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
                print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
                print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
                print FILE_RESTRICTSEND  "     end do\n";
                print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
-               print FILE_RESTRICTSEND  "  end if\n\n";
+               print FILE_RESTRICTSEND  "  !end if\n\n";
             } else {
                print FILE_RESTRICTSEND  "  interpvar => ",$var,"\n";
                print FILE_RESTRICTSEND  "  do i=imin,Nr-(ghost+1),2\n";
@@ -784,12 +784,12 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTRECV  "     end do\n";
                print FILE_RESTRICTRECV  "  end if\n\n";
             } elsif ($var eq "alpha") {
-               print FILE_RESTRICTSEND  "  if (slicing/='maximal') then\n";
+               print FILE_RESTRICTSEND  "  !if (slicing/='maximal') then\n";
                print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
                print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
                print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
                print FILE_RESTRICTRECV  "     end do\n\n";
-               print FILE_RESTRICTSEND  "  end if\n\n";
+               print FILE_RESTRICTSEND  "  !end if\n\n";
             } else {
                print FILE_RESTRICTRECV  "  call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
                print FILE_RESTRICTRECV  "  do i=imin,Nrl(p)-(ghost+1),2\n";
