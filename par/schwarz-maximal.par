@@ -8,7 +8,7 @@ dtfac = 0.5		# Courant parameter
 Nrtotal = 1000		# Number of grid points
 Nt = 4000		# Number of time steps
 
-Nl = 2                  # Number of refinement levels
+Nl = 1                  # Number of refinement levels
 
 slicing = maximal 	# Type of slicing condition
 
