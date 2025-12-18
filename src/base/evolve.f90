@@ -209,6 +209,8 @@
            call trackschwarz(l)
         end do
 
+        call trackschwarzout
+
      else
 
         print *, 'Tracking Schwarzschild requires idata=schwarzschild ...'
@@ -326,8 +328,7 @@
 !    ***************************
 
 !    If we are using maximal slicing, we must now
-!    solve for the lapse. We also need to calculate
-!    the derivatives of the lapse.
+!    solve for the lapse.
 
      if (slicing=="maximal") then
         call alphamaximal(0,Nl-1,maximalbound,1.d0)
@@ -388,6 +389,17 @@
 
      if (checkpoint.and.(mod(h,Ncheckpoint)==0)) then
         call checkpointsave
+     end if
+
+
+!    **************************
+!    ***   SPECIAL OUTPUT   ***
+!    **************************
+
+!    Output for tracking chwarzschild.
+
+     if ((TrackSchwarzschild).and.(mod(h,Noutput1D)==0)) then
+        call trackschwarzout
      end if
 
 
