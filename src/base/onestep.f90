@@ -327,6 +327,18 @@
      call auxiliary(l)
 
 
+!    ***************************
+!    ***   MAXIMAL SLICING   ***
+!    ***************************
+
+!    If we are using maximal slicing, we must now
+!    solve for the lapse on the current grid level.
+
+     if (slicing=="maximal") then
+        call alphamaximal(l,l,maximalbound,1.d0)
+     end if
+
+
 !    ***********************************
 !    ***   END INTERNAL ITERATIONS   ***
 !    ***********************************
@@ -386,6 +398,7 @@
 
 ! Restrict the data from the fine to the coarse grid
 ! when both levels coincide in time.
+!
 ! This restriction does not change data in the current
 ! grid level, but rather in the coarser level.
 !
