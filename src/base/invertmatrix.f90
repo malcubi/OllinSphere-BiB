@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/invertmatrix.f90,v 1.25 2025/10/13 18:45:14 malcubi Exp $
 
   subroutine invertmatrix(lmin,lmax,u0,u,C0,C1,C2,sym,bound)
 
