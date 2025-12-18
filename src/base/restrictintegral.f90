@@ -6,7 +6,7 @@
 ! quantities from the fine to the coarse grids.
 !
 ! But first we need to substract constant difference at edge of
-! the fine grid. Since the integrals are done indendently at each
+! the fine grid. Since the integrals are done independently at each
 ! grid level, we find that there will be small jumps due to accumulated
 ! mnumerical error when we pass from the end of a fine grid to the
 ! next coarse grid, Here we correct for that.
@@ -34,6 +34,7 @@
 ! ************************************************
 
   restrictvar => intvar
+  interpvar   => intvar
 
 ! Loop over all levels, from fine to coarse.
 
@@ -57,7 +58,6 @@
 !    Interpolate the value of "intvar" in the coarse
 !    grid at r0 and call it m1.
 
-     interpvar => intvar
      m1 = interp(l-1,r0,.false.)
 
 !    For parallel runs we add contributions from all
