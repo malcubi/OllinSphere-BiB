@@ -191,7 +191,7 @@
 !    On the coarsest grid the boundary conditions
 !    are those provided when the routine was called.
 
-     if (l==lmin) then
+     if (l==0) then
 
         bd = bound
         ub = u0
@@ -325,10 +325,11 @@
 
   do l=lmax,lmin+1,-1
 
+     interpvar => u
+
      do i=1,Nr-ghost,2
         r0 = r(l,i) + 0.5d0*dr(l)
-        interpvar => u
-        !u(l-1,i/2+1) = interp(l,r0,.true.)
+        u(l-1,i/2+1) = interp(l,r0,.true.)
      end do
 
 !    Fix symmetries.
