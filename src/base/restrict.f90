@@ -83,9 +83,9 @@
 !    I generate the necessary code automatically at compile
 !    time and include it here.  The basic block has the form:
 !
+!    interpvar => alpha
 !    do i=1,Nr-ghost,2
 !       r0 = r(l,i) + delta
-!       interpvar => alpha
 !       alpha(l-1,i/2+1) = interp(l,r0,.true.)
 !    end do
 !
@@ -95,9 +95,9 @@
      If (all) then
         include '../auto/restrict_copy.inc'
      else
+        interpvar => restrictvar
         do i=1,Nr-(ghost+1),2
            r0 = r(l,i) + delta
-           interpvar => restrictvar
            restrictvar(l-1,i/2+1) = interp(l,r0,.true.)
         end do
      end if
@@ -143,9 +143,9 @@
 !    I generate the necessary code automatically at compile
 !    time and include it here.  The basic block has the form:
 !
+!    interpvar => alpha
 !    do i=imin,Nr-ghost,2
 !       r0 = r(l,i) + delta
-!       interpvar => alpha
 !       w(i/2) = interp(l,r0,.true.)
 !    end do
 !    call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)
@@ -156,9 +156,9 @@
      if (all) then
         include '../auto/restrict_send.inc'
      else
+        interpvar => restrictvar
         do i=imin,Nr-(ghost+1),2
            r0 = r(l,i) + delta
-           interpvar => restrictvar
            w(i/2) = interp(l,r0,.true.)
         end do
         call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)
