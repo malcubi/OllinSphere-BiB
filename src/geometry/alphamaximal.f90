@@ -250,7 +250,11 @@
      end if
 
 !    Call matrix inversion. The solution is saved in "u".
+!    But notice that we need also to send alpha in
+!    since coarser grid levels are used as boundary
+!    conditions for finer grid levels.
 
+     u = alpha
      call invertmatrix(lmin,lmax,aux,u,C0,C1,C2,+1,bound)
 
   end if
