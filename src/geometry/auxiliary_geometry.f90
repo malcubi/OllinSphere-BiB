@@ -635,22 +635,14 @@
 ! Second covariant derivative of lapse with
 ! one index up and one down: D^r D_r alpha.
 
-!$OMP PARALLEL DO SCHEDULE(GUIDED)
+  Dcov2_alpha(l,:) = one/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
+                   - D1_alpha(l,:)*(half*D1_A(l,:)/A(l,:) + two*D1_phi(l,:)))
 
-  do i=1-ghost,Nrmax
+! Laplacian of lapse.
 
-     Dcov2_alpha(l,i) = one/(A(l,i)*psi4(l,i))*(D2_alpha(l,i) &
-                      - D1_alpha(l,i)*(half*D1_A(l,i)/A(l,i) + two*D1_phi(l,i)))
-
-!    Laplacian of lapse.
-
-     Lapla_alpha(l,i) = one/(A(l,i)*psi4(l,i))*(D2_alpha(l,i) &
-                      - D1_alpha(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                      - two*D1_phi(l,i) - two/r(l,i)))
-
-  end do
-
-!$OMP END PARALLEL DO
+  Lapla_alpha(l,:) = one/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
+                   - D1_alpha(l,:)*(half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) &
+                   - two*D1_phi(l,:) - two/r(l,:)))
 
 
 ! ************************
