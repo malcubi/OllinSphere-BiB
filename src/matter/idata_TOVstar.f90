@@ -692,11 +692,11 @@
 
 ! Set atmosphere.
 
-  rhoatmos = TOV_rho0*fluid_atmos/10.d0
+  rhoatmos = fluid_atmos/10.d0
 
   do l=0,Nl-1
      do i=1-ghost,Nr
-        if (fluid_rho(l,i)<=TOV_rho0*fluid_atmos) then
+        if (fluid_rho(l,i)<=fluid_atmos) then
            fluid_rho(l,i) = rhoatmos
         end if
      end do
