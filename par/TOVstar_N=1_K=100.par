@@ -1,6 +1,14 @@
 # Test parameter file:
 #
-# TOV star initial data, 1+log slicing, no shift.
+# TOV star initial data, 1+log slicing, no shift
+#
+# fluid_gamma = 2
+# fluid_kappa = 100
+# TOV_rho0 = 0.00128 
+#
+# This is a standard test TOV star.  With no perturbation
+# it should have an ADM mass of M=1.40015 and a radius of
+# R=9.5854 (or R=1.41 in km taking c=G=Msol=1).
 
 #spacetime = background
 
@@ -33,19 +41,19 @@ idata = TOVstar		  # Type of initial data
 TOV_rho0 = 0.00128   	  # Central density for TOV star
 
 TOVgauss = .false.        # Add perturbation
-TOV_a0 = 0.01             # Amplitude of perturbation
-TOV_r0 = 0.d0             # Center of perturbation
-TOV_s0 = 1.d0             # Width of perturbation
+TOV_a0 = 0.0              # Amplitude of perturbation
+TOV_r0 = 0.0              # Center of perturbation
+TOV_s0 = 1.0              # Width of perturbation
 
 fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
 
 geodiss = 0.01            # Dissipation coefficient for geometry
 
-directory = TOVstar-hlle_N=1_K=100_dr=0.025_dyn_sound     # Name of output directory
-Ninfo = 800		  # How often do we want to output information to screen?
-Noutput0D = 80		  # How often do we want 0D output?
-Noutput1D = 800           # How often do we want 1D output?
+directory = TOVstar-hlle_N=1_K=100_dr=0.025    # Name of output directory
+Ninfo = 1000		  # How often do we want to output information to screen?
+Noutput0D = 100		  # How often do we want 0D output?
+Noutput1D = 1000          # How often do we want 1D output?
 
 output_r1 = 5.0           # Output of array values at r1
 
