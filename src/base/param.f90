@@ -267,7 +267,7 @@
 
   real(8) :: rescaledata = 1.d0
 
-  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,complexprocapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,dustshell,fluidshell,TOVstar,TOVcomplex,blastwave,scalarDM,complexDM,ghostwormhole,duststep)
+  character(30) :: idata = "minkowski"  ! range = (checkpoint,minkowski,schwarzschild,schwarzschildKS,trumpetBH,reissnernordstrom,desitter,scalarpulse,ghostpulse,nonminpulse,complexpulse,complexghostpulse,bosonstar,chargedboson,procapulse,complexprocapulse,procastar,l-procastar,chargedproca,diracpulse,diracstar,chargeddirac,dustshell,fluidshell,TOVstar,TOVcomplex,blastwave,scalarDM,complexDM,ghostwormhole,duststep)
 
 
 ! *********************
