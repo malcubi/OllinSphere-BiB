@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/auxiliary_geometry.f90,v 1.55 2026/01/05 19:25:23 malcubi Exp $
 
   subroutine auxiliary_geometry(l)
 
