@@ -101,14 +101,6 @@
 
   call initial
 
-! For fluid spacetimes adjust atmosphere value
-! dependinmg on the maximum initial density.
-
-  if (contains(mattertype,"fluid").or.contains(mattertype,"dust")) then
-     fluid_atmos = fluid_atmos*maxval(rho)
-     !print *, maxval(fluid_rho),fluid_atmos
-  end if
-
 ! Make sure we have correct symmetries at the origin.
 ! Symmetries at the origin are only needed for processor 0
 ! who always owns the origin.
