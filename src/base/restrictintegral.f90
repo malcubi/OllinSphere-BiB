@@ -1,4 +1,4 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/restrictintegral.f90,v 1.1 2025/09/24 17:17:09 malcubi Exp $
+!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/restrictintegral.f90,v 1.2 2026/01/05 19:24:10 malcubi Exp $
 
   subroutine restrictintegral
 
