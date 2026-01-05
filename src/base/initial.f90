@@ -767,7 +767,7 @@
 
      else
 
-        print *, 'Charged Proca star initial data needs "complexproca" type matter ...'
+        print *, 'Charged Proca star initial data needs "complexproca" and "electric" type matter ...'
         print *, 'Aborting! (subroutine initial)'
         print *
         call die
@@ -801,9 +801,9 @@
   end if
 
 
-! **********************
-! ***  DIRAC PULSE   ***
-! **********************
+! ***********************
+! ***   DIRAC PULSE   ***
+! ***********************
 
   if (idata=="diracpulse") then
 
@@ -824,7 +824,7 @@
 
 
 ! **********************
-! ***  DIRAC PULSE   ***
+! ***   DIRAC STAR   ***
 ! **********************
 
   if (idata=="diracstar") then
@@ -836,6 +836,30 @@
      else
 
         print *, 'Dirac star initial data needs "dirac" type matter ...'
+        print *, 'Aborting! (subroutine initial)'
+        print *
+        call die
+
+     end if
+
+  end if
+
+
+! ******************************
+! ***   CHARGED DIRAC STAR   ***
+! ******************************
+
+! Proca star initial data.
+
+  if (idata=="chargeddirac")    then
+
+     if (contains(mattertype,"dirac").and.contains(mattertype,"electric")) then
+
+       call idata_chargeddiracstar
+
+     else
+
+        print *, 'Charged Dirac star initial data needs "dirac" and "electric" type matter ...'
         print *, 'Aborting! (subroutine initial)'
         print *
         call die
