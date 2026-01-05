@@ -35,8 +35,6 @@ fluid_gamma = 2.0         # Adiabatic index (5/3 for a monoatomic non-relativist
 fluid_kappa = 100.0       # Polytropic constant
 fluid_atmos = 1.d-8       # Artificial atmosphere value
 
-fluid_usesoundspeed = .true.  # Use speed of light instead of speed of sound for fluid methods
-
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 0.00128   	  # Central density for TOV star
 
