@@ -21,12 +21,9 @@
 
   implicit none
 
-  logical firstcall(0:Nl-1)              ! Is this the first call?
   logical error                          ! Error in finding solution.
 
-  integer i,l,p                          ! Counters
-  integer imax,Naux                      ! Auxiliary.
-  integer, save :: imin = 0.1            ! Minimum value of i.
+  integer i,l,p,imin                     ! Counters.
   integer status(MPI_STATUS_SIZE)
 
   real(8) CSI_guess,CSI_left,CSI_right   ! R positions.
@@ -39,39 +36,27 @@
   real(8) interp                         ! Interpolation function.
   real(8) r0,aux
 
-  real(8), dimension (1-ghost:Nrmax) :: var1,var2  !  Arrays for output.
-
-  character(5)  filen
-  character(20) filestatus
+  real(8), dimension (1-ghost:Nrmax) :: var1,var2  !  Auxiliary arrays.
 
 
 ! **********************
 ! ***   INITIALIZE   ***
 ! **********************
 
-  print *, "Tracking Schwarzschild not yet working correctly, DO NOT USE!"
+  !print *, "Tracking Schwarzschild not yet working correctly, DO NOT USE!"
 
-! Initialize output files flags.
+! Find imin.
 
-  firstcall(l) = .false.
+  imin = int(TrackSchwarz_rmin/dr(l)) + 1
 
 ! At t=0 initialize CSI_SCHWARZ and ETA_MINK  Remember that we
 ! assume that we start with Schwarzschild in isotrtopic coordinates.
 
   if (t(l)==0.d0) then
 
-!    Set firstcall flag to true.
-
-     firstcall(l) = .true.
-
 !    Set Kruskal ETA to zero initially.
 
      ETA_SCHWARZ(l,:) = 0.d0
-
-!    Find imin.
-
-     imin = int(TrackSchwarz_rmin/dr(l))
-     print *, imin
 
 !    Find Kruskal CSI. At t=0 the transformation of
 !    coordinates is, for r_area > 2M:
@@ -106,9 +91,9 @@
         end if
      end do
 
-!    Jump to output.
+!    Return
 
-     goto 100
+     return
 
   end if
 
@@ -118,24 +103,26 @@
 ! ***********************************************
 
 ! To update the position of the coordinate lines I first calculate
-! the interval of the point we are considering to the points to
-! the left and right on the previous time step (forming a triangle):
+! the interval of the point we are considering to the points below
+! and to the right on the previous time step (forming a triangle):
 !
 !                     ...   o  o  x  o  o  ...
-!                     ...   o  x  o  x  o  ...
+!                     ...   o  o  x  x  o  ...
 
 ! The idea is then to find that point in Kruskal coordinates that is
 ! at precisely those distances from the previous points whose positions
 ! are known.  Notice that one would expect two possible solutions,
 ! one in the past and one on the future, but I lock onto the correct
-! one by choosing a initial guess in the future.
+! one by choosing a initial guess in the future. This is in principle
+! only first order accurate, but works.
 !
-! At the last grid point we modify the molecule above slighlty to:
+! I tried using a "better" molecule that takes one point to the left
+! and one to the right in the previous time step, but it goes unstable! 
+!
+! At the last grid point we modify the molecule above to:
 !
 !                     ...   o  o  x
 !                     ...   o  x  x
-
-! Copy old positions.
 
   CSI_SCHWARZ_P(l,:) = CSI_SCHWARZ(l,:)
   ETA_SCHWARZ_P(l,:) = ETA_SCHWARZ(l,:)
@@ -147,20 +134,19 @@
 !    As initial guess I assume that the coordinate lines did not move
 !    in space and advanced one time step in time.
  
-     CSI_guess = CSI_SCHWARZ_P(l,i)
-     ETA_guess = ETA_SCHWARZ_P(l,i) + dt(l)
+     CSI_guess = CSI_SCHWARZ(l,i)
+     ETA_guess = ETA_SCHWARZ(l,i) + dt(l)
 
 !    Calculate interval to point on the left on previous time step.
 !    First we average the lapse, shift and metric components, and then
-!    we find the interval. Notice the sign of the mixed term, it is
-!    negative since seen from the current point, the point in the
-!    last time level is in the past (-dt) and to the left (-dr).
+!    we find the interval.
 !
-!    Also remember that beta is the contravariant shift, and 
-!    the interval requires the covariant shift, so we need to
+!    Remember that beta is the contravariant shift, and the
+!    interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
 
-     if (i>imin) then
+     !if (i>imin) then
+     if (i==Nr) then
 
         r0 = 0.5d0*(r(l,i)+r(l,i-1))
 
@@ -168,15 +154,10 @@
         ETA_left = ETA_SCHWARZ_P(l,i-1)
 
         alpha_avg = 0.5d0*(alpha(l,i) + alpha(l,i-1))
+        phi_avg   = 0.5d0*(  phi(l,i) +   phi(l,i-1))
         A_avg     = 0.5d0*(    A(l,i) +     A(l,i-1))
         B_avg     = 0.5d0*(    B(l,i) +     B(l,i-1))
 
-        if (i<Nr-2) then
-           interpvar => phi
-           phi_avg = interp(l,r0,.false.)
-        else
-           phi_avg = 0.5d0*(phi(l,i) + phi(l,i-1))
-        end if
 
         gammarr = dexp(4.d0*phi_avg)*A_avg
 
@@ -210,12 +191,10 @@
 
 !    Calculate interval to point on the right on previous time step.
 !    First we average the lapse, shift and metric components, and then
-!    we find the interval.  Notice the sign of the mixed term, it is
-!    negative since seen from the current point, the point in the
-!    last time level is in the past (-dt) and to the right (+dr).
+!    we find the interval.
 !
-!    Also remember that beta is the contravariant shift, and 
-!    the interval requires the covariant shift, so we need to
+!    Remember that beta is the contravariant shift, and the
+!    interval requires the covariant shift, so we need to
 !    multiply with the radial metric.
 
      if (i<Nr) then
@@ -228,13 +207,7 @@
         alpha_avg = 0.5d0*(alpha(l,i) + alpha(l,i+1))
         A_avg     = 0.5d0*(    A(l,i) +     A(l,i+1))
         B_avg     = 0.5d0*(    B(l,i) +     B(l,i+1))
-
-        if (i<Nr-2) then
-           interpvar => phi
-           phi_avg = interp(l,r0,.false.)
-        else
-           phi_avg = 0.5d0*(phi(l,i) + phi(l,i+1))
-        end if
+        phi_avg   = 0.5d0*(  phi(l,i) +   phi(l,i+1))
 
         gammarr = dexp(4.d0*phi_avg)*A_avg
 
@@ -276,17 +249,15 @@
 
      if (error) then
           print *, 'Newton-Raphson iterations did not converge at point',i,'  , r =',r(l,i), ' , level l =',l
-          !print *, 'Aborting! (subroutine geometry/trackschwarz.f90)'
-          !print *
-          !call die
+          print *, 'Aborting! (subroutine geometry/trackschwarz.f90)'
+          print *
+          call die
      end if
 
 !    Save new coordinates.
 
      CSI_SCHWARZ(l,i) = CSI_guess
      ETA_SCHWARZ(l,i) = ETA_guess
-
-     aux = r(l,i)*dexp(2.d0*phi(l,i))
 
   end do
 
@@ -298,6 +269,13 @@
      syncvar => ETA_SCHWARZ(l,:)
      call sync
   end if
+
+! Extrapolate linearly one point to the left of imin.
+! This is needed for later interpolations, in particular
+! for the restriction step for multiple level runs.
+
+  CSI_SCHWARZ(l,imin-1) = 2.d0*CSI_SCHWARZ(l,imin) - CSI_SCHWARZ(l,imin+1)
+  ETA_SCHWARZ(l,imin-1) = 2.d0*ETA_SCHWARZ(l,imin) - ETA_SCHWARZ(l,imin+1)
 
 ! Restrict fine data to coarse grid.
 
@@ -323,122 +301,172 @@
   end if
 
 
+! ***************
+! ***   END   ***
+! ***************
+
+  end subroutine trackschwarz
+
+
+
+
+
+
+
+  subroutine trackschwarzout
+
+! *****************************
+! ***   OUTPUT SLICE DATA   ***
+! *****************************
+
+! This subroutine outputs slice data for Schwarzschild.
+
+! Include modules.
+
+  use mpi
+  use param
+  use arrays
+  use procinfo
+
+! Include modules.
+
+  use param
+  use arrays
+
+! Extra variables.
+
+  implicit none
+
+  logical firstcall                ! Is this the first call?
+
+  integer i,p,l                    ! Counters
+  integer imin,imax,Naux           ! Auxiliary.
+  integer status(MPI_STATUS_SIZE)
+
+  real(8), dimension (1-ghost:Nrmax) :: var1,var2  !  Arrays for output.
+
+  character(5)  filen
+  character(20) filestatus
+
+  data firstcall / .true. /
+  save firstcall
+
+
 ! ***********************
 ! ***   OUTPUT DATA   ***
 ! ***********************
 
-  100 continue
-
-! Do output only every Noutput1D time steps.
-! Notice that for refinement levels we need
-! to multipy the Noutput with 2**l to make
-! sure all level do output at the same times.
-
-  if (mod(s(l),Noutput1D*(2**l))/=0) return
-
-! Find total number of points.
-
-  Naux = Nrmax + ghost
-
 ! On first call, replace file. Otherwise just append to it.
 
-  if (firstcall(l)) then
-     firstcall(l) = .false.
+  if (firstcall) then
+     firstcall = .false.
      filestatus = 'replace'
   else
      filestatus = 'old'
   end if
 
-! Processor 0 does output.
+! Find total number of points.
 
-  if (rank==0) then
+  Naux = Nrmax + ghost
 
-     if (l<10) then
-        write(filen,'(i1)') l
-     else
-        write(filen,'(i2)') l
-     end if
+  do l=0,Nl-1
 
-!    Open files.
+!    Find imin.
 
-     if (filestatus == 'replace') then
-        open(1,file=trim(directory)//'/SchwarzSlice'//trim(filen)//'.rl',form='formatted', &
-             status=filestatus)
-     else
-        open(1,file=trim(directory)//'/SchwarzSlice'//trim(filen)//'.rl',form='formatted', &
-                status=filestatus,position='append')
-     end if
+     imin = int(TrackSchwarz_rmin/dr(l)) + 1
 
-!    Write current time.
+!    Processor 0 does output.
 
-     if (commenttype=='xgraph') then
-        write(1,"(A8,ES18.10)") '"Time = ',t(l)
-        write(2,"(A8,ES18.10)") '"Time = ',t(l)
-     else
-        write(1,"(A8,ES18.10)") '#Time = ',t(l)
-        write(2,"(A8,ES18.10)") '#Time = ',t(l)
-     end if
+     if (rank==0) then
 
-!    Save data from processor 0. Notice that we ignore
-!    the ghost points left of the origin for this.
-
-     if (size==1) then
-        imax = Nrl(0)
-     else
-        imax = Nrl(0) - ghost
-     end if
-
-     do i=imin,imax
-        write(1,"(2ES16.8)") CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i)
-     end do
-
-!    Iterate over other processors.
-
-     do p=1,size-1
-
-!       Receive and save data from other processors.
-
-        call MPI_RECV(var1,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-        call MPI_RECV(var2,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-
-        if (p==size-1) then
-           imax = Nrl(p)
+        if (l<10) then
+           write(filen,'(i1)') l
         else
-           imax = Nrl(p) - ghost
+           write(filen,'(i2)') l
         end if
 
-        do i=1,imax
-           write(1,"(2ES16.8)") var1(i),var2(i)
+!       Open files.
+
+        if (filestatus == 'replace') then
+           open(1,file=trim(directory)//'/SchwarzSlice'//trim(filen)//'.rl',form='formatted', &
+                status=filestatus)
+        else
+           open(1,file=trim(directory)//'/SchwarzSlice'//trim(filen)//'.rl',form='formatted', &
+                status=filestatus,position='append')
+        end if
+
+!       Write current time.
+
+        if (commenttype=='xgraph') then
+           write(1,"(A8,ES18.10)") '"Time = ',t(l)
+           write(2,"(A8,ES18.10)") '"Time = ',t(l)
+        else
+           write(1,"(A8,ES18.10)") '#Time = ',t(l)
+           write(2,"(A8,ES18.10)") '#Time = ',t(l)
+        end if
+
+!       Save data from processor 0. Notice that we ignore
+!       the ghost points left of the origin for this.
+
+        if (size==1) then
+           imax = Nrl(0)
+        else
+           imax = Nrl(0) - ghost
+        end if
+
+        do i=imin,imax
+           write(1,"(2ES16.8)") CSI_SCHWARZ(l,i),ETA_SCHWARZ(l,i)
         end do
 
-     end do
+!       Iterate over other processors.
 
-!    Leave two blank spaces before next time.
-!    The reason to leave two spaces is that 'gnuplot' asks
-!    for two spaces to distinguish different records.
+        do p=1,size-1
 
-     write(1,*)
-     write(1,*)
+!          Receive and save data from other processors.
 
-!    Close files.
+           call MPI_RECV(var1,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+           call MPI_RECV(var2,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
 
-     close(1)
+           if (p==size-1) then
+              imax = Nrl(p)
+           else
+              imax = Nrl(p) - ghost
+           end if
 
-! Other processors send data to processor 0.
+           do i=1,imax
+              write(1,"(2ES16.8)") var1(i),var2(i)
+           end do
 
-  else
+        end do
 
-     call MPI_SEND(CSI_SCHWARZ(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
-     call MPI_SEND(ETA_SCHWARZ(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+!       Leave two blank spaces before next time.
+!       The reason to leave two spaces is that 'gnuplot' asks
+!       for two spaces to distinguish different records.
 
-  end if
+        write(1,*)
+        write(1,*)
+
+!       Close files.
+
+        close(1)
+
+!    Other processors send data to processor 0.
+
+     else
+
+        call MPI_SEND(CSI_SCHWARZ(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+        call MPI_SEND(ETA_SCHWARZ(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+
+     end if
+
+  end do
 
 
 ! ***************
 ! ***   END   ***
 ! ***************
 
-  end subroutine trackschwarz
+  end subroutine trackschwarzout
 
 
 
@@ -542,7 +570,7 @@
 
 !    Check if we achieved desired tolerance.
 
-     norm = dabs(res(1)) + dabs(res(2))
+     norm = dabs(delta(1)) + dabs(delta(2))
 
      if (norm<epsilon) then
         d1 = aux1*((csi - csi1)**2 - (eta - eta1)**2)
