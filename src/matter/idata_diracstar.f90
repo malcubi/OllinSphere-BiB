@@ -18,6 +18,10 @@
 ! and then move it slowly further out adjusting omega
 ! to high precision as we move out.
 
+! Dirac stars are self-gravitating solutions of a Dirac
+! spinor field such that the spacetime is static and the
+! Dirac field has a harmonic time dependence.
+!
 ! To obtain the initial data we assume that spacetime is
 ! static (K_ij=0), and also that the Dirac fields have
 ! the form:
@@ -25,10 +29,13 @@
 ! F(t,r) = f(r) exp(-i omega t)
 ! G(t,r) = i g(r) exp(-i omega t)
 !
+! In particular, at t=0 F is purely real while G is
+! purely imaginary.
+!
 ! Notice that with this ansatz the stress-energy tensor
 ! is time-independent so the metric can be static.
 !
-! The standard ansatz for the metric for boson stars is:
+! The standard ansatz for the metric for Dirac stars is:
 !
 !   2          2   2        2     2      2
 ! ds  = - alpha  dt  +  A dr  +  r dOmega
@@ -46,7 +53,9 @@
 ! with rho the energy density of the Dirac field which
 ! now becomes:
 !
-! rho  =  omega / (2 pi alpha)  [ f^2 + g^2 ]
+!                                2   2  
+! rho  =  omega/(2 pi alpha)  [ f + g ]
+!
 !
 ! For the lapse we use the polar slicing condition
 ! K_{theta,theta}=0, which implies:
@@ -57,10 +66,12 @@
 !
 ! with SA given by:
 !
-! SA  =  rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
+!                                      2   2
+! SA  =  rho - 1/pi [ f g / r + m/2 ( f - g ) ]
 !
-! Notice that for a static solution this should be equivalent
-! to maximal slicing but is easier to solve.
+!
+! Notice that for a static solution this lapse condition should
+! be equivalent to maximal slicing but is easier to solve.
 !
 ! On the other hand, substituting our ansatz in the Dirac
 ! equations for (F,G) we find:
@@ -73,6 +84,29 @@
 ! dG/dr  =  - G [ d alpha / 2 alpha  +  ( 1 + A   ) / r ]  -  A   F ( m - omega / alpha )
 !                  r
 !
+! For the boundary conditions at the origin we take:
+!
+! A(r=0)        = 1,     d A(r=0)     = 0
+!                         r
+!
+! alpha(r=0)    = 1,     d alpha(r=0) = 0
+!                         r
+!
+!
+! diracF(r=0)   = dirac_f0
+!
+!
+! diracG(r=0)   = 0,     d diracG(r=0) =  f0 (omega - m) / 3
+!                         r
+!
+! Notice that in the final solution we don't want alpha(r=0)=1,
+! but rather alpha=1 at infinity.  But this is no problem as the
+! slicing condition above is linear in alpha so we can always
+! just rescale the lapse at the end, but in order not to affect
+! the solution we must also rescale the final value of the frequency
+! omega and both procaF and maxwellF by the same factor.
+
+
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
@@ -101,12 +135,15 @@
   real(8) r0,delta                      ! Local radius and grid spacing.
   real(8) A0,alpha0,F0,G0               ! Initial values of variables.
   real(8) A_rk,alpha_rk,F_rk,G_rk       ! Runge-Kutta values of variables.
+
   real(8) k11,k12,k13,k14               ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24               ! Runge-Kutta sources for alpha.
   real(8) k31,k32,k33,k34               ! Runge-Kutta sources for F.
   real(8) k41,k42,k43,k44               ! Runge-Kutta sources for G.
+
   real(8) J1_DIR,J2_DIR,J3_DIR,J4_DIR   ! Functions for sources of differential equations.
   real(8) J5_DIR,J6_DIR                 ! Functions for sources of differential equations.
+
   real(8) res,res_old                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval.
   real(8) DF_rk,DG_rk                   ! Radial derivatives of F and G, for perturbations.
@@ -268,11 +305,11 @@
               alpha_g(l,imin-1) = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
                                 - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
 
-              F_g(l,imin-1)     = (9.d0*(F_g(l+1,Nrtotal-2)+F_g(l+1,Nrtotal-3)) &
-                                - (F_g(l+1,Nrtotal-4)+F_g(l+1,Nrtotal-1)))/16.d0
+              F_g(l,imin-1) = (9.d0*(F_g(l+1,Nrtotal-2)+F_g(l+1,Nrtotal-3)) &
+                            - (F_g(l+1,Nrtotal-4)+F_g(l+1,Nrtotal-1)))/16.d0
 
-              G_g(l,imin-1)     = (9.d0*(G_g(l+1,Nrtotal-2)+G_g(l+1,Nrtotal-3)) &
-                                - (G_g(l+1,Nrtotal-4)+G_g(l+1,Nrtotal-1)))/16.d0
+              G_g(l,imin-1) = (9.d0*(G_g(l+1,Nrtotal-2)+G_g(l+1,Nrtotal-3)) &
+                            - (G_g(l+1,Nrtotal-4)+G_g(l+1,Nrtotal-1)))/16.d0
 
            end if
 
@@ -393,6 +430,7 @@
 
               A_rk     = A0     + k13
               alpha_rk = alpha0 + k23
+
               F_rk     = F0     + k33
               G_rk     = G0     + k43
 
@@ -407,6 +445,7 @@
 
               A_g(l,i)     = A0     + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
               alpha_g(l,i) = alpha0 + (k21 + 2.d0*(k22 + k23) + k24)/6.d0
+
               F_g(l,i)     = F0     + (k31 + 2.d0*(k32 + k33) + k34)/6.d0
               G_g(l,i)     = G0     + (k41 + 2.d0*(k42 + k43) + k44)/6.d0
 
@@ -444,8 +483,8 @@
               A_g(l,1-i)     = + A_g(l,i)
               alpha_g(l,1-i) = + alpha_g(l,i)
 
-              F_g(l,1-i)     = + F_g(l,i)
-              G_g(l,1-i)     = - G_g(l,i)
+              F_g(l,1-i) = + F_g(l,i)
+              G_g(l,1-i) = - G_g(l,i)
 
            end do
 
@@ -552,6 +591,7 @@
 
            A_g(l-1,iaux)     = (9.d0*(A_g(l,i)+A_g(l,i+1))         - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
            alpha_g(l-1,iaux) = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
+
            F_g(l-1,iaux)     = (9.d0*(F_g(l,i)+F_g(l,i+1))         - (F_g(l,i-1)+F_g(l,i+2)))/16.d0
            G_g(l-1,iaux)     = (9.d0*(G_g(l,i)+G_g(l,i+1))         - (G_g(l,i-1)+G_g(l,i+2)))/16.d0
 
@@ -560,10 +600,13 @@
 !       Fix ghost zones.
 
         do i=1,ghost
+
            A_g(l-1,1-i)     = + A_g(l-1,i)
            alpha_g(l-1,1-i) = + alpha_g(l-1,i)
+
            F_g(l-1,1-i)     = + F_g(l-1,i)
            G_g(l-1,1-i)     = - G_g(l-1,i)
+
         end do
 
      end do
@@ -998,7 +1041,7 @@
 ! ***   IMAGINARY PART OF F AND REAL PART OF G   ***
 ! **************************************************
 
-! Set the imaginary part of F and real partr of G to zero.
+! Set the imaginary part of F and real part of G to zero.
 
   dirac_FI = 0.d0
   dirac_GR = 0.d0
@@ -1043,13 +1086,13 @@
 !
 ! rho  =  omega / (2 pi alpha) (F^2 + G^2)
 
-  rho = dirac_omega/alpha*(F**2 + G**2)
+  rho = dirac_omega/(2.d0*smallpi*alpha)*(F**2 + G**2)
 
 ! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
 !
 ! Notice that we already canceled a factor of 2*pi.
 
-  J1_DIR = A*((1.d0 - A)/rm + 4.d0*rm*A*rho)
+  J1_DIR = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
   end function J1_DIR
 
@@ -1063,10 +1106,10 @@
 ! ***   RADIAL DERIVATIVE OF ALPHA   ***
 ! **************************************
 
-  function J2_DIR(A,alpha,F,G,rm)
-
 ! The radial derivative of alpha comes from the
 ! polar-areal slicing condition.
+
+  function J2_DIR(A,alpha,F,G,rm)
 
   use param
 
