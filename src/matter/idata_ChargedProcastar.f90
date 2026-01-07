@@ -49,10 +49,11 @@
 !
 ! dA/dr  =  A [ (1 - A)/r + 8 pi r A rho ]
 !
-! where the energy density is now given by:
+! with rho the total energy density given by the Proca
+! plus Maxwell contributions:
 !
-!                              2           2        2                   2          2  
-! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
+!                              2           2       2                   2          2  
+! rho  =  1/(8 pi) { A ( procaE  + maxwellE )  +  m  [ (procaF / alpha)  +  procaA / A ] }
 !
 !
 ! with procaE the Proca electric field, maxwellE the Maxwell
@@ -129,7 +130,7 @@
 !                         r
 !
 ! procaF(r=0)   = proca_phi0
-!     
+!
 !
 ! procaA(r=0)   = 0
 !
@@ -150,6 +151,7 @@
 ! at infinity. We can fix this by making a gauge transformation of
 ! the field once we found the solution that also changes the frequency
 ! (see comment in the code below for a detailed explanation).
+
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
@@ -179,7 +181,12 @@
   real(8) r0,delta                       ! Local radius and grid spacing.
   real(8) A0,alpha0                      ! Initial values of (A,alpha).
   real(8) procaF0,procaA0,procaE0        ! Initial values of Proca variables.
-  real(8) maxwellF0,maxwellE0            ! Initial values of Maxwell variables. 
+  real(8) maxwellF0,maxwellE0            ! Initial values of Maxwell variables.
+
+  real(8) A_rk,alpha_rk                  ! Runge-Kutta values of (A,alpha).
+  real(8) procaF_rk,procaA_rk,procaE_rk  ! Runge-Kutta values of Proca variables.
+  real(8) maxwellF_rk,maxwellE_rk        ! Runge-Kutta values of Maxwell variables.
+  real(8) cps_omega_rk                   ! Modified frequency value.
 
   real(8) k11,k12,k13,k14                ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24                ! Runge-Kutta sources for alpha.
@@ -189,10 +196,6 @@
   real(8) k61,k62,k63,k64                ! Runge-Kutta sources for maxwellF.
   real(8) k71,k72,k73,k74                ! Runge-Kutta sources for procaE.
 
-  real(8) A_rk,alpha_rk                  ! Runge-Kutta values of (A,alpha).
-  real(8) procaF_rk,procaA_rk,procaE_rk  ! Runge-Kutta values of Proca variables.
-  real(8) maxwellF_rk,maxwellE_rk        ! Runge-Kutta values of Maxwell variables.
-  real(8) cps_omega_rk                   ! Modified frequency value 
   real(8) J1_CPS,J2_CPS,J3_CPS           ! Functions for sources of differential equations.
   real(8) J4_CPS,J5_CPS,J6_CPS,J7_CPS    ! Functions for sources of differential equations.
 
@@ -327,6 +330,7 @@
 
   maxwellF_g = 0.d0
   maxwellE_g = 0.d0
+  maxwellPhi_g = 0.d0
 
 
 ! *********************************************
@@ -342,7 +346,7 @@
 
 !    Find initial domega.
 
-     domega = (omega_right - omega_left)/20.0d0
+     domega = (omega_right - omega_left)/20.d0
 
 !    Sanity check.
 
@@ -407,20 +411,20 @@
 
            if (l<Nl-1) then
 
-              A_g(l,imin-1)         = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
-                                      - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
-              alpha_g(l,imin-1)     = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
-                                      - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
+              A_g(l,imin-1)        = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
+                                   - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
+              alpha_g(l,imin-1)    = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
+                                   - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
 
-              procaF_g(l,imin-1)    = (9.d0*(procaF_g(l+1,Nrtotal-2)+procaF_g(l+1,Nrtotal-3)) &
-                                      - (procaF_g(l+1,Nrtotal-4)+procaF_g(l+1,Nrtotal-1)))/16.d0
-              procaA_g(l,imin-1)    = (9.d0*(procaA_g(l+1,Nrtotal-2)+procaA_g(l+1,Nrtotal-3)) &
-                                      - (procaA_g(l+1,Nrtotal-4)+procaA_g(l+1,Nrtotal-1)))/16.d0
+              procaF_g(l,imin-1)   = (9.d0*(procaF_g(l+1,Nrtotal-2)+procaF_g(l+1,Nrtotal-3)) &
+                                   - (procaF_g(l+1,Nrtotal-4)+procaF_g(l+1,Nrtotal-1)))/16.d0
+              procaA_g(l,imin-1)   = (9.d0*(procaA_g(l+1,Nrtotal-2)+procaA_g(l+1,Nrtotal-3)) &
+                                   - (procaA_g(l+1,Nrtotal-4)+procaA_g(l+1,Nrtotal-1)))/16.d0
 
               maxwellE_g(l,imin-1) = (9.d0*(maxwellE_g(l+1,Nrtotal-2)+maxwellE_g(l+1,Nrtotal-3)) &
-                                      - (maxwellE_g(l+1,Nrtotal-4)+maxwellE_g(l+1,Nrtotal-1)))/16.d0
+                                   - (maxwellE_g(l+1,Nrtotal-4)+maxwellE_g(l+1,Nrtotal-1)))/16.d0
               maxwellF_g(l,imin-1) = (9.d0*(maxwellF_g(l+1,Nrtotal-2)+maxwellF_g(l+1,Nrtotal-3)) &
-                                      - (maxwellF_g(l+1,Nrtotal-4)+maxwellF_g(l+1,Nrtotal-1)))/16.d0
+                                   - (maxwellF_g(l+1,Nrtotal-4)+maxwellF_g(l+1,Nrtotal-1)))/16.d0
  
            end if
 
@@ -468,9 +472,9 @@
 
                  procaF0 = procaF_g(l,i-1)
                  procaA0 = procaA_g(l,i-1)
-                 
+
                  maxwellE0 = maxwellE_g(l,i-1)
-                 maxwellF0 = maxwellF_g(l,i-1)                
+                 maxwellF0 = maxwellF_g(l,i-1)
 
               end if
 
@@ -537,6 +541,8 @@
 
               maxwellE_rk = maxwellE0 + half*k51
               maxwellF_rk = maxwellF0 + half*k61
+
+!             Sources.
 
               cps_omega_rk = proca_omega + cproca_q*maxwellF_rk
               procaE_rk = - cproca_mass**2*alpha_rk*procaA_rk/(cps_omega_rk*A_rk)
@@ -640,8 +646,8 @@
 
            do i=1,ghost
 
-              A_g(l,1-i)      = + A_g(l,i)
-              alpha_g(l,1-i)  = + alpha_g(l,i)
+              A_g(l,1-i)     = + A_g(l,i)
+              alpha_g(l,1-i) = + alpha_g(l,i)
 
               procaF_g(l,1-i) = + procaF_g(l,i)
               procaA_g(l,1-i) = - procaA_g(l,i)
@@ -840,9 +846,9 @@
      procaE_g = - cproca_mass**2*alpha_g*procaA_g/(A_g*(omega_new + cproca_q*maxwellF_g))
 
 
-!    *********************************************
-!    ***  OUTPUT GAUGE TRANSFORMED FREQUENCY   ***
-!    *********************************************
+!    **********************************************
+!    ***   OUTPUT GAUGE TRANSFORMED FREQUENCY   ***
+!    **********************************************
 
 !    Here we output the gauge transformed frequency.
 !    But we don't really do the gauge transformation
@@ -1306,7 +1312,7 @@
 ! ***   END   ***
 ! ***************
 
-  end subroutine idata_ChargedProcastar
+  end subroutine idata_chargedprocastar
 
 
 
@@ -1332,7 +1338,6 @@
   real(8) rho
 
 ! For the energy density we have:
-!
 !                              2           2        2                   2          2  
 ! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
 !
@@ -1372,7 +1377,6 @@
   real(8) SA
 
 ! For SA we have:
-!
 !                              2           2        2                   2          2
 ! SA  = - 1/(8 pi) { A ( procaE  + maxwellE  )  -  m  [ (procaF / alpha)  +  procaA / A ] }
 !
@@ -1480,8 +1484,16 @@
 ! ***   RADIAL DERIVATIVE OF maxwellE   ***
 ! *****************************************
 
-! The radial derivative of maxwellE comes from
-! the Maxwell equations (the Gauss constraint).
+! The radial derivative of maxwellE comes from the Gauss constraint
+! and takes the form:
+!
+! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+!
+!              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi echarge
+!
+! where in the second equality we used the Hamiltonian constraint
+! to eliminate dA/dr, and with "echarge" the charge density of
+! the Proca field.
 
   function J5_CPS(A,alpha,procaF,procaA,maxwellE,maxwellF,procaE,rm)
 
@@ -1493,28 +1505,16 @@
   real(8) A,alpha,procaF,procaA,procaE,maxwellE,maxwellF,rm
   real(8) rho,echarge
 
-! The radial derivative of maxwellE comes from the Gauss constraint
-! and takes the form:
-!
-! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
-!
-!              =  - maxwellE [ (5-A) / 2r + 4 pi r A rho ] + 4 pi echarge
-!
-! where in the second equality we used the Hamiltonian constraint
-! to eliminate dA/dr, and with "echarge" the charge density of
-! the Proca field.
-!
 ! For the energy density we have:
 !
 !                              2           2        2                   2          2  
 ! rho = + 1/(8 pi) { A ( procaE  + maxwellE  )  +  m  [ (procaF / alpha)  +  procaA / A ] }
-!
-!
-! And for the charge density we have:
-!
-! echarge = (q / 4 pi) procaA procaE
 
   rho = A*(procaE**2 + maxwellE**2) + cproca_mass**2*((procaF/alpha)**2 + procaA**2/A)
+
+! For the charge density we have:
+!
+! echarge = (q / 4 pi) procaA procaE
 
   echarge = cproca_q*procaA*procaE
 
