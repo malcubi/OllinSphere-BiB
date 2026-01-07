@@ -634,7 +634,8 @@
 !       for certain type of initial data.
 
         if ((t(0)==0).and.(rank==0)) then
-           if ((idata=="reissnernordstrom").or.(idata=="chargedboson").or.(idata=="chargedproca"))  then
+           if ((idata=="reissnernordstrom").or.(idata=="chargedboson") &
+           .or.(idata=="chargedproca").or.(idata=="chargeddirac"))  then
               write(*,'(A,ES23.16)') ' Total Reissner-Nordstrom mass = ',mass_rn(0,Nr)
               print *
            end if
@@ -664,6 +665,22 @@
            else if (idata=="chargedproca") then
 
               bind = mass_rn(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
+
+              if (size==1) then
+                 write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+              else
+                 if (rank==0) then
+                    p = size-1
+                    call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                    write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                 else if (rank==size-1) then
+                    call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+                 end if
+              end if
+
+           else if (idata=="chargeddirac") then
+
+              bind = mass_rn(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
 
               if (size==1) then
                  write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
