@@ -34,7 +34,7 @@ Ninfo = 50		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 50		  # How often do we want 1D output?
 
-outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint,dirac_PiFR,dirac_PiFI,dirac_PiGR,dirac_PiGI
-outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint,dirac_PiFR,dirac_PiFI,dirac_PiGR,dirac_PiGI
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,dirac_PiFR,dirac_PiFI,dirac_PiGR,dirac_PiGI,dirac_Nint,rho,JA,mass_sch,mass_int
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,dirac_PiFR,dirac_PiFI,dirac_PiGR,dirac_PiGI,dirac_Nint,rho,JA,mass_sch,mass_int
 
 
