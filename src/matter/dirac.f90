@@ -54,6 +54,8 @@
 
   implicit none
 
+  logical contains
+
   integer l
 
   real(8) DFR,DFI
@@ -90,10 +92,35 @@
 ! Shift terms.
 
   if (shift/="none") then
+
      sdirac_FR(l,:) =  sdirac_FR(l,:) + beta(l,:)*DA_dirac_FR(l,:)
      sdirac_FI(l,:) =  sdirac_FI(l,:) + beta(l,:)*DA_dirac_FI(l,:)
+
      sdirac_GR(l,:) =  sdirac_GR(l,:) + beta(l,:)*DA_dirac_GR(l,:)
      sdirac_GI(l,:) =  sdirac_GI(l,:) + beta(l,:)*DA_dirac_GI(l,:)
+
+  end if
+
+! Charge terms if needed. In the case of a charged Dirac field we need
+! to add the terms:
+!
+! sdirac_FR =  sdirac_FR + q alpha ( ePhi dirac_FI - eAr dirac_GI / sqrt(A) )
+!
+! sdirac_FI =  sdirac_FI - q alpha ( ePhi dirac_FR - eAr dirac_GR / sqrt(A) )
+!
+! sdirac_GR =  sdirac_GR + q alpha ( ePhi dirac_GI - eAr dirac_FI / sqrt(A) )
+!
+! sdirac_GI =  sdirac_GI - q alpha ( ePhi dirac_GR - eAr dirac_FR / sqrt(A) )
+
+
+  if (contains(mattertype,"electric")) then
+
+     sdirac_FR(l,:) =  sdirac_FR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FI(l,:) - eAr(l,:)*dirac_GI(l,:)/sqrt(A(l,:)))
+     sdirac_FI(l,:) =  sdirac_FI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FR(l,:) - eAr(l,:)*dirac_GR(l,:)/sqrt(A(l,:)))
+
+     sdirac_GR(l,:) =  sdirac_GR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GI(l,:) - eAr(l,:)*dirac_FI(l,:)/sqrt(A(l,:)))
+     sdirac_GI(l,:) =  sdirac_GI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GR(l,:) - eAr(l,:)*dirac_FR(l,:)/sqrt(A(l,:)))
+
   end if
 
 ! Dissipation.
