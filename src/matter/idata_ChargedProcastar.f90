@@ -1,5 +1,5 @@
 
-  subroutine idata_chargedprocastar
+  subroutine idata_ChargedProcastar
 
 ! ***************************************************************
 ! ***   CHARGED PROCA STAR INITIAL DATA IN POLAR AREAL GAUGE  ***
@@ -1312,7 +1312,7 @@
 ! ***   END   ***
 ! ***************
 
-  end subroutine idata_chargedprocastar
+  end subroutine idata_ChargedProcastar
 
 
 
