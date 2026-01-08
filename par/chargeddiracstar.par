@@ -1,0 +1,45 @@
+# Test parameter file:
+#
+# Test parameter file for charged Dirac star initial data,
+# 1+log slicing, no shift.
+
+dr0 = 0.01		     # Grid spacing
+dtfac = 0.5		     # Courant parameter
+
+Nrtotal = 3000		     # Number of grid points
+Nt = 100  		     # Number of time steps
+
+Nl = 1                       # Number of refinement levels
+
+slicing = 1+log 	     # Type of slicing condition
+gauge_f = 2.0	             # Coefficient for harmonic slicing
+
+integrator = rk4	     # Type of integration method (icn,rk4)
+order = four  		     # Order for spatial finite differencing (two,four)
+
+boundtype = constraint       # Constraint preserving boundary condition
+
+mattertype = dirac,electric  # Complex Proca field
+dirac_mass = 1.0             # Mass of Proca field
+dirac_q = 0.1                # Charge of Proca field
+
+idata = chargeddirac         # Type of initial data
+dirac_f0 = 0.2               # Central value of scalar field
+omega_left  = 1.2358630      # First trial omega
+omega_right = 1.2358631      # Second trial omega
+
+geodiss   = 0.01             # Dissipation coefficient for geometry
+diracdiss = 0.01             # Dissipation coefficient for Proca field
+elecdiss  = 0.01             # Dissipation coefficient for electric field
+
+directory = chargeddiracstar # Name of output directory
+Ninfo = 10		     # How often do we want to output information to screen?
+Noutput0D = 10		     # How often do we want 0D output?
+Noutput1D = 10		     # How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,dirac_FR,dirac_FI,dirac_GR,dirac_GI,dirac_Nint,electric,ePhi,eAr,eQ_int,echarge,ecurrent,Celectric,mass_sch,mass_int,mass_rn
+
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,dirac_FR,dirac_FI,dirac_GR,dirac_GI,dirac_Nint,electric,ePhi,eAr,eQ_int,echarge,ecurrent,Celectric,mass_sch,mass_int,mass_rn
+
+
+
