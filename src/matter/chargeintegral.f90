@@ -138,8 +138,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,ES23.16)') ' Total electric charge Q        = ',eQTOT
-        write(*,'(A,ES23.16)') ' Effective radius R99 from Q(r) = ',R99
+        write(*,'(A,ES23.16)') ' Total electric charge eQ        = ',eQTOT
+        write(*,'(A,ES23.16)') ' Effective radius R99 from eQ(r) = ',R99
         print *
      end if
 
