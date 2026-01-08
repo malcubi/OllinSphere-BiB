@@ -144,13 +144,13 @@
      MTOT = mass_int(0,Nr)
 
      if (size==1) then
-        write(*,'(A,ES23.16)') ' Total integrated mass M = ',MTOT
+        write(*,'(A,ES23.16)') ' Total integrated mass M_int = ',MTOT
         print *
      else
         if (rank==0) then
            p = size-1
            call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-           write(*,'(A,ES23.16)') ' Total integrated mass M = ',MTOT
+           write(*,'(A,ES23.16)') ' Total integrated mass M_int = ',MTOT
            print *
         else if (rank==size-1) then
            call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
@@ -274,8 +274,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,ES23.16)') ' Effective radius R99 from M(r) = ',R99
-        write(*,'(A,ES23.16)') ' Effective compactness M/R99    = ',MTOT/R99
+        write(*,'(A,ES23.16)') ' Effective radius R99 from M_int(r) = ',R99
+        write(*,'(A,ES23.16)') ' Effective compactness M/R99        = ',MTOT/R99
         print *
      end if
 
