@@ -592,8 +592,8 @@
            A_g(l-1,iaux)     = (9.d0*(A_g(l,i)+A_g(l,i+1))         - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
            alpha_g(l-1,iaux) = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
 
-           F_g(l-1,iaux)     = (9.d0*(F_g(l,i)+F_g(l,i+1))         - (F_g(l,i-1)+F_g(l,i+2)))/16.d0
-           G_g(l-1,iaux)     = (9.d0*(G_g(l,i)+G_g(l,i+1))         - (G_g(l,i-1)+G_g(l,i+2)))/16.d0
+           F_g(l-1,iaux) = (9.d0*(F_g(l,i)+F_g(l,i+1)) - (F_g(l,i-1)+F_g(l,i+2)))/16.d0
+           G_g(l-1,iaux) = (9.d0*(G_g(l,i)+G_g(l,i+1)) - (G_g(l,i-1)+G_g(l,i+2)))/16.d0
 
         end do
 
@@ -604,8 +604,8 @@
            A_g(l-1,1-i)     = + A_g(l-1,i)
            alpha_g(l-1,1-i) = + alpha_g(l-1,i)
 
-           F_g(l-1,1-i)     = + F_g(l-1,i)
-           G_g(l-1,1-i)     = - G_g(l-1,i)
+           F_g(l-1,1-i) = + F_g(l-1,i)
+           G_g(l-1,1-i) = - G_g(l-1,i)
 
         end do
 
@@ -674,16 +674,14 @@
 !    An important consideration is the fact that we need to calculate
 !    the sources for (A,alpha) in a different way as above.  This is
 !    because the energy density for the Dirac equation depends on the
-!    derivatives of (F,G).  For an unperturbed star we can calculate
+!    time derivatives of (F,G).  For an unperturbed star we can calculate
 !    those derivatives using the Dirac equation and the harmonic
-!    ansatz.  But once we perturb the star this is no longer possible
+!    ansatz.  But once we perturb the star this is not possible
 !    since the harmonic ansatz is no longer valid.  What we do here
-!    is to take the functions (F,G) from the unpertiubed solution,
+!    is take the functions (F,G) from the unperturbed solution,
 !    calculate their derivatives using finite differences and
 !    use them calculate the energy density, which is then passed
 !    directly to another version of the sources for (A,alpha).
-!    
-!    Also, the perturbation should be small.
 
      if ((diracgauss).and.(abs(diracFR_a0)+abs(diracGI_a0)>0.0d0)) then
 
@@ -692,21 +690,23 @@
         print *, 'Adding gaussian perturbation to Dirac star ...'
         print *
 
-!       Sanity check.
+!       Sanity check. Remember diracF must be real and diracG must be imaginary.
 
         if (diracFI_a0/=0.d0) then
-           print *, 'For a perturbation for a Dirac star we must have diracFI_a0=0.0 ...'
+           print *, 'For a perturbation for a Dirac star we must have diracFI_a0=0 ...'
            print *, 'Aborting! (subroutine idata_diracpulse)'
            print *
            call die
         end if
 
         if (diracGR_a0/=0.d0) then
-           print *, 'For a perturbation for a Dirac star we must have diracGR_a0=0.0 ...'
+           print *, 'For a perturbation for a Dirac star we must have diracGR_a0=0 ...'
            print *, 'Aborting! (subroutine idata_diracpulse)'
            print *
            call die
         end if
+
+!       Also, diracGI must remain zero at the origin.
 
         if (diracGI_r0==0.d0) then
            print *, 'For a perturbation for a Dirac star we must have diracGI_r0 non-zero ...'
@@ -728,7 +728,7 @@
         A_g     = 1.d0
         alpha_g = 1.d0
 
-!       Add perturbations to F_g (even) and G_g (odd).
+!       Add perturbations to F_g (must be even) and G_g (must be odd).
 
         if (diracFR_r0==0.d0) then
            F_g = F_g + diracFR_a0*exp(-rr**2/diracFR_s0**2)
