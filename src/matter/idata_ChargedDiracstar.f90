@@ -683,8 +683,8 @@
            A_g(l-1,iaux)     = (9.d0*(A_g(l,i)+A_g(l,i+1))         - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
            alpha_g(l-1,iaux) = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
 
-           F_g(l-1,iaux)     = (9.d0*(F_g(l,i)+F_g(l,i+1))         - (F_g(l,i-1)+F_g(l,i+2)))/16.d0
-           G_g(l-1,iaux)     = (9.d0*(G_g(l,i)+G_g(l,i+1))         - (G_g(l,i-1)+G_g(l,i+2)))/16.d0
+           F_g(l-1,iaux) = (9.d0*(F_g(l,i)+F_g(l,i+1)) - (F_g(l,i-1)+F_g(l,i+2)))/16.d0
+           G_g(l-1,iaux) = (9.d0*(G_g(l,i)+G_g(l,i+1)) - (G_g(l,i-1)+G_g(l,i+2)))/16.d0
 
            maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
            maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
@@ -698,8 +698,8 @@
            A_g(l-1,1-i)     = + A_g(l-1,i)
            alpha_g(l-1,1-i) = + alpha_g(l-1,i)
 
-           F_g(l-1,1-i)     = + F_g(l-1,i)
-           G_g(l-1,1-i)     = - G_g(l-1,i)
+           F_g(l-1,1-i) = + F_g(l-1,i)
+           G_g(l-1,1-i) = - G_g(l-1,i)
 
            maxwellF_g(l-1,1-i) = + maxwellF_g(l-1,i)
            maxwellE_g(l-1,1-i) = - maxwellE_g(l-1,i)
@@ -789,17 +789,188 @@
 !    ***   DIRAC STAR PERTURBATION   ***
 !    ***********************************
 
-!    Here we add a gaussian perturbation to the solution for the
-!    Proca scalar potential procaF, leaving procaA unchanged.
-!    We then solve again for (A,alpha,maxwellF,maxwellE,procaE).
-!    
-!    The perturbation should be small, and since it must
-!    be even we take the sum of two symmetric gaussians.
+!    THIS SECTION IS NOT YET FINSIHED!!!  DO NOT USE IT!
 
-     if ((procagauss).and.(proca_phiR_a0/=0.d0)) then
-        print *, 'Charged Dirac star perturbation not yet implemented, aborting!'
+!    Here we add a gaussian perturbation to the solution for the
+!    real part of proca_F, or if we prefer to the real or imaginary
+!    parts of proca_G.  Remember that in order to guarantee that
+!    the momentum density is zero we must have proca_F purely
+!    real and proca_G  purely imaginary (we could probably
+!    consider more general perturbations, but at the moment we
+!    only allow these ones).  The amplitudes of the perturbations
+!    are rescaled with the maximum of dirac_FR and dirac_GI.
+!
+!    We use the same parameters to control the form of the gaussian
+!    as in the routine idata_diracpulse.f90. We then solve again for
+!    (A,alpha,maxwellF,maxwellE).
+
+     if ((diracgauss).and.(abs(diracFR_a0)+abs(diracGI_a0)>0.0d0)) then
+
+        print *, 'Charged Dirac star perturbation not yet implemented. Aborting!'
         print *
         call die
+
+!       Sanity check. Remember diracF must be real and diracG must be imaginary.
+
+        if (diracFI_a0/=0.d0) then
+           print *, 'For a perturbation for a Dirac star we must have diracFI_a0=0 ...'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        end if
+
+        if (diracGR_a0/=0.d0) then
+           print *, 'For a perturbation for a Dirac star we must have diracGR_a0=0 ...'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        end if
+
+!       Also, diracGI must remain zero at the origin.
+
+        if (diracGI_r0==0.d0) then
+           print *, 'For a perturbation for a Dirac star we must have diracGI_r0 non-zero ...'
+           print *, 'Aborting! (subroutine idata_diracpulse)'
+           print *
+           call die
+        end if
+
+!       Rescale the amplitude of the perturbations.
+
+        aux = maxval(abs(F_g))
+        diracFR_a0 = aux*diracFR_a0
+
+        aux = maxval(abs(G_g))
+        diracGI_a0 = aux*diracGI_a0
+
+!       Initialize again (A,alpha,maxwellF,maxwellE).
+
+        A_g     = 1.d0
+        alpha_g = 1.d0
+
+        maxwellF_g = 0.d0
+        maxwellE_g = 0.d0
+
+!       Add perturbations to F_g (must be even) and G_g (must be odd).
+
+        if (diracFR_r0==0.d0) then
+           F_g = F_g + diracFR_a0*exp(-rr**2/diracFR_s0**2)
+        else
+           F_g = F_g + diracFR_a0 &
+               *(exp(-(rr-diracFR_r0)**2/diracFR_s0**2) &
+               + exp(-(rr+diracFR_r0)**2/diracFR_s0**2))
+        end if
+
+        G_g = G_g + diracGI_a0 &
+            *(exp(-(rr-diracGI_r0)**2/diracGI_s0**2) &
+            - exp(-(rr+diracGI_r0)**2/diracGI_s0**2))
+
+!       Loop over grid levels. We solve from fine to coarse grid.
+
+        do l=Nl-1,0,-1
+
+!          Find initial point. Only the finest grid
+!          integrates from the origin.
+
+           if (l==Nl-1) then
+              imin = 1
+           else
+              imin = Nrtotal/2
+           end if
+
+!          For coarse grids we interpolate the initial point.
+
+           if (l<Nl-1) then
+
+              A_g(l,imin-1) = (9.d0*(A_g(l+1,Nrtotal-2)+A_g(l+1,Nrtotal-3)) &
+                            - (A_g(l+1,Nrtotal-4)+A_g(l+1,Nrtotal-1)))/16.d0
+              alpha_g(l,imin-1) = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
+                            - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
+
+              maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) &
+                                   - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
+              maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) &
+                                   - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
+
+           end if
+
+!          Fourth order Runge-Kutta.
+
+           do i=imin,Nrtotal
+
+!             Grid spacing and values at first point
+!             if we start from the origin (finer grid).
+
+!             I) First Runge-Kutta step.
+
+!             II) Second Runge-Kutta step.
+
+!             III) Third Runge-Kutta step.
+
+!             IV) Fourth Runge-Kutta step.
+
+!             Advance variables to next grid point.
+
+           end do
+
+!          Fix ghost zones.
+
+           do i=1,ghost
+              A_g(l,1-i)        = + A_g(l,i)
+              alpha_g(l,1-i)    = + alpha_g(l,i)
+              maxwellF_g(l,1-i) = + maxwellF_g(l,i)      
+              maxwellE_g(l,1-i) = - maxwellE_g(l,i)
+           end do
+
+        end do
+
+!       Restrict solution from fine to coarse grid.
+
+        do l=Nl-1,1,-1
+
+           do i=1,Nrtotal-ghost,2
+
+              iaux = i/2 + 1
+              rm = rr(l-1,iaux)
+
+              A_g(l-1,iaux)     = (9.d0*(A_g(l,i)+A_g(l,i+1)) - (A_g(l,i-1)+A_g(l,i+2)))/16.d0
+              alpha_g(l-1,iaux) = (9.d0*(alpha_g(l,i)+alpha_g(l,i+1)) - (alpha_g(l,i-1)+alpha_g(l,i+2)))/16.d0
+
+              maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
+              maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
+
+           end do
+
+!          Fix ghost zones.
+
+           do i=1,ghost
+              A_g(l-1,1-i)        = + A_g(l-1,i)
+              alpha_g(l-1,1-i)    = + alpha_g(l-1,i)
+              maxwellF_g(l-1,1-i) = + maxwellF_g(l-1,i)
+              maxwellE_g(l-1,1-i) = - maxwellE_g(l-1,i)
+           end do
+
+        end do
+
+!       Rescale lapse and maxwellF again.
+
+        if (order=="two") then
+           alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
+               *(3.d0*alpha_g(0,Nrtotal) - 4.d0*alpha_g(0,Nrtotal-1) + alpha_g(0,Nrtotal-2))
+        else
+           alphafac = alpha_g(0,Nrtotal) + rr(0,Nrtotal)*0.25d0/dr(0) &
+               *(25.d0*alpha_g(0,Nrtotal) - 48.d0*alpha_g(0,Nrtotal-1) &
+               + 36.d0*alpha_g(0,Nrtotal-2) - 16.d0*alpha_g(0,Nrtotal-3) + 3.d0*alpha_g(0,Nrtotal-4))/3.d0
+        end if
+
+        alpha_g  = alpha_g/alphafac
+
+        maxwellF_g = maxwellF_g/alphafac
+
+!       Reconstruct maxwellPhi.
+
+        maxwellPhi_g = maxwellF_g/alpha_g
+
      end if
 
 
