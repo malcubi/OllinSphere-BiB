@@ -855,7 +855,7 @@
 !    since that should be done AFTER the perturbation
 !    if there is one.
 
-!    Figure out asymtotic value of F.
+!    Figure out asymptotic value of F.
 
      if (order=="two") then
         Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
@@ -1192,10 +1192,10 @@
 !    but we really want maxwellF=0 at infinity.  We can fix this by making
 !    a gauge transformation of the form:
 !
-!    Fm -> Fm - F_infty ,   omega ->  omega + q F_infty
+!    maxwellF -> maxwellF - F_infty ,   omega ->  omega + q F_infty
 !
 !    with F_infty the asymptotic value of F.  This leaves the
-!    combination (omega - qF) unchanged. We find F_infty in
+!    combination (omega - q*maxwellF) unchanged. We find F_infty in
 !    exactly the same way as we did it for the lapse above.
 !
 !    Notice that this in in fact a true gauge transformation.
