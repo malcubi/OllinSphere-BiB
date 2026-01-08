@@ -1026,8 +1026,8 @@
 !    Write value of omega to screen.
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', boson_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+        write(*,'(A,ES23.16)') ' Omega (not-rescaled) = ', boson_omega
+        write(*,'(A,ES23.16)') ' Omega (rescaled)     = ', omega_new
         print *
      end if
 
