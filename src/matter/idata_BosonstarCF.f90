@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_BosonstarCF.f90,v 1.41 2024/03/11 16:54:53 malcubi Exp $
 
   subroutine idata_BosonstarCF
 
@@ -112,9 +111,13 @@
 ! again the whole system. Doing this we should recover the same
 ! frequency (up to truncation error).
 !
+! PERTURBATIONS:  For the moment this rountine does not solve
+! for perturbed initial data.
+!
 ! ANGULAR MOMENTUM:  This routine does not yet allow for the
 ! case of non-zero angular momentum (complex_l must be zero).
-!
+
+
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
