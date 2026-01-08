@@ -647,8 +647,8 @@
      omega_new = dirac_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not-rescaled) = ', dirac_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+        write(*,'(A,E23.16)') ' Omega (not-rescaled) = ', dirac_omega
+        write(*,'(A,E23.16)') ' Omega (rescaled)     = ', omega_new
         print *
      end if
 
