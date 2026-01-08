@@ -7,7 +7,7 @@ dr0 = 0.01		     # Grid spacing
 dtfac = 0.5		     # Courant parameter
 
 Nrtotal = 3000		     # Number of grid points
-Nt = 100  		     # Number of time steps
+Nt = 0  		     # Number of time steps
 
 Nl = 1                       # Number of refinement levels
 
