@@ -1,5 +1,5 @@
 
-  subroutine idata_diracstar
+  subroutine idata_Diracstar
 
 ! *******************************************************
 ! ***   DIRAC STAR INITIAL DATA IN POLAR-AREAL GAUGE  ***
@@ -1051,7 +1051,7 @@
 ! ***   END   ***
 ! ***************
 
-  end subroutine idata_diracstar
+  end subroutine idata_Diracstar
 
 
 
