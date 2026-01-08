@@ -1,5 +1,5 @@
 
-  subroutine idata_chargeddiracstar
+  subroutine idata_ChargedDiracstar
 
 ! ****************************************************************
 ! ***   CHARGED DIRAC STAR INITIAL DATA IN POLAR AREAL GAUGE   ***
@@ -1095,7 +1095,7 @@
 ! ***   END   ***
 ! ***************
 
-  end subroutine idata_chargeddiracstar
+  end subroutine idata_ChargedDiracstar
 
 
 
