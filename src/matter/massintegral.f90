@@ -221,8 +221,8 @@
 ! density decays very slowly.
 
   if ((t(0)==0.d0).and. &
-     ((idata=="bosonstar").or.(idata=="procastar").or.(idata=="l-procastar").or.idata=='diracstar') &
-        .or.(idata=="chargedboson").or.(idata=="chargedproca").or.(idata=="chargeddirac")) then
+     ((idata=="bosonstar").or.(idata=="procastar").or.(idata=="l-procastar").or.(idata=='diracstar') &
+        .or.(idata=="chargedboson").or.(idata=="chargedproca").or.(idata=="chargeddirac"))) then
 
      R99 = 0.d0
 
