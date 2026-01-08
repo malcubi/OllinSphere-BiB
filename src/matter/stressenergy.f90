@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/stressenergy.f90,v 1.54 2025/09/26 20:53:18 malcubi Exp $
 
   subroutine stressenergy(l)
 
@@ -732,8 +731,8 @@
 !    j  :=  gamma   j  =  [ cprocaPhi cprocaE  -  cprocaPhi cprocaE ] / (4 pi)
 !      Q          mu                  R       I             I       R
 
-     cproca_Qdens = (cprocaA_R*cprocaE_I - cprocaA_I*cprocaE_R)/(4.d0*smallpi)
-     cproca_Qflux = (cprocaPhi_R*cprocaE_I - cprocaPhi_I*cprocaE_R)/(4.d0*smallpi)
+     cproca_Qdens(l,:) = (cprocaA_R(l,:)  *cprocaE_I(l,:) - cprocaA_I(l,:)  *cprocaE_R(l,:))/(4.d0*smallpi)
+     cproca_Qflux(l,:) = (cprocaPhi_R(l,:)*cprocaE_I(l,:) - cprocaPhi_I(l,:)*cprocaE_R(l,:))/(4.d0*smallpi)
 
 !    Additional terms for angular momentum.
 
@@ -742,16 +741,17 @@
 !         rho  = rho  +  1/(4 pi) l(l+1)[ cprocaB cprocaXi  -  cprocaB cprocaXi  ] / r^2
 !            Q      Q                            R        I           I        R
 
-          cproca_Qdens = cproca_Qdens &
-                       + dble(cproca_l*(cproca_l+1))*(cprocaB_R*cprocaXi_I - cprocaB_I*cprocaXi_R)/(4.d0*smallpi)/r**2
+          cproca_Qdens(l,:) = cproca_Qdens(l,:) + dble(cproca_l*(cproca_l+1))/(4.d0*smallpi)/r(l,:)**2 &
+                            *(cprocaB_R(l,:)*cprocaXi_I(l,:) - cprocaB_I(l,:)*cprocaXi_R(l,:))
 
 !          r    r
 !         j  = j  -  1/(4 pi) l(l+1)[ cprocaB ( cprocaA - cprocaG )  -  cprocaB ( cprocaA - cprocaG ) ] / (A B psi^8 r^2)
 !                                            R         I         I             I         R         R
 
-          cproca_Qflux = cproca_Qdens &
-                       - dble(cproca_l*(cproca_l+1))*(cprocaB_R*(cprocaA_I-cprocaG_I) &
-                       - cprocaB_I*(cprocaA_R-cprocaG_R))/(4.d0*smallpi)/(A*B*psi4**2)/r**2
+          cproca_Qflux(l,:) = cproca_Qdens(l,:) - dble(cproca_l*(cproca_l+1)) &
+                            /(4.d0*smallpi)/(A(l,:)*B(l,:)*psi4(l,:)**2)/r(l,:)**2 &
+                            *(cprocaB_R(l,:)*(cprocaA_I(l,:) - cprocaG_I(l,:)) &
+                            - cprocaB_I(l,:)*(cprocaA_R(l,:) - cprocaG_R(l,:)))
 
      end if
 
@@ -761,8 +761,8 @@
 !    covariant derivative.
 
      if (contains(mattertype,"electric")) then
-        echarge  = echarge  - cproca_q*cproca_Qdens
-        ecurrent = ecurrent - cproca_q*cproca_Qflux
+        echarge(l,:)  = echarge(l,:)  - cproca_q*cproca_Qdens(l,:)
+        ecurrent(l,:) = ecurrent(l,:) - cproca_q*cproca_Qflux(l,:)
      end if
 
   end if
@@ -774,20 +774,21 @@
 
 ! Stress-energy quantities for the Dirac field:
 !
-! rho  =  1/(2 pi) [ m ( FR**2 + FI**2 - GR**2 - GI**2 )
-!
-!      +  2/(r sqrt(B) psi**2) ( FR GI - FI GR )
-!
-!      +  1/(sqrt(A) psi**2) ( FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/dr ) ]
+! rho  =  1/(2 pi) [ FI PiFR - FR PiFI + GI PiGR - GR PiGI ]
 !
 !
-! JA   =  1/(2 pi) [ FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r ]
+! JA   =  1/(4 pi) [ ( FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r )
+!
+!      - sqrt(A) ( FR PiGI - FI PiGR + GR PiFI - GI PiFR ) ]
 !
 !
 ! SAA  =  1/(2 pi sqrt(A) psi**2) [ FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/r ]
 !
 !
 ! SBB  =  1/(2 pi r sqrt(B) psi**2) [ FR GI - FI GR ]
+!
+! Notice that in order to calculate (rho,JA) we need to know before the
+! values of PiF and PiG which are calculated in auxiliary_matter.f90
 
   if (contains(mattertype,"dirac")) then
 
@@ -796,16 +797,16 @@
 !    Energy density.
 
      rho(l,:) = rho(l,:) + aux &
-              *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 - dirac_GI(l,:)**2) &
-              + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
-              +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
-              + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(sqrt(A(l,:))*psi2(l,:)))
+              *(dirac_FI(l,:)*dirac_PiFR(l,:) - dirac_FR(l,:)*dirac_PiFI(l,:) &
+              + dirac_GI(l,:)*dirac_PiGR(l,:) - dirac_GR(l,:)*dirac_PiGI(l,:))
 
 !    Radial momentum density (index down).
 
-     JA(l,:) = JA(l,:) + aux &
+     JA(l,:) = JA(l,:) + 0.5d0*aux &
              *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
-             + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:))
+             + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:) &
+             - sqrt(A(l,:))*(dirac_FR(l,:)*dirac_PiGI(l,:) - dirac_FI(l,:)*dirac_PiGR(l,:) &
+                           + dirac_GR(l,:)*dirac_PiFI(l,:) - dirac_GI(l,:)*dirac_PiFR(l,:)))
 
 !    Stress tensor.
 
@@ -831,17 +832,46 @@
                  + lambda(l,:)/(1.d0 + sqrt(A(l,:)/B(l,:)))*(dirac_FR(l,:)*dirac_HI(l,:) - dirac_HR(l,:)*dirac_FI(l,:)))
      end if
 
-!    Dirac particle density and radial flux:
+!    Dirac particle density:
 !
 !                             2       2                     2    2    2    2
 !    dens  =  1 / (2 pi) [ |F|  +  |G| ]  =  1 / (2 pi) [ FR + FI + GR + GI ]
-!
-!                                     *       *
-!    flux  =  1 / (2 pi sqrt(A)) [ F G  +  G F  ]  =  1 / (pi sqrt(A)) [ FR GR + FI GI ]
 
      dirac_dens(l,:) = aux*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 + dirac_GR(l,:)**2 + dirac_GI(l,:)**2)
 
+!    Dirac particle flux:
+!                                     *       *
+!    flux  =  1 / (2 pi sqrt(A)) [ F G  +  G F  ]  =  1 / (pi sqrt(A)) [ FR GR + FI GI ]
+
      dirac_flux(l,:) = 2.d0*aux*(dirac_FR(l,:)*dirac_GR(l,:) + dirac_FI(l,:)*dirac_GI(l,:))
+
+!    Corrections for charged Dirac fields.
+
+     if (contains(mattertype,"electric")) then
+
+!       Energy density. We must add the term: - q*ePhi*dirac_dens
+
+        rho(l,:) = rho(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
+
+!       Momentum density.  We must add the terms: - q/2*( eAr*dirac_dens + ePhi*dirac_flux)
+
+        JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:))
+
+!       Stress tensor.  For the radial component we must add the term: - q*eAr*dirac_flux/(A*psi4)
+!       The angular component is unchanged, but we must correct SLL.
+
+        SAA(l,:) = SAA(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/A(l,:)/psi4(l,:)
+
+        if (.not.nolambda) then
+           SLL(l,:) = SLL(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/A(l,:)/psi4(l,:)/r(l,:)**2
+        end if
+
+!       Charge and current density.
+
+        echarge(l,:)  = echarge(l,:)  + dirac_q*dirac_dens(l,:)
+        ecurrent(l,:) = ecurrent(l,:) + dirac_q*dirac_flux(l,:)
+
+     end if
 
   end if
 
