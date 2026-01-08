@@ -557,6 +557,43 @@
 
      end if
 
+!    Time derivatives: Pi = n^m d_m f = (df/dt - beta df/dr) / alpha
+!
+!    These are basically the evolution equations again, just without
+!    the shift terms and divided by alpha (see routine dirac.f90).
+
+     dirac_PiFR(l,:) = - 1.d0/(sqrt(A(l,:))*psi2(l,:))*(D1_dirac_GR(l,:) &
+                     + dirac_GR(l,:)*(0.5d0*D1_alpha(l,:)/alpha(l,:) + 0.5d0*D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:) &
+                     + (1.d0 + sqrt(A(l,:)/B(l,:)))/r(l,:))) &
+                     + (0.5d0*trK(l,:)*dirac_FR(l,:) + dirac_mass*dirac_FI(l,:))
+
+     dirac_PiFI(l,:) = - 1.d0/(sqrt(A(l,:))*psi2(l,:))*(D1_dirac_GI(l,:) &
+                     + dirac_GI(l,:)*(0.5d0*D1_alpha(l,:)/alpha(l,:) + 0.5d0*D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:) &
+                     + (1.d0 + sqrt(A(l,:)/B(l,:)))/r(l,:))) &
+                     + (0.5d0*trK(l,:)*dirac_FI(l,:) - dirac_mass*dirac_FR(l,:))
+
+     dirac_PiGR(l,:) = - 1.d0/(sqrt(A(l,:))*psi2(l,:))*(D1_dirac_FR(l,:) &
+                     + dirac_FR(l,:)*(0.5d0*D1_alpha(l,:)/alpha(l,:) + 0.5d0*D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:) &
+                     + r(l,:)*lambda(l,:)/(1.d0 + sqrt(A(l,:)/B(l,:))))) &
+                     + (0.5d0*trK(l,:)*dirac_GR(l,:) - dirac_mass*dirac_GI(l,:))
+
+     dirac_PiGI(l,:) = - 1.d0/(sqrt(A(l,:))*psi2(l,:))*(D1_dirac_FI(l,:) &
+                     + dirac_FI(l,:)*(0.5d0*D1_alpha(l,:)/alpha(l,:) + 0.5d0*D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:) &
+                     + r(l,:)*lambda(l,:)/(1.d0 + sqrt(A(l,:)/B(l,:))))) &
+                     + (0.5d0*trK(l,:)*dirac_GI(l,:) + dirac_mass*dirac_GR(l,:))
+
+!    Charge terms if needed (see routine dirac.f90).
+
+     if (contains(mattertype,"electric")) then
+
+        dirac_PiFR(l,:) = dirac_PiFR(l,:) + dirac_q*(ePhi(l,:)*dirac_FI(l,:) - eAr(l,:)*dirac_GI(l,:)/sqrt(A(l,:)))
+        dirac_PiFI(l,:) = dirac_PiFI(l,:) - dirac_q*(ePhi(l,:)*dirac_FR(l,:) - eAr(l,:)*dirac_GR(l,:)/sqrt(A(l,:)))
+
+        dirac_PiGR(l,:) = dirac_PiGR(l,:) + dirac_q*(ePhi(l,:)*dirac_GI(l,:) - eAr(l,:)*dirac_FI(l,:)/sqrt(A(l,:)))
+        dirac_PiGI(l,:) = dirac_PiGI(l,:) - dirac_q*(ePhi(l,:)*dirac_GR(l,:) - eAr(l,:)*dirac_FR(l,:)/sqrt(A(l,:)))
+
+     end if
+
   end if
 
 
