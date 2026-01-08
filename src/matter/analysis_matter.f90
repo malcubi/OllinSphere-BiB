@@ -21,7 +21,7 @@
   integer i,l,p
   integer status(MPI_STATUS_SIZE)
 
-  real(8) bind
+  real(8) bind,MTOT
   real(8) half,one,two,smallpi
 
 
@@ -633,11 +633,26 @@
 !       Output total RN mass, but only at t=0 and
 !       for certain type of initial data.
 
-        if ((t(0)==0).and.(rank==0)) then
+        if (t(0)==0) then
            if ((idata=="reissnernordstrom").or.(idata=="chargedboson") &
            .or.(idata=="chargedproca").or.(idata=="chargeddirac"))  then
-              write(*,'(A,ES23.16)') ' Total Reissner-Nordstrom mass = ',mass_rn(0,Nr)
-              print *
+
+              MTOT = mass_rn(0,Nr)
+
+              if (size==1) then
+                 write(*,'(A,ES23.16)') ' Total Reissner-Nordstrom mass M_rn = ',mass_rn(0,Nr)
+                 print *
+              else
+                 if (rank==0) then
+                    p = size-1
+                    call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+                    write(*,'(A,ES23.16)') ' Total Reissner-Nordstrom mass M_int = ',MTOT
+                    print *
+                 else if (rank==size-1) then
+                    call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+                 end if
+              end if
+
            end if
         end if
 
