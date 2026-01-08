@@ -19,6 +19,8 @@
 
   implicit none
 
+  logical contains
+
   integer l,i
 
   real(8) half,one
@@ -73,7 +75,7 @@
 !
 ! scprocaE_I  =  scprocaE_I + q alpha ePhi cprocaE_R
 
-  if (cproca_q/=0.d0) then
+  if (contains(mattertype,"electric")) then
      scprocaE_R(l,:) = scprocaE_R(l,:) - cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_I(l,:)
      scprocaE_I(l,:) = scprocaE_I(l,:) + cproca_q*alpha(l,:)*ePhi(l,:)*cprocaE_R(l,:)
   end if
@@ -139,7 +141,7 @@
 ! scprocaPhi_I  =  scprocaPhi_I + q alpha [ ePhi cprocaPhi_R - eAr cprocaA_R /(A psi4)
 !               + (A psi4 / cproca_mass**2) electric cprocaE_R ]
 
-  if (cproca_q/=0.d0) then
+  if (contains(mattertype,"electric")) then
      scprocaPhi_R(l,:) = scprocaPhi_R(l,:) - cproca_q*alpha(l,:) &
         *(ePhi(l,:)*cprocaPhi_I(l,:) - eAr(l,:)*cprocaA_I(l,:)/(A(l,:)*psi4(l,:)) &
         + A(l,:)*psi4(l,:)/cproca_mass**2*electric(l,:)*cprocaE_I(l,:))
@@ -197,7 +199,7 @@
 !
 ! scprocaA_I  =  scprocaA_I + q alpha ( ePhi cprocaA_R - eAr cprocaPhi_R )
 
-  if (cproca_q/=0.d0) then
+  if (contains(mattertype,"electric")) then
      scprocaA_R(l,:) = scprocaA_R(l,:) - cproca_q*alpha(l,:) &
                      *(ePhi(l,:)*cprocaA_I(l,:) - eAr(l,:)*cprocaPhi_I(l,:))
      scprocaA_I(l,:) = scprocaA_I(l,:) + cproca_q*alpha(l,:) &
