@@ -610,7 +610,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES22.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',proca_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',proca_omega,'    Residual: ',res
 
      end do
 
@@ -697,8 +697,8 @@
      omega_new = proca_omega/alphafac
 
      if (rank==0) then
-        write(*,'(A,E22.16)') ' Omega (not rescaled) = ', proca_omega
-        write(*,'(A,E22.16)') ' Omega (rescaled)     = ', omega_new
+        write(*,'(A,E23.16)') ' Omega (not rescaled) = ', proca_omega
+        write(*,'(A,E23.16)') ' Omega (rescaled)     = ', omega_new
         print *
      end if
 
