@@ -2,7 +2,7 @@
 #
 # Example of a Dirac Star evolution with 1+log slicing and no shift.
 
-dr0 = 0.0125		  # Grid spacing
+dr0 = 0.01		  # Grid spacing
 dtfac = 0.5		  # Courant parameter
 
 Nrtotal = 2000		  # Number of grid points
@@ -24,9 +24,9 @@ dirac_mass = 1.0          # Mass of Dirac field
 geodiss = 0.05		  # Dissipation coefficient for geometry
 diracdiss = 0.05 	  # Dissipation coefficient for Dirac field
 idata = diracstar	  # Type of initial data
-dirac_f0 =  0.2           # Central value of Dirac field
-omega_left   =  1.236653  # First trial omega
-omega_right  =  1.236654  # Second trial omega
+dirac_f0 = 0.2            # Central value of Dirac field
+omega_left  = 1.236653    # First trial omega
+omega_right = 1.236654    # Second trial omega
 
 diracgauss = .true.       # Add perturbation to Dirac star
 diracFR_a0 = +0.05 	  # Amplitude of gaussian perturbation for FR
@@ -39,7 +39,7 @@ diracGI_s0 = 1.0	  # Width of gaussian perturbation for GI
 ahfind = .true.           # Look for apparent horizon
 ahfind_every = 10         # How often to look for horizons?
 
-directory = diracstar-pert	  # Name of output directory
+directory = diracstar-pert   # Name of output directory
 Ninfo = 50		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
 Noutput1D = 50		  # How often do we want 1D output?
