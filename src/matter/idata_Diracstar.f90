@@ -1,9 +1,9 @@
 
   subroutine idata_Diracstar
 
-! *******************************************************
-! ***   DIRAC STAR INITIAL DATA IN POLAR-AREAL GAUGE  ***
-! *******************************************************
+! ********************************************************
+! ***   DIRAC STAR INITIAL DATA IN POLAR-AREAL GAUGE   ***
+! ********************************************************
 
 ! Dirac stars are solutions such that the spacetime is static
 ! and the Dirac fields have a harmonic dependence on time.
