@@ -46,6 +46,7 @@
   implicit none
 
   logical contains
+  logical usediracPi
 
   integer i,l
 
@@ -437,7 +438,7 @@
      complex_Bdens = (complex_phiR*complex_gpiI - complex_phiI*complex_gpiR)
      complex_Bflux = (complex_phiI*complex_gxiR - complex_phiR*complex_gxiI)/(psi4*A)
 
-!    Charge and current density.
+!    Charge and current density (index up).
 
      if (contains(mattertype,"electric")) then 
         echarge  = echarge  + complex_q*complex_Bdens
@@ -779,7 +780,7 @@
 !
 ! JA   =  1/(4 pi) [ ( FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r )
 !
-!      - sqrt(A) ( FR PiGI - FI PiGR + GR PiFI - GI PiFR ) ]
+!      -  sqrt(A) psi**2 ( FR PiGI - FI PiGR + GR PiFI - GI PiFR ) ]
 !
 !
 ! SAA  =  1/(2 pi sqrt(A) psi**2) [ FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/r ]
@@ -789,6 +790,20 @@
 !
 ! Notice that in order to calculate (rho,JA) we need to know before the
 ! values of PiF and PiG which are calculated in auxiliary_matter.f90
+!
+! Alternative expressions for rho and JA obtained by substituting the
+! Dirac equation are:
+!
+! rho  =  1/(2 pi) [ m ( FR**2 + FI**2 - GR**2 - GI**2 )
+!
+!      +  2/(r sqrt(B) psi**2) ( FR GI - FI GR )
+!
+!      +  1/(sqrt(A) psi**2) ( FR dGI/dr - FI dGR/dr + GR dFI/dr - GI dFR/dr ) ]
+!
+!
+! JA   =  1/(2 pi) [ FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r ]
+
+  usediracPi = .false.
 
   if (contains(mattertype,"dirac")) then
 
@@ -796,17 +811,32 @@
 
 !    Energy density.
 
-     rho(l,:) = rho(l,:) + aux &
-              *(dirac_FI(l,:)*dirac_PiFR(l,:) - dirac_FR(l,:)*dirac_PiFI(l,:) &
-              + dirac_GI(l,:)*dirac_PiGR(l,:) - dirac_GR(l,:)*dirac_PiGI(l,:))
+     if (usediracPi) then
+        rho(l,:) = rho(l,:) + aux &
+                 *(dirac_FI(l,:)*dirac_PiFR(l,:) - dirac_FR(l,:)*dirac_PiFI(l,:) &
+                 + dirac_GI(l,:)*dirac_PiGR(l,:) - dirac_GR(l,:)*dirac_PiGI(l,:))
+     else
+        rho(l,:) = rho(l,:) + aux &
+                 *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 - dirac_GI(l,:)**2) &
+                 + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
+                 +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
+                 + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(sqrt(A(l,:))*psi2(l,:)))
+     end if
 
 !    Radial momentum density (index down).
 
-     JA(l,:) = JA(l,:) + 0.5d0*aux &
-             *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
-             + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:) &
-             - sqrt(A(l,:))*(dirac_FR(l,:)*dirac_PiGI(l,:) - dirac_FI(l,:)*dirac_PiGR(l,:) &
-                           + dirac_GR(l,:)*dirac_PiFI(l,:) - dirac_GI(l,:)*dirac_PiFR(l,:)))
+     if (usediracPi) then
+        JA(l,:) = JA(l,:) + 0.5d0*aux &
+                *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
+                + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:) &
+                - sqrt(A(l,:))*psi2(l,:) &
+                *(dirac_FR(l,:)*dirac_PiGI(l,:) - dirac_FI(l,:)*dirac_PiGR(l,:) &
+                + dirac_GR(l,:)*dirac_PiFI(l,:) - dirac_GI(l,:)*dirac_PiFR(l,:)))
+     else
+        JA(l,:) = JA(l,:) + aux &
+                *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
+                + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:))
+     end if
 
 !    Stress tensor.
 
@@ -833,40 +863,64 @@
      end if
 
 !    Dirac particle density:
-!
 !                             2       2                     2    2    2    2
 !    dens  =  1 / (2 pi) [ |F|  +  |G| ]  =  1 / (2 pi) [ FR + FI + GR + GI ]
 
      dirac_dens(l,:) = aux*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 + dirac_GR(l,:)**2 + dirac_GI(l,:)**2)
 
-!    Dirac particle flux:
-!                                     *       *
-!    flux  =  1 / (2 pi sqrt(A)) [ F G  +  G F  ]  =  1 / (pi sqrt(A)) [ FR GR + FI GI ]
+!    Dirac particle flux (index up):
+!                                  2       *       *                          2
+!    flux  =  1 / (2 pi sqrt(A) psi ) [ F G  +  G F  ]  =  1 / (pi sqrt(A) psi ) [ FR GR + FI GI ]
 
-     dirac_flux(l,:) = 2.d0*aux*(dirac_FR(l,:)*dirac_GR(l,:) + dirac_FI(l,:)*dirac_GI(l,:))
+     dirac_flux(l,:) = 2.d0*aux/(sqrt(A(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GR(l,:) + dirac_FI(l,:)*dirac_GI(l,:))
 
 !    Corrections for charged Dirac fields.
 
      if (contains(mattertype,"electric")) then
 
-!       Energy density. We must add the term: - q*ePhi*dirac_dens
+!       Energy density. The term that must be added depends on how we wrote rho
+!       above.  If we did not substitute the Dirac equation we must add:
+!
+!       - q ePhi dirac_dens
+!
+!       but if we did substitute it we must add instead:
+!
+!       - q eAr dirac_flux
+!
+!       This is because the Dirac equation itself has terms that depend on q.
 
-        rho(l,:) = rho(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
-
-!       Momentum density.  We must add the terms: - q/2*( eAr*dirac_dens + ePhi*dirac_flux)
-
-        JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:))
-
-!       Stress tensor.  For the radial component we must add the term: - q*eAr*dirac_flux/(A*psi4)
-!       The angular component is unchanged, but we must correct SLL.
-
-        SAA(l,:) = SAA(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/A(l,:)/psi4(l,:)
-
-        if (.not.nolambda) then
-           SLL(l,:) = SLL(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/A(l,:)/psi4(l,:)/r(l,:)**2
+        if (usediracPi) then
+           rho(l,:) = rho(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
+        else
+           rho(l,:) = rho(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)
         end if
 
-!       Charge and current density.
+!       Momentum density (index down).  Again, the term we must add depends
+!       on how we wrote JA above.  If we did not substitute the Dirac
+!       equation we must add:
+!
+!       - q/2 ( eAr dirac_dens + ePhi dirac_flux A psi4 )
+!
+!       but if we did substitute it we must add instead:
+!
+!       - q eAr dirac_dens
+
+        if (usediracPi) then
+           JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:)*A(l,:)*psi4(l,:))
+        else
+           JA(l,:) = JA(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
+        end if
+
+!       Stress tensor.  For the radial component we must add the term: - q*eAr*dirac_flux
+!       The angular component is unchanged, but we must correct SLL.
+
+        SAA(l,:) = SAA(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)
+
+        if (.not.nolambda) then
+           SLL(l,:) = SLL(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/r(l,:)**2
+        end if
+
+!       Charge and current density (index up).
 
         echarge(l,:)  = echarge(l,:)  + dirac_q*dirac_dens(l,:)
         ecurrent(l,:) = ecurrent(l,:) + dirac_q*dirac_flux(l,:)
