@@ -135,6 +135,8 @@
   real(8) r0,delta                      ! Local radius and grid spacing.
   real(8) A0,alpha0,F0,G0               ! Initial values of variables.
   real(8) A_rk,alpha_rk,F_rk,G_rk       ! Runge-Kutta values of variables.
+  real(8) DF_rk,DG_rk                   ! Radial derivatives of F and G, for perturbations.
+  real(8) rho_rk                        ! Energy density, for perturbations.
 
   real(8) k11,k12,k13,k14               ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24               ! Runge-Kutta sources for alpha.
@@ -146,8 +148,7 @@
 
   real(8) res,res_old                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval.
-  real(8) DF_rk,DG_rk                   ! Radial derivatives of F and G, for perturbations.
-  real(8) rho_rk                        ! Energy density, for perturbations.
+
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,aux               ! Auxiliary quantities.
   real(8) :: epsilon = 1.d-8            ! Tolerance.
@@ -679,7 +680,7 @@
 !    ansatz.  But once we perturb the star this is not possible
 !    since the harmonic ansatz is no longer valid.  What we do here
 !    is take the functions (F,G) from the unperturbed solution,
-!    calculate their derivatives using finite differences and
+!    calculate their spatial derivatives using finite differences and
 !    use them calculate the energy density, which is then passed
 !    directly to another version of the sources for (A,alpha).
 
@@ -827,7 +828,7 @@
                  F_rk = F0
                  G_rk = G0
 
-!                Fourth order erivatives of (F,G) at point i-1.
+!                Fourth order derivatives of (F,G) at point i-1.
 
                  if (i==Nrtotal) then
                     DF_rk = (3.d0*F_g(l,i) + 10.d0*F_g(l,i-1) - 18.d0*F_g(l,i-2) &
