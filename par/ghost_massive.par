@@ -22,8 +22,8 @@ mattertype = ghost        # Real ghost field
 ghostpotential = phi2     # Type of scalar potential
 ghost_mass = 1.0          # Mass of scalar field
 
-geodiss = 0.01		  # Dissipation coefficient for geometry
-scalardiss = 0.01	  # Dissipation coefficient for ghost field
+geodiss    = 0.05         # Dissipation coefficient for geometry
+scalardiss = 0.05	  # Dissipation coefficient for ghost field
 
 idata = ghostpulse	  # Type of initial data
 ghostprofile = gaussian   # Initial data profile

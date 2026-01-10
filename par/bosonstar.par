@@ -29,8 +29,8 @@ boson_phi0  = 0.05      # Central value of scalar field
 omega_left  = 1.1412663557  # First trial omega
 omega_right = 1.1412663558  # Second trial omega
 
-geodiss    = 0.01       # Dissipation coefficient for geometry
-scalardiss = 0.01       # Dissipation coefficient
+geodiss    = 0.05       # Dissipation coefficient for geometry
+scalardiss = 0.05       # Dissipation coefficient
 
 directory = bosonstar	# Name of output directory
 Ninfo = 100		# How often do we want to output information to screen?

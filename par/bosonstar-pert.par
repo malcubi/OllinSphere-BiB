@@ -22,8 +22,8 @@ mattertype = complex    # Complex scalar field
 complexpotential = phi2 # Type of scalar potential
 complex_mass = 1.0      # Mass of scalar field
 
-geodiss    = 0.01       # Dissipation coefficient for geometry
-scalardiss = 0.01	# Dissipation coefficient
+geodiss    = 0.05       # Dissipation coefficient for geometry
+scalardiss = 0.05	# Dissipation coefficient
 
 idata = bosonstar	# Type of initial data
 boson_gauge = PA        # Gauge for boson star data (PA=polar-areal,CF=conformally flat)

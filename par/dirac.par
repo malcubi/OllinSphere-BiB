@@ -21,8 +21,8 @@ boundtype = constraint    # Constraint preserving boundary condition
 mattertype = dirac        # Dirac field
 dirac_mass = 1.0          # Mass of Dirac field
 
-geodiss = 0.01		  # Dissipation coefficient for geometry
-diracdiss = 0.01 	  # Dissipation coefficient for Dirac field
+geodiss   = 0.05	  # Dissipation coefficient for geometry
+diracdiss = 0.05 	  # Dissipation coefficient for Dirac field
 
 idata = diracpulse	  # Type of initial data
 diracprofile = gaussian   # Initial data profile

@@ -29,8 +29,9 @@ boundtype = constraint     # Constraint preserving boundary condition
 mattertype = complex,electric  # Complex scalar field + electric field
 complex_q = 1.0            # Charge of complex scalar field
 
-geodiss = 0.01		   # Dissipation coefficient for geometry
-scalardiss = 0.01	   # Dissipation coefficient for scalar field
+geodiss    = 0.05          # Dissipation coefficient for geometry
+scalardiss = 0.05	   # Dissipation coefficient for scalar field
+elecdiss   = 0.05          # Dissipation coefficient for electric field
 
 idata = complexpulse	   # Type of initial data
 complexprofile = gaussian  # Initial data profile

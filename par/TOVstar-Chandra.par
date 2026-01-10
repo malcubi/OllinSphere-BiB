@@ -35,7 +35,7 @@ fluid_atmos = 1.d-8       # Artificial atmosphere value (rescaled with max(rho) 
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 1.d-10   	  # Central density for TOV star
 
-geodiss = 0.01            # Dissipation coefficient for geometry
+geodiss = 0.05            # Dissipation coefficient for geometry
 
 directory = TOVstar-Chandra  # Name of output directory
 Ninfo = 500		  # How often do we want to output information to screen?

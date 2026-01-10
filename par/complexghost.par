@@ -24,8 +24,8 @@ mattertype = complexghost       # Complex scalar field
 complexghostpotential = phi2    # Type of scalar potential
 complexghost_mass = 1.0         # Mass of scalar field
 
-geodiss = 0.01		        # Dissipation coefficient for geometry
-scalardiss = 0.01	        # Dissipation coefficient for scalar field
+geodiss    = 0.05		# Dissipation coefficient for geometry
+scalardiss = 0.05	        # Dissipation coefficient for scalar field
 
 idata = complexghostpulse       # Type of initial data
 complexghostprofile = gaussian  # Initial data profile

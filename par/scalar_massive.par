@@ -24,8 +24,8 @@ mattertype = scalar       # Real scalar field
 scalarpotential = phi2    # Type of scalar potential
 scalar_mass = 1.0         # Mass of scalar field
 
-geodiss = 0.01 		  # Dissipation coefficient for geometry
-scalardiss = 0.01	  # Dissipation coefficient
+geodiss    = 0.05 	  # Dissipation coefficient for geometry
+scalardiss = 0.05	  # Dissipation coefficient
 
 idata = scalarpulse	  # Type of initial data
 scalarprofile = gaussian  # Initial data profile

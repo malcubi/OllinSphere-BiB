@@ -28,9 +28,9 @@ dirac_f0 = 0.2               # Central value of scalar field
 omega_left  = 1.2358630      # First trial omega
 omega_right = 1.2358631      # Second trial omega
 
-geodiss   = 0.01             # Dissipation coefficient for geometry
-diracdiss = 0.01             # Dissipation coefficient for Proca field
-elecdiss  = 0.01             # Dissipation coefficient for electric field
+geodiss   = 0.05             # Dissipation coefficient for geometry
+diracdiss = 0.05             # Dissipation coefficient for Proca field
+elecdiss  = 0.05             # Dissipation coefficient for electric field
 
 directory = chargeddiracstar # Name of output directory
 Ninfo = 10		     # How often do we want to output information to screen?

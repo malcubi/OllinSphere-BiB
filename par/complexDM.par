@@ -29,8 +29,8 @@ complexpotential = phi2      # Type of potential
 complex_mass = 1.0           # Mass of scalar field
 complexDM_type = harmonicTS  # Harmonic initial time dependence
 
-geodiss = 0.01               # Dissipation coefficient for geometry
-scalardiss = 0.01            # Dissipation coefficient for scalar field
+geodiss    = 0.05            # Dissipation coefficient for geometry
+scalardiss = 0.05            # Dissipation coefficient for scalar field
 
 idata = complexDM            # Type of initial data
 complex_bg_phiR0 = 0.01      # Amplitude of background field

@@ -46,7 +46,7 @@ TOV_s0 = 1.0              # Width of perturbation
 fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
 fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
 
-geodiss = 0.01            # Dissipation coefficient for geometry
+geodiss = 0.05            # Dissipation coefficient for geometry
 
 directory = TOVstar-hlle_N=1_K=100_dr=0.025    # Name of output directory
 Ninfo = 1000		  # How often do we want to output information to screen?

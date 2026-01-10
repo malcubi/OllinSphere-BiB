@@ -25,7 +25,7 @@ complex_mass = 1.0         # Mass of complex scalar field
 complex_q    = 0.5         # Charge of complex scalar field
 charge_factor = jetzer     # Charge normalization (standard,jetzer)
 
-geodiss    = 0.01	   # Dissipation coefficient for geometry
+geodiss    = 0.05	   # Dissipation coefficient for geometry
 scalardiss = 0.05	   # Dissipation coefficient for scalar field
 elecdiss   = 0.05          # Dissipation coefficient for electric field
 

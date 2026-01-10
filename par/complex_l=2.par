@@ -23,8 +23,8 @@ boundtype = constraint     # Constraint preserving boundary condition
 mattertype = complex       # Complex scalar field
 complex_l = 2              # Azimuthal quantum number (angular momentum)
 
-geodiss = 0.01		   # Dissipation coefficient for geometry
-scalardiss = 0.01	   # Dissipation coefficient for scalar field
+geodiss    = 0.05          # Dissipation coefficient for geometry
+scalardiss = 0.05	   # Dissipation coefficient for scalar field
 
 idata = complexpulse	   # Type of initial data
 complexprofile = gaussian  # Initial data profile

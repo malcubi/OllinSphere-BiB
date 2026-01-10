@@ -29,8 +29,8 @@ boundtype = constraint	  # Type of boundary condition
 
 mattertype = scalar       # Real scalar field
 
-geodiss    = 0.01         # Dissipation coefficient for geometry
-scalardiss = 0.01	  # Dissipation coefficient for scalar field
+geodiss    = 0.05         # Dissipation coefficient for geometry
+scalardiss = 0.05	  # Dissipation coefficient for scalar field
 
 idata = scalarpulse	  # Type of initial data
 scalarprofile = gaussian  # Initial data profile

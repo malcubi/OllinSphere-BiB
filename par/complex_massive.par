@@ -24,8 +24,8 @@ mattertype = complex       # Real scalar field
 complexpotential = phi2    # Type of potential
 complex_mass = 1.0         # Mass of scalar field
 
-geodiss = 0.01 		   # Dissipation coefficient for geometry
-scalardiss = 0.01	   # Dissipation coefficient for scalar field
+geodiss    = 0.05          # Dissipation coefficient for geometry
+scalardiss = 0.05	   # Dissipation coefficient for scalar field
 
 idata = complexpulse	   # Type of initial data
 complexprofile = gaussian  # Initial data profile
@@ -37,8 +37,8 @@ complexI_r0 = 2.6	   # Center of perturbation
 complexI_s0 = 1.0	   # Width of perturbation
 
 directory = complex_massive	# Name of output directory
-Ninfo = 25		  # How often do we want to output information to screen?
-Noutput0D = 10		  # How often do we want 0D output?
+Ninfo = 25		   # How often do we want to output information to screen?
+Noutput0D = 10		   # How often do we want 0D output?
 Noutput1D = 25		   # How often do we want 1D output?
 
 outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,rho,mass_sch,mass_int,compactness

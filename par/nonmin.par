@@ -21,8 +21,8 @@ boundtype = constraint    # Constraint preserving boundary condition
 mattertype = nonmin	  # Nonmin scalar field
 nonminf = quadratic	  # Form of coupling function
 
-geodiss = 0.01	  	  # Dissipation coefficient for geometry
-nonmindiss = 0.01	  # Dissipation coefficient for nonmin field
+geodiss    = 0.05	  # Dissipation coefficient for geometry
+nonmindiss = 0.05	  # Dissipation coefficient for nonmin field
 
 idata = nonminpulse	  # Type of initial data
 nonminprofile = gaussian  # Initial data profile

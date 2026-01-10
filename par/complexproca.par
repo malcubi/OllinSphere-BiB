@@ -21,8 +21,8 @@ boundtype = constraint     # Constraint preserving boundary condition
 mattertype = complexproca  # Complex Proca field
 cproca_mass = 1.0          # Mass parameter
 
-geodiss = 0.01		   # Dissipation coefficient for geometry
-procadiss = 0.01	   # Dissipation coefficient for proca field
+geodiss   = 0.05	   # Dissipation coefficient for geometry
+procadiss = 0.05	   # Dissipation coefficient for proca field
 
 idata = complexprocapulse  # Type of initial data
 

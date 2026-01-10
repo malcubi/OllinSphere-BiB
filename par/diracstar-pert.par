@@ -8,7 +8,7 @@ dtfac = 0.5		  # Courant parameter
 Nrtotal = 2000		  # Number of grid points
 Nt = 500		  # Number of time steps
 
-Nl = 1                    # Number of refinement levels
+Nl = 1000                 # Number of refinement levels
 
 slicing = 1+log 	  # Type of slicing condition (1+log,maximal)
 gauge_f = 2.0	          # Coefficient for harmonic slicing
@@ -34,16 +34,16 @@ diracGI_a0 = -0.05	  # Amplitude of gaussian perturbation for GI
 diracGI_r0 = 5.0	  # Center of gaussian perturbation for GI (must be non-zero)
 diracGI_s0 = 1.0	  # Width of gaussian perturbation for GI
 
-geodiss   = 0.01	  # Dissipation coefficient for geometry
-diracdiss = 0.01 	  # Dissipation coefficient for Dirac field
+geodiss   = 0.05	  # Dissipation coefficient for geometry
+diracdiss = 0.05 	  # Dissipation coefficient for Dirac field
 
 ahfind = .true.           # Look for apparent horizon
 ahfind_every = 10         # How often to look for horizons?
 
 directory = diracstar-pert   # Name of output directory
-Ninfo = 50		  # How often do we want to output information to screen?
+Ninfo = 100		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
-Noutput1D = 50		  # How often do we want 1D output?
+Noutput1D = 100		  # How often do we want 1D output?
 
 outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint
 outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,dirac_FR,dirac_FI,dirac_GR,dirac_GI,rho,JA,mass_sch,mass_int,dirac_Nint
