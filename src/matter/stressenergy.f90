@@ -803,9 +803,15 @@
 !
 ! JA   =  1/(2 pi) [ FR dFI/dr - FI dFR/dr + GR dGI/dr - GI dGR/r ]
 
-  usediracPi = .false.
-
   if (contains(mattertype,"dirac")) then
+
+!    This flag is to change the way rho and JA arre calculated.
+!    The are two different ways explained in the comment above.
+!    Both ways should work, but it is a good idea to check.
+
+     usediracPi = .true.
+
+!    1/(2*pi).
 
      aux = 1.d0/(2.d0*smallpi)
 
@@ -908,7 +914,7 @@
         if (usediracPi) then
            JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:)*A(l,:)*psi4(l,:))
         else
-           JA(l,:) = JA(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
+           JA(l,:) = JA(l,:) - dirac_q*eAr(l,:)*dirac_dens(l,:)
         end if
 
 !       Stress tensor.  For the radial component we must add the term: - q*eAr*dirac_flux
