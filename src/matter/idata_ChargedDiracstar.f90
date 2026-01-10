@@ -161,17 +161,18 @@
 
   integer i,l,iter                      ! Counters.
   integer imin                          ! Leftmost grid point.
-  integer iaux                           ! Auxiliary quantity.
+  integer iaux                          ! Auxiliary quantity.
   integer :: maxiter = 200              ! Maximum number of iterations.
 
   real(8) r0,delta                      ! Local radius and grid spacing.
   real(8) A0,alpha0,F0,G0               ! Initial values of variables.
-  real(8) procaF0,procaA0,procaE0       ! Initial values of Proca variables.
   real(8) maxwellF0,maxwellE0           ! Initial values of Maxwell variables.
 
   real(8) A_rk,alpha_rk                 ! Runge-Kutta values of A and alpha.
   real(8) F_rk,G_rk                     ! Runge-Kutta values of Dirac variables.
   real(8) maxwellF_rk,maxwellE_rk       ! Runge-Kutta values of Maxwell variables.
+  real(8) DF_rk,DG_rk                   ! Radial derivatives of F and G, for perturbations.
+  real(8) rho_rk                        ! Energy density, for perturbations.
 
   real(8) k11,k12,k13,k14               ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24               ! Runge-Kutta sources for alpha.
@@ -179,13 +180,14 @@
   real(8) k41,k42,k43,k44               ! Runge-Kutta sources for G.
   real(8) k51,k52,k53,k54               ! Runge-Kutta sources for maxwellE.
   real(8) k61,k62,k63,k64               ! Runge-Kutta sources for maxwellF.
-  real(8) k71,k72,k73,k74               ! Runge-Kutta sources for procaE.
 
   real(8) J1_CDIR,J2_CDIR,J3_CDIR       ! Functions for sources of differential equations.
   real(8) J4_CDIR,J5_CDIR,J6_CDIR       ! Functions for sources of differential equations.
+  real(8) J7_CDIR,J8_CDIR               ! Functions for sources of differential equations.
 
   real(8) res,res_old                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval.
+
   real(8) half,smallpi                  ! Numbers.
   real(8) rm,alphafac,Ffac,aux          ! Auxiliary quantities.
   real(8) :: epsilon = 1.d-8            ! Tolerance.
@@ -803,12 +805,27 @@
 !    We use the same parameters to control the form of the gaussian
 !    as in the routine idata_diracpulse.f90. We then solve again for
 !    (A,alpha,maxwellF,maxwellE).
+!
+!    An important consideration is the fact that we need to calculate
+!    the sources for (A,alpha) in a different way as above.  This is
+!    because the energy density for the Dirac equation depends on the
+!    time derivatives of (F,G).  For an unperturbed star we can calculate
+!    those derivatives using the Dirac equation and the harmonic
+!    ansatz.  But once we perturb the star this is not possible
+!    since the harmonic ansatz is no longer valid.  What we do here
+!    is take the functions (F,G) from the unperturbed solution,
+!    calculate their spatial derivatives using finite differences and
+!    use them calculate the energy density, which is then passed
+!    directly to another version of the sources for (A,alpha).
 
      if ((diracgauss).and.(abs(diracFR_a0)+abs(diracGI_a0)>0.0d0)) then
 
+!       Message to screen.
+
         print *, 'Charged Dirac star perturbation not yet implemented. Aborting!'
+        !call die
+        print *, 'Adding gaussian perturbation to charged Dirac star ...'
         print *
-        call die
 
 !       Sanity check. Remember diracF must be real and diracG must be imaginary.
 
@@ -901,15 +918,208 @@
 !             Grid spacing and values at first point
 !             if we start from the origin (finer grid).
 
+              if (i==1) then
+
+!                For the first point we use dr/2.
+
+                 delta = half*dr(l)
+                 r0    = 0.d0
+
+!                Values of (alpha,A) at origin.
+
+                 A0     = 1.d0
+                 alpha0 = 1.d0
+
+!                Values of (F,G) at origin.
+
+                 F0 = (9.d0*(F_g(l,0)+F_g(l,1)) - (F_g(l,-1)+F_g(l,2)))/16.d0
+                 G0 = 0.d0
+
+!                Values of (maxwellF,maxwellE) at origin.
+
+                 maxwellF0 = 0.d0
+                 maxwellE0 = 0.d0
+
+              else
+
+                 delta  = dr(l)
+                 r0     = rr(l,i-1)
+
+                 A0     = A_g(l,i-1)
+                 alpha0 = alpha_g(l,i-1)
+
+                 F0 = F_g(l,i-1)
+                 G0 = G_g(l,i-1)
+
+                 maxwellF0 = maxwellF_g(l,i-1)
+                 maxwellE0 = maxwellE_g(l,i-1)
+
+              end if
+
 !             I) First Runge-Kutta step.
+
+!             Sources at first grid point if we start
+!             from the origin (for finer grid).
+
+              if (i==1) then
+
+!                At the origin we have:  A' = alpha' = 0.
+
+                 k11 = 0.d0
+                 k21 = 0.d0
+
+!                For maxwellE and maxwellF we have:  maxwellE' = maxwellF' = 0
+
+                 k51 = 0.d0
+                 k61 = 0.d0
+
+!             Sources at previous grid point.
+
+              else
+
+                 rm = r0
+
+                 A_rk        = A0
+                 alpha_rk    = alpha0
+
+                 maxwellF_rk = maxwellF0
+                 maxwellE_rk = maxwellE0
+
+!                Fourth order derivatives of (F,G) at point i-1.
+
+                 if (i==Nrtotal) then
+                    DF_rk = (3.d0*F_g(l,i) + 10.d0*F_g(l,i-1) - 18.d0*F_g(l,i-2) &
+                          + 6.d0*F_g(l,i-3) - F_g(l,i-4))/(12.d0*dr(l))
+                    DG_rk = (3.d0*G_g(l,i) + 10.d0*G_g(l,i-1) - 18.d0*G_g(l,i-2) &
+                          + 6.d0*G_g(l,i-3) - G_g(l,i-4))/(12.d0*dr(l))
+                 else
+                    DF_rk = (8.d0*(F_g(l,i) - F_g(l,i-2)) - (F_g(l,i+1) - F_g(l,i-3)))/(12.d0*dr(l))
+                    DG_rk = (8.d0*(G_g(l,i) - G_g(l,i-2)) - (G_g(l,i+1) - G_g(l,i-3)))/(12.d0*dr(l))
+                 end if
+
+!                Sources.
+
+                 rho_rk = 0.5d0/smallpi*((F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                        + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
+                        + 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
+                 k11 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+                 k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+
+                 k51 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+                 k61 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+
+              end if
 
 !             II) Second Runge-Kutta step.
 
+              rm = r0 + half*delta
+
+              A_rk     = A0     + half*k11
+              alpha_rk = alpha0 + half*k21
+
+              maxwellE_rk = maxwellE0 + half*k51
+              maxwellF_rk = maxwellF0 + half*k61
+
+              if (i==1) then  ! Linear interpolation for first and last points.
+                 F_rk = 0.5d0*(F0 + F_g(l,i))
+                 G_rk = 0.5d0*(G0 + G_g(l,i))
+              else            ! Cubic interpolation for the rest.
+                 F_rk = (9.d0*(F_g(l,i)+F_g(l,i-1)) - (F_g(l,i-2)+F_g(l,i+1)))/16.d0
+                 G_rk = (9.d0*(G_g(l,i)+G_g(l,i-1)) - (G_g(l,i-2)+G_g(l,i+1)))/16.d0
+              end if
+
+!             Fourth order derivatives of (F,G) at point i-1/2.
+
+              if (i==Nrtotal) then ! Second order at the boundary.
+                 DF_rk = (F_g(l,i) - F_g(l,i-1))/dr(l)
+                 DG_rk = (G_g(l,i) - G_g(l,i-1))/dr(l)
+              else
+                 DF_rk = (27.d0*(F_g(l,i)-F_g(l,i-1)) - (F_g(l,i+1) - F_g(l,i-2)))/(24.d0*dr(l))
+                 DG_rk = (27.d0*(G_g(l,i)-G_g(l,i-1)) - (G_g(l,i+1) - G_g(l,i-2)))/(24.d0*dr(l))
+              end if
+
+!             Sources.
+
+              rho_rk = 0.5d0/smallpi*((F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
+                     + 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
+              k12 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+
+              k52 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k62 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+
 !             III) Third Runge-Kutta step.
+
+              A_rk     = A0     + half*k12
+              alpha_rk = alpha0 + half*k22
+
+              maxwellE_rk = maxwellE0 + half*k52
+              maxwellF_rk = maxwellF0 + half*k62
+
+!             Sources.
+
+              rho_rk = 0.5d0/smallpi*((F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
+                     + 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
+              k13 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+
+              k53 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k63 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
 
 !             IV) Fourth Runge-Kutta step.
 
+              rm = r0 + delta
+
+              A_rk     = A0     + k13
+              alpha_rk = alpha0 + k23
+
+              maxwellE_rk = maxwellE0 + k53
+              maxwellF_rk = maxwellF0 + k63
+
+              F_rk = F_g(l,i)
+              G_rk = G_g(l,i)
+
+!             Fourth order derivatives of (F,G) at point i.
+
+              if (i==Nrtotal) then
+                 DF_rk = (25.d0*F_g(l,i) - 48.d0*F_g(l,i-1) + 36.d0*F_g(l,i-2) &
+                       - 16.d0*F_g(l,i-3) + 3.d0*F_g(l,i-4))/(12.d0*dr(l))
+                 DG_rk = (25.d0*G_g(l,i) - 48.d0*G_g(l,i-1) + 36.d0*G_g(l,i-2) &
+                       - 16.d0*G_g(l,i-3) + 3.d0*G_g(l,i-4))/(12.d0*dr(l))
+              else if (i==Nrtotal-1) then
+                 DF_rk = (3.d0*F_g(l,i+1) + 10.d0*F_g(l,i) - 18.d0*F_g(l,i-1) &
+                        + 6.d0*F_g(l,i-2) - F_g(l,i-3))/(12.d0*dr(l))
+                 DG_rk = (3.d0*G_g(l,i+1) + 10.d0*G_g(l,i) - 18.d0*G_g(l,i-1) &
+                        + 6.d0*G_g(l,i-2) - G_g(l,i-3))/(12.d0*dr(l))
+              else
+                 DF_rk = (8.d0*(F_g(l,i+1) - F_g(l,i-1)) - (F_g(l,i+2) - F_g(l,i-2)))/(12.d0*dr(l))
+                 DG_rk = (8.d0*(G_g(l,i+1) - G_g(l,i-1)) - (G_g(l,i+2) - G_g(l,i-2)))/(12.d0*dr(l))
+              end if
+
+!             Sources.
+
+              rho_rk = 0.5d0/smallpi*((F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
+                     + 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
+              k14 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+
+              k54 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k64 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+
 !             Advance variables to next grid point.
+
+              A_g(l,i)     = A0     + (k11 + 2.d0*(k12 + k13) + k14)/6.d0
+              alpha_g(l,i) = alpha0 + (k21 + 2.d0*(k22 + k23) + k24)/6.d0
+
+              maxwellE_g(l,i) = maxwellE0 + (k51 + 2.d0*(k52 + k53) + k54)/6.d0
+              maxwellF_g(l,i) = maxwellF0 + (k61 + 2.d0*(k62 + k63) + k64)/6.d0
 
            end do
 
@@ -1389,3 +1599,81 @@
   end function J6_CDIR
 
 
+
+
+
+
+
+! **********************************************
+! ***   RADIAL DERIVATIVE OF A (VERSION 2)   ***
+! **********************************************
+
+! The radial derivative of A comes from the
+! Hamiltonian constraint.
+!
+! This second version is for perturbed initial data,
+! it requires previous knowledge of the energy density
+! but does not assume the harmonic time dependence.
+
+  function J7_CDIR(A,alpha,F,G,rho,rm)
+
+  use param
+
+  implicit none
+
+  real(8) J7_CDIR
+  real(8) A,alpha,F,G,rho,rm
+  real(8) smallpi
+
+! Numbers.
+
+  smallpi = acos(-1.d0)
+
+! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+
+  J7_CDIR = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho)
+
+  end function J7_CDIR
+
+
+
+
+
+
+
+
+! **************************************************
+! ***   RADIAL DERIVATIVE OF ALPHA (VERSION 2)   ***
+! **************************************************
+
+! The radial derivative of alpha comes from the
+! polar-areal slicing condition.
+!
+! This second version is for perturbed initial data,
+! it requires previous knowledge of the energy density
+! but does not assume the harmonic time dependence.
+
+  function J8_CDIR(A,alpha,F,G,rho,rm)
+
+  use param
+
+  implicit none
+
+  real(8) J8_CDIR
+  real(8) A,alpha,F,G,rho,rm
+  real(8) SA
+  real(8) smallpi
+
+! Numbers.
+
+  smallpi = acos(-1.d0)
+
+! SA = rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
+
+  SA = rho - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+
+! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
+
+  J8_CDIR = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
+
+  end function J8_CDIR
