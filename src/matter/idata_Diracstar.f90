@@ -1286,9 +1286,9 @@
 
 
 
-! **************************************
-! ***   RADIAL DERIVATIVE OF ALPHA   ***
-! **************************************
+! **************************************************
+! ***   RADIAL DERIVATIVE OF ALPHA (VERSION 2)   ***
+! **************************************************
 
 ! The radial derivative of alpha comes from the
 ! polar-areal slicing condition.
