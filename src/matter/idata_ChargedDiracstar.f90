@@ -183,7 +183,7 @@
 
   real(8) J1_CDIR,J2_CDIR,J3_CDIR       ! Functions for sources of differential equations.
   real(8) J4_CDIR,J5_CDIR,J6_CDIR       ! Functions for sources of differential equations.
-  real(8) J7_CDIR,J8_CDIR               ! Functions for sources of differential equations.
+  real(8) J7_CDIR,J8_CDIR,J9_CDIR       ! Functions for sources of differential equations.
 
   real(8) res,res_old                   ! Residual.
   real(8) omega_new,omega_old,domega    ! Trial frequency and frequency interval.
@@ -1006,7 +1006,7 @@
                  k11 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
                  k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
 
-                 k51 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+                 k51 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
                  k61 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
 
               end if
@@ -1048,7 +1048,7 @@
               k12 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
               k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
 
-              k52 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k52 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k62 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
 
 !             III) Third Runge-Kutta step.
@@ -1068,7 +1068,7 @@
               k13 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
               k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
 
-              k53 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k53 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k63 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
 
 !             IV) Fourth Runge-Kutta step.
@@ -1110,7 +1110,7 @@
               k14 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
               k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
 
-              k54 = delta*J5_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
+              k54 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k64 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
 
 !             Advance variables to next grid point.
@@ -1631,7 +1631,7 @@
 
 ! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
 
-  J7_CDIR = A*((1.d0 - A)/rm + 8.d0*smallpi*rm*A*rho)
+  J7_CDIR = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
   end function J7_CDIR
 
@@ -1677,3 +1677,58 @@
   J8_CDIR = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
 
   end function J8_CDIR
+
+
+
+
+
+
+
+! *****************************************************
+! ***   RADIAL DERIVATIVE OF maxwellE (VERSION 2)   ***
+! *****************************************************
+
+! The radial derivative of maxwellE comes from the Gauss constraint
+! and takes the form:
+!
+! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+!
+! where in the second equality we used the Hamiltonian constraint
+! to eliminate dA/dr, and with "echarge" the charge density of
+! the Dirac field.
+!
+! This second version is for perturbed initial data,
+! it requires previous knowledge of the energy density
+! but does not assume the harmonic time dependence.
+
+  function J9_CDIR(A,alpha,F,G,maxwellE,maxwellF,rho,rm)
+
+  use param
+
+  implicit none
+
+  real(8) J9_CDIR
+  real(8) A,alpha,F,G,maxwellE,maxwellF,rm
+  real(8) rho,DA,echarge
+  real(8) smallpi
+
+! Numbers.
+
+  smallpi = acos(-1.d0)
+
+! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+
+  DA = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
+
+! Charge density:
+!                  2     2
+! echarge  =  q ( F  +  G ) / 2 pi
+
+  echarge = 0.5d0*dirac_q*(F**2 + G**2)/smallpi
+
+! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+
+  J9_CDIR = - maxwellE*(0.5d0*DA/A + 2.d0/rm) + 4.d0*smallpi*echarge
+
+  end function J9_CDIR
+
