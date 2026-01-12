@@ -90,7 +90,7 @@
 ! constraint, and takes the form:
 !
 !
-! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+! dmaxwellE/dr =  - maxwellE [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
 !
 !
 ! with "echarge" the charge density of the Dirac field given by:
@@ -123,7 +123,8 @@
 ! maxwellF(r=0) = 0,           d maxwellF(r=0) = 0
 !                               r
 !
-! maxwellE(r=0) = 0
+! maxwellE(r=0) = 0,           d maxwellE(r=0) = (2/3) q dirac_f0**2
+!                               r
 !
 ! Notice that in the final solution we don't want alpha(r=0)=1,
 ! but rather alpha=1 at infinity.  But this is no problem as the
@@ -432,9 +433,12 @@
 
                  k41 = delta*dirac_f0*(dirac_omega - dirac_mass)/3.d0
 
-!                For maxwellE and maxwellF we have:  maxwellE' = maxwellF' = 0
+!                For maxwellE at the origin we have: E' = (2/3) q f0^2
 
-                 k51 = 0.d0
+                 k51 = (2.d0/3.d0)*delta*dirac_q*F0**2
+
+!                For maxwellF at the origin we have: maxwellF' = 0
+
                  k61 = 0.d0
 
 !             Sources at previous grid point.
@@ -968,9 +972,12 @@
                  k11 = 0.d0
                  k21 = 0.d0
 
-!                For maxwellE and maxwellF we have:  maxwellE' = maxwellF' = 0
+!                For maxwellE at the origin we have: E' = (2/3) q f0^2
 
-                 k51 = 0.d0
+                 k51 = (2.d0/3.d0)*delta*dirac_q*F0**2
+
+!                For maxwellF at the origin we have: maxwellF' = 0
+
                  k61 = 0.d0
 
 !             Sources at previous grid point.
