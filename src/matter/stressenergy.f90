@@ -789,7 +789,7 @@
 ! SBB  =  1/(2 pi r sqrt(B) psi**2) [ FR GI - FI GR ]
 !
 ! Notice that in order to calculate (rho,JA) we need to know before the
-! values of PiF and PiG which are calculated in auxiliary_matter.f90
+! values of PiF and PiG, which are calculated in auxiliary_matter.f90
 !
 ! Alternative expressions for rho and JA obtained by substituting the
 ! Dirac equation are:
@@ -805,11 +805,11 @@
 
   if (contains(mattertype,"dirac")) then
 
-!    This flag is to change the way rho and JA arre calculated.
+!    This flag is there to change the way rho and JA are calculated.
 !    The are two different ways explained in the comment above.
-!    Both ways should work, but it is a good idea to check.
+!    Both ways should work fine, but it is a good idea to check.
 
-     usediracPi = .true.
+     usediracPi = .false.
 
 !    1/(2*pi).
 
@@ -894,6 +894,10 @@
 !       - q eAr dirac_flux
 !
 !       This is because the Dirac equation itself has terms that depend on q.
+!
+!       Notice that both terms above are scalars.  The first one is obvious,
+!       and the second one corresponds to the contraction of the potential
+!       eAr (index down) with dirac_flux j^i (index up).
 
         if (usediracPi) then
            rho(l,:) = rho(l,:) - dirac_q*ePhi(l,:)*dirac_dens(l,:)
@@ -910,6 +914,10 @@
 !       but if we did substitute it we must add instead:
 !
 !       - q eAr dirac_dens
+!
+!       Notice that in both cases we add a 1-form since JA is written
+!       with the index down, and so is eAr, with dirac_flux has the
+!       index up but the metric terms lower it.
 
         if (usediracPi) then
            JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:)*A(l,:)*psi4(l,:))
