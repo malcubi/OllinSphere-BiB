@@ -719,10 +719,11 @@
 !    ***   RESCALE (ALPHA,OMEGA,maxwellF)   ***
 !    ******************************************
 
-!    Normalize lapse and omega.  Since we integrated out
-!    assuming alpha(r=0)=1, we now need to rescale the lapse.
+!    Normalize lapse, omega and maxwellF.  Since we integrated
+!    out assuming alpha(r=0)=1, we now need to rescale the lapse.
 !    This can be done easily since its equation is linear.
-!    But notice that this also rescales the final frequency omega.
+!    But notice that this also rescales the final frequency omega
+!    and the scalar potential maxwellF
 !
 !    In practice we just divide both alpha and omega by
 !    the asymptotic value of the lapse.  In order to obtain
@@ -795,13 +796,11 @@
 !    ***   DIRAC STAR PERTURBATION   ***
 !    ***********************************
 
-!    THIS SECTION IS NOT YET FINSIHED!!!  DO NOT USE IT!
-
-!    Here we add a gaussian perturbation to the solution for the
-!    real part of proca_F, or if we prefer to the real or imaginary
-!    parts of proca_G.  Remember that in order to guarantee that
+!    Here we add a gaussian perturbation to the solution for
+!    the real part of proca_F, or if we prefer to imaginary
+!    part of proca_G.  Remember that in order to guarantee that
 !    the momentum density is zero we must have proca_F purely
-!    real and proca_G  purely imaginary (we could probably
+!    real and proca_G purely imaginary (we could probably
 !    consider more general perturbations, but at the moment we
 !    only allow these ones).  The amplitudes of the perturbations
 !    are rescaled with the maximum of dirac_FR and dirac_GI.
@@ -811,16 +810,16 @@
 !    (A,alpha,maxwellF,maxwellE).
 !
 !    An important consideration is the fact that we need to calculate
-!    the sources for (A,alpha) in a different way as above.  This is
-!    because the energy density for the Dirac equation depends on the
-!    time derivatives of (F,G).  For an unperturbed star we can calculate
-!    those derivatives using the Dirac equation and the harmonic
+!    the sources for (A,alpha,maxwellE) in a different way as above.
+!    This is because the energy density for the Dirac equation depends
+!    on the time derivatives of (F,G).  For an unperturbed star we can
+!    calculate those derivatives using the Dirac equation and the harmonic
 !    ansatz.  But once we perturb the star this is not possible
 !    since the harmonic ansatz is no longer valid.  What we do here
 !    is take the functions (F,G) from the unperturbed solution,
 !    calculate their spatial derivatives using finite differences and
 !    use them calculate the energy density, which is then passed
-!    directly to another version of the sources for (A,alpha).
+!    directly to another version of the sources for (A,alpha,maxwellE).
 
      if ((diracgauss).and.(abs(diracFR_a0)+abs(diracGI_a0)>0.0d0)) then
 
@@ -1211,17 +1210,11 @@
 !    a    ->  a   +  d  h
 !     mu       mu     mu
 !
-!                  i h t
-!    phi  ->  phi e
-!
-!              i h t
-!    x  ->  X e
-!
 !    with "a_mu" the potential 1-form of the electromagnetic field
-!    "phi" the complex scalar field, and "h" an arbitrary scalar function
-!    of spacetime.  In this case we only have a_0 different from
-!    zero, and we take h=kt, with k some constant. This reduces
-!    to the transformation we wrote above for k=-F_infty.
+!    and "h" an arbitrary scalar function of spacetime.  In this case
+!    we only have a_0 different from zero, and we take h=kt, with k
+!    some constant. This reduces to the transformation we wrote above
+!    for k=-F_infty.
 
      if (order=="two") then
         Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
