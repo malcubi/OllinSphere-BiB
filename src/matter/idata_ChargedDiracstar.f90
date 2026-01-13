@@ -1213,9 +1213,8 @@
 !                  i h t
 !    psi  ->  psi e
 !
-!
 !    with "a_mu" the potential 1-form of the electromagnetic field,
-!    psi the Dirac spinor, and "h" an arbitrary scalar function of
+!    "psi" the Dirac spinor, and "h" an arbitrary scalar function of
 !    spacetime.  In this case we only have a_0 different from zero,
 !    and we take h=kt, with k some constant. This reduces to the
 !    transformation we wrote above for k=-F_infty.
