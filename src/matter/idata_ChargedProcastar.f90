@@ -1204,17 +1204,19 @@
 !    a    ->  a   +  d  h
 !     mu       mu     mu
 !
-!                  i h t
-!    phi  ->  phi e
-!
 !              i h t
-!    x  ->  X e
+!    X  ->  X e
 !
 !    with "a_mu" the potential 1-form of the electromagnetic field
-!    "phi" the complex scalar field, and "h" an arbitrary scalar function
-!    of spacetime.  In this case we only have a_0 different from
-!    zero, and we take h=kt, with k some constant. This reduces
-!    to the transformation we wrote above for k=-F_infty.
+!    "X" the potential 1-form of the Proca field, and "h" an arbitrary
+!    scalar function of spacetime.  In this case we only have a_0
+!    different from zero, and we take h=kt, with k some constant.
+!    This reduces to the transformation we wrote above for k=-F_infty.
+!
+!    Notice that at t=0 this does not affect the Proca potential. In
+!    principle it should affect its time derivatives, but those are
+!    not independent variables in the code and are calculated later
+!    in the routine "complexproca.f90".
 
      if (order=="two") then
         Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &

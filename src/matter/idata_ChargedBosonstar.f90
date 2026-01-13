@@ -1348,7 +1348,8 @@
 
      F_g = F_g - Ffac
 
-!    After the gauge transformation we need to correct pi.
+!    After the gauge transformation we need to correct
+!    the time derivatives of the scalar field "pi".
 !    Notice that since the gauge tranformation for piI
 !    depends on phi, when we have a perturbation the
 !    transformed piI will be modified even if we set

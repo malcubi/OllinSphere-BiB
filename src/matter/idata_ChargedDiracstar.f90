@@ -1210,11 +1210,20 @@
 !    a    ->  a   +  d  h
 !     mu       mu     mu
 !
-!    with "a_mu" the potential 1-form of the electromagnetic field
-!    and "h" an arbitrary scalar function of spacetime.  In this case
-!    we only have a_0 different from zero, and we take h=kt, with k
-!    some constant. This reduces to the transformation we wrote above
-!    for k=-F_infty.
+!                  i h t
+!    psi  ->  psi e
+!
+!
+!    with "a_mu" the potential 1-form of the electromagnetic field,
+!    psi the Dirac spinor, and "h" an arbitrary scalar function of
+!    spacetime.  In this case we only have a_0 different from zero,
+!    and we take h=kt, with k some constant. This reduces to the
+!    transformation we wrote above for k=-F_infty.
+!
+!    Notice that at t=0 this does not affect the Dirac field. In
+!    principle it should affect its time derivatives, but those are
+!    not independent variables in the code and are calculated later
+!    in the routine "dirac.f90".
 
      if (order=="two") then
         Ffac = maxwellF_g(0,Nrtotal) + rr(0,Nrtotal)*0.5d0/dr(0) &
