@@ -171,7 +171,7 @@
 ! Notice that I don't include a factor of 2, so for
 ! a black hole we expect C ~ 0.5.
 
-  compactness = mass_int/r_area
+  compactness = abs(mass_int)/r_area
 
 ! At t=0 output maximum of compactness function.
 
