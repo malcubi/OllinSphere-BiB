@@ -66,8 +66,13 @@
 !
 ! with SA now given by:
 !
-!                                      2   2
-! SA  =  rho - 1/pi [ f g / r + m/2 ( f - g ) ]
+!
+!              2   2                               2
+! SA  =  W [ f + g ] / (2 pi alpha)  -  A maxwellE / 8 pi
+!
+!                               2   2
+!     - 1/pi [ f g / r + m/2 ( f - g ) ]
+!
 !
 ! In this case there is no contribution from the charge.
 ! Notice that for a static solution this lapse condition should
@@ -173,7 +178,7 @@
   real(8) F_rk,G_rk                     ! Runge-Kutta values of Dirac variables.
   real(8) maxwellF_rk,maxwellE_rk       ! Runge-Kutta values of Maxwell variables.
   real(8) DF_rk,DG_rk                   ! Radial derivatives of F and G, for perturbations.
-  real(8) rho_rk                        ! Energy density, for perturbations.
+  real(8) rho_rk,SA_rk                  ! rho and SA for perturbations.
 
   real(8) k11,k12,k13,k14               ! Runge-Kutta sources for A.
   real(8) k21,k22,k23,k24               ! Runge-Kutta sources for alpha.
@@ -825,10 +830,11 @@
 
 !       Message to screen.
 
-        print *, 'Charged Dirac star perturbation not yet implemented. Aborting!'
-        !call die
         print *, 'Adding gaussian perturbation to charged Dirac star ...'
         print *
+        print *, 'I still need to fix the equation for the lapse'
+        print *, 'Aborting!'
+        call die
 
 !       Sanity check. Remember diracF must be real and diracG must be imaginary.
 
@@ -1010,7 +1016,7 @@
                         + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
                  k11 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-                 k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+                 k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
 
                  k51 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
                  k61 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1052,7 +1058,7 @@
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
               k12 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
 
               k52 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k62 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1072,7 +1078,7 @@
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
               k13 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
 
               k53 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k63 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1114,7 +1120,7 @@
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
               k14 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
+              k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
 
               k54 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k64 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1381,7 +1387,7 @@
 
   real(8) J2_CDIR
   real(8) A,alpha,F,G,maxwellE,maxwellF,rm
-  real(8) rho,SA
+  real(8) SA
   real(8) W,smallpi
 
 ! Numbers.
@@ -1392,15 +1398,10 @@
 
   W = dirac_omega - dirac_q*maxwellF
 
-! Energy density:
-!
-! rho  =  W / (2 pi alpha) (F^2 + G^2) + A maxwellE^2 / (8 pi)
+! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
 
-  rho = W/(2.d0*smallpi*alpha)*(F**2 + G**2) + 0.125d0*A*maxwellE**2/smallpi
-
-! SA = rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
-
-  SA = rho - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
 
 ! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
 
@@ -1429,7 +1430,7 @@
 
   real(8) J3_CDIR
   real(8) A,alpha,F,G,maxwellE,maxwellF,rm
-  real(8) rho,SA,Dalpha
+  real(8) SA,Dalpha
   real(8) W,smallpi
 
 ! Numbers.
@@ -1440,15 +1441,10 @@
 
   W = dirac_omega - dirac_q*maxwellF
 
-! Energy density:
-!
-! rho  =  W / (2 pi alpha) (F^2 + G^2) + A maxwellE^2 / (8 pi)
+! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
 
-  rho = W/(2.d0*smallpi*alpha)*(F**2 + G**2) + 0.125d0*A*maxwellE**2/smallpi
-
-! SA = rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
-
-  SA = rho - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
 
 ! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
 
@@ -1484,7 +1480,7 @@
 
   real(8) J4_CDIR
   real(8) A,alpha,F,G,maxwellE,maxwellF,rm
-  real(8) rho,SA,Dalpha
+  real(8) SA,Dalpha
   real(8) W,smallpi
 
 ! Numbers.
@@ -1495,15 +1491,10 @@
 
   W = dirac_omega - dirac_q*maxwellF
 
-! Energy density:
-!
-! rho  =  W / (2 pi alpha) (F^2 + G^2) + A maxwellE^2 / (8 pi)
+! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
 
-  rho = W/(2.d0*smallpi*alpha)*(F**2 + G**2) + 0.125d0*A*maxwellE**2/smallpi
-
-! SA = rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
-
-  SA = rho - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
 
 ! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
 
@@ -1661,7 +1652,7 @@
 ! it requires previous knowledge of the energy density
 ! but does not assume the harmonic time dependence.
 
-  function J8_CDIR(A,alpha,F,G,rho,rm)
+  function J8_CDIR(A,alpha,F,G,SA,rm)
 
   use param
 
@@ -1675,10 +1666,6 @@
 ! Numbers.
 
   smallpi = acos(-1.d0)
-
-! SA = rho - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
-
-  SA = rho - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
 
 ! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
 
