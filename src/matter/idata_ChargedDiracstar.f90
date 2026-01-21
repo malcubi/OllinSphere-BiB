@@ -52,7 +52,7 @@
 ! Maxwell contributions:
 !
 !              2   2                               2
-! rho  =  W [ f + g ] / (2 pi alpha)  +  A maxwellE / 8 pi
+! rho  =  W [ F + G ] / (2 pi alpha)  +  A maxwellE / 8 pi
 !
 !
 ! where we have W := omega - q maxwellF, with maxwellF := alpha ePhi.
@@ -66,15 +66,13 @@
 !
 ! with SA now given by:
 !
+!             2   2                                             2   2
+! SA  =  W [ F + G ] / (2 pi alpha)  -  1/pi [ F G / r + m/2 ( F - G ) ]
 !
-!              2   2                               2
-! SA  =  W [ f + g ] / (2 pi alpha)  -  A maxwellE / 8 pi
-!
-!                               2   2
-!     - 1/pi [ f g / r + m/2 ( f - g ) ]
+!                  2
+!     -  A maxwellE / 8 pi
 !
 !
-! In this case there is no contribution from the charge.
 ! Notice that for a static solution this lapse condition should
 ! be equivalent to maximal slicing but is easier to solve.
 !
@@ -100,8 +98,8 @@
 !
 ! with "echarge" the charge density of the Dirac field given by:
 !
-!                  2     2
-! echarge  =  q ( F  +  G ) / 2 pi
+!                  2   2
+! echarge  =  q ( F + G ) / 2 pi
 !
 !
 ! Finally, for the Maxwell scalar potential maxwellF := alpha ePhi
@@ -148,7 +146,6 @@
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
 ! among the other processors.  This is slow, but works.
-
 
 ! Include modules.
 
@@ -832,9 +829,6 @@
 
         print *, 'Adding gaussian perturbation to charged Dirac star ...'
         print *
-        print *, 'I still need to fix the equation for the lapse'
-        print *, 'Aborting!'
-        call die
 
 !       Sanity check. Remember diracF must be real and diracG must be imaginary.
 
@@ -1015,8 +1009,11 @@
                         + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
                         + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
+                 SA_rk  = 0.5d0/smallpi*(F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                        - 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
                  k11 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-                 k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
+                 k21 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk, rm)
 
                  k51 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
                  k61 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1057,8 +1054,11 @@
                      + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
+              SA_rk  = 0.5d0/smallpi*(F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     - 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
               k12 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
+              k22 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk, rm)
 
               k52 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k62 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1077,8 +1077,11 @@
                      + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
+              SA_rk  = 0.5d0/smallpi*(F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     - 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
               k13 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
+              k23 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk, rm)
 
               k53 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k63 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1119,8 +1122,11 @@
                      + 2.d0*F_rk*G_rk/rm + dirac_mass*(F_rk**2 - G_rk**2)) &
                      + 0.125d0*A_rk*maxwellE_rk**2/smallpi
 
+              SA_rk  = 0.5d0/smallpi*(F_rk*DG_rk - G_rk*DF_rk)/sqrt(A_rk) &
+                     - 0.125d0*A_rk*maxwellE_rk**2/smallpi
+
               k14 = delta*J7_CDIR(A_rk,alpha_rk,F_rk,G_rk,rho_rk,rm)
-              k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk,rm)
+              k24 = delta*J8_CDIR(A_rk,alpha_rk,F_rk,G_rk,SA_rk, rm)
 
               k54 = delta*J9_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rho_rk,rm)
               k64 = delta*J6_CDIR(A_rk,alpha_rk,F_rk,G_rk,maxwellE_rk,maxwellF_rk,rm)
@@ -1350,17 +1356,17 @@
 
   smallpi = acos(-1.d0)
 
-! W = omega - q maxwellF
+! W  =  omega - q maxwellF
 
   W = dirac_omega - dirac_q*maxwellF
 
 ! Energy density:
 !
-! rho  =  W / (2 pi alpha) (F^2 + G^2) + A maxwellE^2 / (8 pi)
+! rho  =  W / (2 pi alpha) (F^2 + G^2)  +  A maxwellE^2 / (8 pi)
 
   rho = W/(2.d0*smallpi*alpha)*(F**2 + G**2) + 0.125d0*A*maxwellE**2/smallpi
 
-! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+! dA/dr  =  A [ (1-A)/r + 8 pi r A rho ]
 
   J1_CDIR = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
@@ -1394,16 +1400,19 @@
 
   smallpi = acos(-1.d0)
 
-! W = omega - q maxwellF
+! W  =  omega - q maxwellF
 
   W = dirac_omega - dirac_q*maxwellF
 
-! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
+! SA  =  W / (2 pi alpha) (F^2 + G^2)  -  1/pi [ F G / r + m/2 (F^2 - G^2) ]
+!
+!     -  A maxwellE^2 / (8 pi)
 
-  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
-     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi &
+     - 0.125d0*A*maxwellE**2/smallpi
 
-! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
+! dalpha/dr  =  alpha [ (A-1)/2r + 4 pi r A SA ]
 
   J2_CDIR = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
 
@@ -1437,16 +1446,19 @@
 
   smallpi = acos(-1.d0)
 
-! W = omega - q maxwellF
+! W  =  omega - q maxwellF
 
   W = dirac_omega - dirac_q*maxwellF
 
-! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
+! SA  =  W / (2 pi alpha) (F^2 + G^2)  -  1/pi [ F G / r + m/2 (F^2 - G^2) ]
+!
+!     -  A maxwellE^2 / (8 pi)
 
-  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
-     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi &
+     - 0.125d0*A*maxwellE**2/smallpi
 
-! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
+! dalpha/dr  =  alpha [ (A-1)/2r + 4 pi r A SA ]
 
   Dalpha = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
 
@@ -1487,16 +1499,19 @@
 
   smallpi = acos(-1.d0)
 
-! W = omega - q maxwellF
+! W  =  omega - q maxwellF
 
   W = dirac_omega - dirac_q*maxwellF
 
-! SA = W / (2 pi alpha) (F^2 + G^2) - A maxwellE^2 / (8 pi) - 1/pi [ f g / r + m/2 (f^2 - g^2) ]
+! SA  =  W / (2 pi alpha) (F^2 + G^2)  -  1/pi [ F G / r + m/2 (F^2 - G0^2) ]
+!
+!     -  A maxwellE^2 / (8 pi)
 
-  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) - 0.125d0*A*maxwellE**2/smallpi &
-     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi
+  SA = W/(2.d0*smallpi*alpha)*(F**2 + G**2) &
+     - (F*G/rm + 0.5d0*dirac_mass*(F**2 - G**2))/smallpi &
+     - 0.125d0*A*maxwellE**2/smallpi
 
-! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
+! dalpha/dr  =  alpha [ (A-1)/2r + 4 pi r A SA ]
 
   Dalpha = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
 
@@ -1549,21 +1564,21 @@
 
 ! Energy density:
 !
-! rho  =  W / (2 pi alpha) (F^2 + G^2) + A maxwellE^2 / (8 pi)
+! rho  =  W / (2 pi alpha) (F^2 + G^2)  +  A maxwellE^2 / (8 pi)
 
   rho = W/(2.d0*smallpi*alpha)*(F**2 + G**2) + 0.125d0*A*maxwellE**2/smallpi
 
-! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+! dA/dr  =  A [ (1-A)/r + 8 pi r A rho ]
 
   DA = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
 ! Charge density:
-!                  2     2
-! echarge  =  q ( F  +  G ) / 2 pi
+!
+! echarge  =  q ( F^2 + G^2 ) / 2 pi
 
   echarge = 0.5d0*dirac_q*(F**2 + G**2)/smallpi
 
-! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+! dmaxwellE/dr  =  - E [ 2/r + (dA/dr) / 2A ]  +  4 pi echarge
 
   J5_CDIR = - maxwellE*(0.5d0*DA/A + 2.d0/rm) + 4.d0*smallpi*echarge
 
@@ -1628,7 +1643,7 @@
 
   smallpi = acos(-1.d0)
 
-! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+! dA/dr  =  A [ (1-A)/r + 8 pi r A rho ]
 
   J7_CDIR = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
@@ -1659,15 +1674,14 @@
   implicit none
 
   real(8) J8_CDIR
-  real(8) A,alpha,F,G,rho,rm
-  real(8) SA
+  real(8) A,alpha,F,G,SA,rm
   real(8) smallpi
 
 ! Numbers.
 
   smallpi = acos(-1.d0)
 
-! dalpha/dr = alpha [ (A-1)/2r + 4 pi r A SA ]
+! dalpha/dr  =  alpha [ (A-1)/2r + 4 pi r A SA ]
 
   J8_CDIR = alpha*(0.5d0*(A-1.d0)/rm + 4.d0*smallpi*rm*A*SA)
 
@@ -1711,7 +1725,7 @@
 
   smallpi = acos(-1.d0)
 
-! dA/dr = A [ (1-A)/r + 8 pi r A rho ]
+! dA/dr  =  A [ (1-A)/r + 8 pi r A rho ]
 
   DA = A*((1.d0-A)/rm + 8.d0*smallpi*rm*A*rho)
 
@@ -1721,7 +1735,7 @@
 
   echarge = 0.5d0*dirac_q*(F**2 + G**2)/smallpi
 
-! dmaxwellE/dr =  - E [ 2/r + (dA/dr) / 2A ] + 4 pi echarge
+! dmaxwellE/dr  =  - E [ 2/r + (dA/dr) / 2A ]  +  4 pi echarge
 
   J9_CDIR = - maxwellE*(0.5d0*DA/A + 2.d0/rm) + 4.d0*smallpi*echarge
 
