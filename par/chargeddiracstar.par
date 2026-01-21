@@ -7,7 +7,7 @@ dr0 = 0.01		     # Grid spacing
 dtfac = 0.5		     # Courant parameter
 
 Nrtotal = 3000		     # Number of grid points
-Nt = 0  		     # Number of time steps
+Nt = 10000  		     # Number of time steps
 
 Nl = 1                       # Number of refinement levels
 
@@ -33,9 +33,9 @@ diracdiss = 0.05             # Dissipation coefficient for Proca field
 elecdiss  = 0.05             # Dissipation coefficient for electric field
 
 directory = chargeddiracstar # Name of output directory
-Ninfo = 10		     # How often do we want to output information to screen?
+Ninfo = 100		     # How often do we want to output information to screen?
 Noutput0D = 10		     # How often do we want 0D output?
-Noutput1D = 10		     # How often do we want 1D output?
+Noutput1D = 100		     # How often do we want 1D output?
 
 outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,dirac_FR,dirac_FI,dirac_GR,dirac_GI,dirac_PiFR,dirac_PiFI,dirac_PiGR,dirac_PiGI,dirac_Nint,electric,ePhi,eAr,eQ_int,echarge,ecurrent,Celectric,mass_sch,mass_int,mass_rn
 
