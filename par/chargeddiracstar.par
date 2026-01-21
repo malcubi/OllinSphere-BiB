@@ -1,6 +1,6 @@
 # Test parameter file:
 #
-# Test parameter file for charged Dirac star initial data,
+# Test parameter file for a charged Dirac star,
 # 1+log slicing, no shift.
 
 dr0 = 0.01		     # Grid spacing
