@@ -25,8 +25,8 @@ dirac_q = 0.1                # Charge of Proca field
 
 idata = chargeddirac         # Type of initial data
 dirac_f0 = 0.2               # Central value of scalar field
-omega_left  = 1.2358630      # First trial omega
-omega_right = 1.2358631      # Second trial omega
+omega_left  = 1.2357791      # First trial omega
+omega_right = 1.2357792      # Second trial omega
 
 geodiss   = 0.05             # Dissipation coefficient for geometry
 diracdiss = 0.05             # Dissipation coefficient for Proca field
