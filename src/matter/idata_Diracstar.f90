@@ -54,7 +54,7 @@
 ! now becomes:
 !
 !                                2   2  
-! rho  =  omega/(2 pi alpha)  [ f + g ]
+! rho  =  omega/(2 pi alpha)  [ F + G ]
 !
 !
 ! For the lapse we use the polar slicing condition
@@ -67,7 +67,7 @@
 ! with SA given by:
 !
 !                                      2   2
-! SA  =  rho - 1/pi [ f g / r + m/2 ( f - g ) ]
+! SA  =  rho - 1/pi [ F G / r + m/2 ( F - G ) ]
 !
 !
 ! Notice that for a static solution this lapse condition should
