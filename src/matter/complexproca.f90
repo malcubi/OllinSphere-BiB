@@ -238,7 +238,7 @@
 !
 ! du/dt   ~  - v (du/dr + u/r)
 !
-! where v is the coordinate speed of light:  v = alpha / (sqrt(A)*psi**2)
+! where v is the coordinate speed of light: v = alpha / (sqrt(A)*psi**2)
 !
 ! I have experimented with radiative boundary conditions for both
 ! procaPhi and ProcaA.  Applying the radiative condition to Phi
@@ -254,7 +254,6 @@
   if ((boundtype/="static").and.(boundtype/="flat")) then
 
      aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
-     aux = 1.d0
 
 !    Boundary condition for procaPhi.
 
