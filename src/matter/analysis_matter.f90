@@ -369,7 +369,7 @@
 
   if (contains(mattertype,"dirac")) then
 
-!    Scalar eigenfields.
+!    Dirac eigenfields.
 
      if (allocated(wpR_dirac)) then
         wpR_dirac = dirac_FR + dirac_GR
