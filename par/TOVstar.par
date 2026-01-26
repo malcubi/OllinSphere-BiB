@@ -31,7 +31,7 @@ fluid_method = mp5        # Numerical method for fluid (hlle or mp5)
 fluid_limiter = mc        # Type of limiter
 fluid_gamma = 2.0         # Adiabatic index
 fluid_kappa = 100.0       # Polytropic constant
-fluid_atmos = 1.d-6       # Artificial atmosphere value (rescaled with max(rho) at t=0)
+fluid_atmos = 1.d-8       # Artificial atmosphere value
 
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 0.00128   	  # Central density for TOV star
