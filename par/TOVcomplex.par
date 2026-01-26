@@ -24,7 +24,7 @@ mattertype = fluid,complex # Perfect fluid + complex scalar field
 fluid_method = mp5         # Numerical method for fluid
 fluid_gamma = 2.0          # Adiabatic index (5/3 for a monoatomic non-relativistic gas)
 fluid_kappa = 100.0        # Polytropic constant
-fluid_atmos = 1.d-6        # Artificial atmosphere value
+fluid_atmos = 1.d-8        # Artificial atmosphere value
 
 complexpotential = phi2    # Type of scalar potential
 complex_mass = 1.0         # Mass of scalar field
