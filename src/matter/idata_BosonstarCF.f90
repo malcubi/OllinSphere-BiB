@@ -203,10 +203,10 @@
 
      if (rank==0) then
         if (complex_l==0) then
-           write(*,'(A,E20.14)') ' Using physical normalization for phi0 ...'
+           write(*,'(A,E23.16)') ' Using physical normalization for phi0 ...'
            print *
         else
-           write(*,'(A,E20.14)') ' Rescaled phi0 (phi0*sqrt(2l+1)): ', boson_phi0
+           write(*,'(A,E23.16)') ' Rescaled phi0 (phi0*sqrt(2l+1)): ', boson_phi0
            print *
         end if
      end if
@@ -217,10 +217,10 @@
 
      if (rank==0) then
         if (complex_l==0) then
-           write(*,'(A,E20.14)') ' Physical phi0 (phi0/sqrt(4pi)): ', boson_phi0
+           write(*,'(A,E23.16)') ' Physical phi0 (phi0/sqrt(4pi)): ', boson_phi0
            print *
         else
-           write(*,'(A,E20.14)') ' Rescaled phi0 (phi0*sqrt((2l+1)/4pi)): ', boson_phi0
+           write(*,'(A,E23.16)') ' Rescaled phi0 (phi0*sqrt((2l+1)/4pi)): ', boson_phi0
            print *
         end if
      end if
@@ -888,7 +888,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES20.14,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
 
      end do
 
