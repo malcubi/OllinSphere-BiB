@@ -101,12 +101,12 @@
         NTOT = fluid_restmass(0,Nr)
 
         if (size==1) then
-           write(*,'(A,E19.12)') ' Total fluid rest mass M0 = ',NTOT
+           write(*,'(A,ES23.16)') ' Total fluid rest mass M0 = ',NTOT
         else
            if (rank==0) then
               p = size-1
               call MPI_RECV(NTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-              write(*,'(A,E19.12)') ' Total fluid rest mass = ',NTOT
+              write(*,'(A,ES23.16)') ' Total fluid rest mass = ',NTOT
            else if (rank==size-1) then
               call MPI_SEND(NTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
            end if
@@ -167,12 +167,12 @@
 !       Processor 0 writes result to screen.
 
         if (size==1) then
-           write(*,'(A,E19.12)') ' Total dust rest mass = ',NTOT
+           write(*,'(A,ES23.16)') ' Total dust rest mass = ',NTOT
         else
            if (rank==0) then
               p = size-1
               call MPI_RECV(NTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-              write(*,'(A,E19.12)') ' Total dust rest mass = ',NTOT
+              write(*,'(A,ES23.16)') ' Total dust rest mass = ',NTOT
            else if (rank==size-1) then
               call MPI_SEND(NTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
            end if
