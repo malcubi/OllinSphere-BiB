@@ -105,8 +105,8 @@
 !    Processor 0 writes result to screen.
 
      if (rank==0) then
-        write(*,'(A,E19.12)') ' Total Dirac charge    = ',NTOT
-        write(*,'(A,E19.12)') ' R99 from Dirac charge = ',R99
+        write(*,'(A,ES23.16)') ' Total Dirac charge    = ',NTOT
+        write(*,'(A,ES23.16)') ' R99 from Dirac charge = ',R99
         print *
      end if
 
