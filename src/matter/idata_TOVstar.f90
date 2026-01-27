@@ -71,6 +71,30 @@
 ! end.  This is much better since this way the lapse remains
 ! smooth at the surface of the star.
 !
+!
+! RESCALING:
+!
+! One can show that there is a nice rescaling relation for a solution
+! with given value of gamma.  If we scale the radius by a constant
+! value "c", the system of equations is invariant if we take:
+!
+! r  ->  r/c   (and hence the total radius R -> R/c)
+! m  ->  m/c   (and hence the total mass   M -> M/c)
+!
+! rho  -> c^2 rho
+! rho0 -> c^2 rho0
+! p    -> c^2 p
+!
+! kappa -> kappa / c^[2(gamma-1)]
+!
+! with (alpha,A,e) invariant (just streched out with r).  For the
+! special cases with gamma = (4/3,5/3,2) we find for kappa:
+!
+! kappa -> kappa / c^(2/3)     (gamma=4/3)
+! kappa -> kappa / c^(4/3)     (gamma=5/3)
+! kappa -> kappa / c^2         (gamma=2)
+!
+!
 ! SOME SPECIAL TEST CASES:
 !
 ! 1) gamma = 2, kappa = 100, rho0 = 0.00128
@@ -91,6 +115,12 @@
 !    R~5718 or R~8446 km (it can vary a little depending on resolution).
 !    The value of kappa=0.4654 is obtained from the corresponding
 !    Lane-Emden solution taking c=G=Msol=1.
+!
+!    Also notice that in general gamma=4/3 is a very special case,
+!    it corresponds to an ultra-relativistic fluid (essentially
+!    a gas made of photons), so that there are NO bound solutions
+!    since the binding energy is always positive.  This implies
+!    that all such solutions are dynamically unstable.
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
