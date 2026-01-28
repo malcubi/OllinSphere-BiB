@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_fluidshell.f90,v 1.7 2023/03/24 17:04:03 malcubi Exp $
 
   subroutine idata_fluidshell
 
@@ -526,10 +525,6 @@
 ! ******************************************
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
-
-! Add atmosphere (we just add it everywhere).
-
-  fluid_rho = fluid_rho + fluid_atmos
 
 ! Find pressure and internal energy.
 
