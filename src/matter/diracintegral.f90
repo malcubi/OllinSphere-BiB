@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/diracintegral.f90,v 1.3 2025/09/24 17:25:02 malcubi Exp $
 
   subroutine diracintegral
 
