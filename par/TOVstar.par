@@ -10,10 +10,10 @@
 
 #spacetime = background   # Uncomment this for static spacetime (Cowling) approximation
 
-dr0 = 0.05		  # Grid spacing
+dr0 = 0.025		  # Grid spacing
 dtfac = 0.5		  # Courant parameter
 
-Nrtotal = 1000		  # Number of grid points
+Nrtotal = 2000		  # Number of grid points
 Nt = 10000		  # Number of time steps
 
 Nl = 1                    # Number of refinement levels
@@ -39,9 +39,9 @@ TOV_rho0 = 0.00128   	  # Central density for TOV star
 geodiss = 0.05            # Dissipation coefficient for geometry
 
 directory = TOVstar       # Name of output directory
-Ninfo = 500		  # How often do we want to output information to screen?
-Noutput0D = 50		  # How often do we want 0D output?
-Noutput1D = 500           # How often do we want 1D output?
+Ninfo = 100		  # How often do we want to output information to screen?
+Noutput0D = 10		  # How often do we want 0D output?
+Noutput1D = 100           # How often do we want 1D output?
 
 outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int
 outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,lambda,ham,mom,fluid_rho,fluid_e,fluid_p,fluid_v,fluid_W,fluid_cD,fluid_cE,fluid_cS,fluid_restmass,rho,mass_sch,mass_int
