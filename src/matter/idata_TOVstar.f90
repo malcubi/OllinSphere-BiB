@@ -456,7 +456,6 @@
 !                the result with G*Msol/c^2 ~ 1.477.
 
                  write(*,'(A,ES23.16)') ' Radius of TOV star in km (taking c=G=Msol=1) = ',TOV_rad*Rsol/1.d3
-                 print *
 
 !                Set fluid density equal to zero.
 
@@ -479,6 +478,7 @@
         end do
 
      end do
+
 
 !    ****************************************
 !    ***   WARNING IF SURFACE NOT FOUND   ***
@@ -715,22 +715,20 @@
      call distribute(0,Nl-1,fluid_rho,rho0_g)
   end if
 
+! Output Schwarschild mass of TOV star.  Notice that
+! this might be slightly different (and better) than
+! the total integrated mass since the atmosphere is
+! added before integrating the density.
+
+  if (foundsurf) then
+     write(*,'(A,ES23.16)') ' Total mass of TOV star = ', 0.5d0*r(0,Nr)*(1.d0-1.d0/A(0,Nr))
+     print *
+  end if
+
 
 ! ******************************************
 ! ***   FIND ALL OTHER FLUID VARIABLES   ***
 ! ******************************************
-
-! Set atmosphere.
-
-  rhoatmos = fluid_atmos/10.d0
-
-  do l=0,Nl-1
-     do i=1-ghost,Nr
-        if (fluid_rho(l,i)<=fluid_atmos) then
-           fluid_rho(l,i) = rhoatmos
-        end if
-     end do
-  end do
 
 ! Find pressure and internal energy.
 
