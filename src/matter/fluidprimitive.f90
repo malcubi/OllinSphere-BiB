@@ -55,9 +55,9 @@
 ! the equation of state, and iterate until this difference
 ! is smaller than a tolerance set by "epsilon".
 !
-! Notice that since this procedure involves taking squqre roots
+! Notice that since this procedure involves taking square roots
 ! to calculate the Lorentz factor W, for double precision
-! numbers the round-off errors will be of order 10^-8.,
+! numbers the round-off errors will be of order 10^-8,
 ! so don't expect convergence beyond this.
 
 ! Include modules.
@@ -113,8 +113,14 @@
 !    value and the momentum density to zero. For the conserved energy
 !    density we take E = rho0*e. We then set all other variables to values 
 !    consistent with this and we jump out of here.
+!
+!    I have found that sometimes it happens that one can have values
+!    above fluid_atmos at a given point, but below at the two neighboring
+!    points.  This is caused by numerical error and can cause the code
+!    to crash, so I don't allow it.
 
-     if (fluid_cD(l,i)<=fluid_atmos) then
+     if ((fluid_cD(l,i)<=fluid_atmos).or. &
+        ((fluid_cD(l,i-1)<=fluid_atmos).and.(fluid_cD(l,i+1)<=fluid_atmos))) then
 
 !       Conserved quantities (D,E,S).
 
