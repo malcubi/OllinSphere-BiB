@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/fluidintegral.f90,v 1.7 2025/10/01 17:52:44 malcubi Exp $
 
   subroutine fluidintegral
 
