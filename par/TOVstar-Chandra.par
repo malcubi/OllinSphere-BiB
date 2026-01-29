@@ -12,7 +12,7 @@
 dr0 = 0.1		  # Grid spacing
 dtfac = 0.5		  # Courant parameter
 
-Nrtotal = 100000		  # Number of grid points
+Nrtotal = 100000          # Number of grid points
 Nt = 0		          # Number of time steps
 
 Nl = 1                    # Number of refinement levels
@@ -30,7 +30,7 @@ fluid_method = mp5        # Numerical method for fluid (hlle or mp5)
 fluid_limiter = mc        # Type of limiter
 fluid_gamma = 1.3333333333333  # Adiabatic index
 fluid_kappa = 0.4654      # Polytropic constant
-fluid_atmos = 1.d-8       # Artificial atmosphere value
+fluid_atmos = 1.d-5       # Artificial atmosphere value
 
 idata = TOVstar		  # Type of initial data
 TOV_rho0 = 1.d-10   	  # Central density for TOV star
