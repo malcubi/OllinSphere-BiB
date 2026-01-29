@@ -71,6 +71,8 @@
 
   implicit none
 
+  logical :: firstcall
+
   integer :: i,j,l
   integer :: maxiter = 500
 
@@ -80,13 +82,23 @@
   real(8) :: epsilon = 1.d-10 ! Tolerance
   real(8) :: Wmax = 1.d5      ! Maximum allowed Lorentz factor
 
+  data firstcall / .true. /
+
 
 ! ***************************************
 ! ***   RECOVER PRIMITIVE VARIABLES   ***
 ! ***************************************
 
+! On firstcall rescale fluid_atmos with maximum of fluid_rho.
+
+  if (firstcall) then
+     fluid_atmos = maxval(fluid_rho)*fluid_atmos
+     firstcall = .false.
+  end if
+
 ! For initial data we don't need to recover the
-! primitive variables.
+! primitive variables, they are fixed by the initial
+! data routines.  We also don't add the atmosphere at t=0.
 
   if (t(l)==0.d0) goto 20
 
