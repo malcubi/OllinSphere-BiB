@@ -47,7 +47,7 @@
 ! m(r)  =  (r/2) ( 1 - 1/A )
 !
 ! In order to solve the system we still need an equation of state.
-! Here we assume we have a polytropic,equation of state:
+! Here we assume we have a polytropic equation of state:
 !
 ! p  =  Kappa rho0^gamma
 !
@@ -70,6 +70,10 @@
 ! so that we can just solve the maximal slicing equation at the
 ! end.  This is much better since this way the lapse remains
 ! smooth at the surface of the star.
+!
+! The system of equations is solved using a 4th order Runge-Kutta
+! method, with the central rest mass density rho0(r=0)=TOV_rho0
+! as a free parameter.
 !
 !
 ! RESCALING:
@@ -121,6 +125,7 @@
 !    a gas made of photons), so that there are NO bound solutions
 !    since the binding energy is always positive.  This implies
 !    that all such solutions are dynamically unstable.
+
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
