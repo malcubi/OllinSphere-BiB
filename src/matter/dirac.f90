@@ -59,6 +59,7 @@
   integer l
 
   real(8) DFR,DFI
+  real(8) aux
 
 
 ! *******************
@@ -150,19 +151,28 @@
 ! ***   BOUNDARIES   ***
 ! **********************
 
-! At the moment I use a simple outgoing wave boundary condition
-! for (FR,FI) assuming that far away they behave as f(r-t)/r.
-! This implies a condition of the form:
+! In order to impose the boundary condition we assume that
+! far away (FR,FI) behave as outgoing spherical waves:
 !
-! dF/dt  ~  - (dF/dr + F/r)
+! F(r,t)  ~  f(r-vt)/r
 !
-! Notice that we do not need a boundary condition for (GR,GI),
-! in fact trying to impose a boundary condition for them is
+! This can be shown to imply:
+!
+! dF/dt   ~  - v (dF/dr + F/r)
+!
+! where v is the coordinate speed of light: v = alpha / (sqrt(A)*psi**2)
+!
+! Notice that we do not need a boundary condition for (GR,GI).
+! In fact, trying to impose a boundary condition for them is
 ! inconsistent.
 
   if ((boundtype/="static").and.(boundtype/="flat")) then
-     sdirac_FR(l,Nr) = - D1_dirac_FR(l,Nr) - dirac_FR(l,Nr)/r(l,Nr)
-     sdirac_FI(l,Nr) = - D1_dirac_FI(l,Nr) - dirac_FI(l,Nr)/r(l,Nr)
+
+     aux = alpha(l,Nr)/sqrt(A(l,Nr))/psi2(l,Nr)
+
+     sdirac_FR(l,Nr) = - aux*(D1_dirac_FR(l,Nr) + dirac_FR(l,Nr)/r(l,Nr))
+     sdirac_FI(l,Nr) = - aux*(D1_dirac_FI(l,Nr) + dirac_FI(l,Nr)/r(l,Nr))
+
   end if
 
 
