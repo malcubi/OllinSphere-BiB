@@ -1046,6 +1046,8 @@
 
   function mp5interface(um2, um1, u, up1, up2) result(mp5val)
 
+  use param
+    
   implicit none
 
   real(8) :: um2,um1,u,up1,up2
@@ -1054,19 +1056,20 @@
   real(8) :: vnorm,vl,vmp
   real(8) :: djm1,dj,djp1,dm4jph,dm4jmh
   real(8) :: vul,vav,vmd,vlc,vmin,vmax
-  real(8) :: mp5alpha,eps
 
-  mp5alpha = 4.0d0
-  eps = 1.0d-10
-
+  real(8) :: eps
+  
   vnorm = sqrt(um2*um2 + um1*um1 + u*u + up1*up1 + up2*up2)
+  
+  eps = mp5_eps
 
-! Not sure about this formula ...
+  if (mp5_scale_eps) then
+     eps = eps * vnorm
+  end if
 
   vl = (2.0d0*um2 - 13.0d0*um1 + 47.0d0*u + 27.0d0*up1 - 3.0d0*up2)/60.0d0
-  ! vl = (3.0d0*um2 - 20.0d0*um1 + 90.0d0*u + 60.0d0*up1 - 5.0d0*up2)/128.d0
-
-  vmp = u + minmod2(up1-u,mp5alpha*(u-um1))
+  
+  vmp = u + minmod2(up1-u,mp5_alpha*(u-um1))
 
   if ((vl-u)*(vl-vmp)<eps) then
 
@@ -1081,7 +1084,7 @@
      dm4jph = minmod4(4.0d0*dj-djp1,4.0d0*djp1-dj,dj,djp1)
      dm4jmh = minmod4(4.0d0*dj-djm1,4.0d0*djm1-dj,dj,djm1)
 
-     vul = u + mp5alpha*(u - um1)
+     vul = u + mp5_alpha*(u - um1)
      vav = 0.5d0*(u + up1)
      vmd = vav - 0.5d0*dm4jph
      vlc = u + 0.5d0*(u - um1) + 4.0d0*dm4jmh/3.0d0
