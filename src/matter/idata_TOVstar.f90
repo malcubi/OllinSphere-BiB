@@ -493,10 +493,30 @@
 
      if (.not.foundsurf) then
         print *
-        print *, 'WARNING: Did not reach surface of star, consider moving the outer boundary further away.'
-        print *, '         Setting radius to edge of grid ...'
+        print *, 'Did not reach surface of TOV star (consider moving the outer boundary further away).'
+        print *, 'Aborting ...'
         print *
-        TOV_rad = rr(0,Nrtotal)
+        call die
+     end if
+
+
+!    *****************************
+!    ***   OUTPUT TOTAL MASS   ***
+!    *****************************
+
+!    Output Schwarschild mass of TOV star.  Notice that
+!    this might be slightly different (and better) than
+!    the total integrated mass since the atmosphere is
+!    added before integrating the density.
+
+     aux = 0.5d0*rr(0,Nrtotal)*(1.d0-1.d0/A_g(0,Nrtotal))
+
+     if (.not.TOVgauss) then
+        write(*,'(A,ES23.16)') ' Total mass of TOV star = ', aux
+        print *
+     else
+        write(*,'(A,ES23.16)') ' Total mass of unperturbed TOV star = ', aux
+        print *
      end if
 
 
@@ -512,7 +532,6 @@
 
 !       Message to screen.
 
-        print *
         print *, 'Adding gaussian perturbation to TOV star ...'
 
 !       Rescale the amplitude of the gaussian with max(rho).
@@ -533,11 +552,6 @@
                           + exp(-(rr(:,i)+TOV_r0)**2/TOV_s0**2))
            end do
         end if
-
-!       Solve again Hamiltonian constraint.
-
-        print *, 'Solving hamiltonian constraint again'
-        print *
 
 !       Loop over grid levels. We solve from fine to coarse grid.
 
@@ -661,6 +675,12 @@
 
         end do
 
+!       Output mass of perturbed star.
+
+        aux = 0.5d0*rr(0,Nrtotal)*(1.d0-1.d0/A_g(0,Nrtotal))
+        write(*,'(A,ES23.16)') ' Total mass of perturbed TOV star = ',aux
+        print *
+
      end if
 
 
@@ -719,16 +739,6 @@
   else
      call distribute(0,Nl-1,A,A_g)
      call distribute(0,Nl-1,fluid_rho,rho0_g)
-  end if
-
-! Output Schwarschild mass of TOV star.  Notice that
-! this might be slightly different (and better) than
-! the total integrated mass since the atmosphere is
-! added before integrating the density.
-
-  if (foundsurf) then
-     write(*,'(A,ES23.16)') ' Total mass of TOV star = ', 0.5d0*r(0,Nr)*(1.d0-1.d0/A(0,Nr))
-     print *
   end if
 
 
