@@ -512,6 +512,7 @@
 
 !       Message to screen.
 
+        print *
         print *, 'Adding gaussian perturbation to TOV star ...'
 
 !       Rescale the amplitude of the gaussian with max(rho).
