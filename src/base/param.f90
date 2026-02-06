@@ -905,7 +905,6 @@
   real(8) :: fluid_gamma = 1.6666666666666666d0 ! 5/3 for a monoatomic non-relativistic gas.
   real(8) :: fluid_kappa = 1.d0
 
-
 ! Don't set the artificial atmosphere to less than 1.d-8 since
 ! this is the level of roundoff error in fluidprimitive.f90
 ! (it involves square roots).
@@ -931,6 +930,13 @@
 ! of light instead to calculate fluxes
 
   logical :: fluid_usesoundspeed = .false.
+
+! Parameters for MP5 reconstruction
+
+  real(8) :: mp5_alpha = 4.0d0                  ! ???
+  real(8) :: mp5_eps   = 1e-6                   ! A small tolerance used in monotonicity test
+  logical :: mp5_scale_eps = .false.            ! .false. if epsilon is abolute ; 
+                                                ! .true. if it is relative to the local variables
 
 ! TOV initial data:
 !
