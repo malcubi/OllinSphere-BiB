@@ -1230,7 +1230,7 @@
               alpha(l,:) = one/exp(4.d0*(phi(l,:)-cosmobg_phi(l)))
            end do
         else
-           alpha = psi4
+           alpha = one/psi4
         end if
 
      else if (ilapse=="psi2") then
