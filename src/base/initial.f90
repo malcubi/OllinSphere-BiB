@@ -157,6 +157,9 @@
 !
 ! But notice that this lapse will cause numerical
 ! problems at the origin.
+!
+! Also, for this metric the horizon is located
+! initially at r=M/2.
 
   if (idata=="schwarzschild") then
 
