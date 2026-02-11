@@ -170,10 +170,10 @@
 ! ***   BOUNDARIES   ***
 ! **********************
 
-! boundary:      Type of boundary condition.
+! boundtype:     Type of outer boundary condition.
 ! dorigin:       Derivatives at origin: centered or one-sided
 
-  character(30) :: boundtype = "radiative"    ! range = (none,static,flat,radiative,constraint)
+  character(30) :: boundtype = "constraint"   ! range = (none,static,flat,radiative,constraint)
   character(30) :: dorigin = "centered"       ! range = (centered,onesided)
 
 
