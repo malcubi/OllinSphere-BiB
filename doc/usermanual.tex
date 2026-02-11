@@ -1088,7 +1088,7 @@ to an independent variable, and its evolution equation is modified
 using the momentum constraint. \\
 
 We therefore end up with a new constraint related to the definition of
-$\Delta^r$ and stored for output int he array \texttt{CDeltar}:
+$\Delta^r$ and stored for output in the array \texttt{CDeltar}:
 \begin{equation}
 \texttt{CDelatr} := A \Delta^r - \left( \frac{\partial_r A}{2A} -
 \frac{\partial_r B}{B} - 2 r \lambda \right) \; ,
@@ -1149,7 +1149,6 @@ where again $f$ is a positive real number controlled by the same
 parameter \texttt{gauge\_f}.  Standard 1+log slicing corresponds to 
 \texttt{gauge\_f=2} (though as mentioned above the default value is 1).
 
-
 \item[\texttt{shockavoid}] This corresponds to the family of shock
   avoiding slicing conditions, which is similar to the 1+log
   condition above but with $f(\alpha)$ a function given by (see
@@ -1157,6 +1156,7 @@ parameter \texttt{gauge\_f}.  Standard 1+log slicing corresponds to
 \begin{equation}
 f(\alpha) = 1 + k/\alpha^2 \; .
 \end{equation}
+The code takes $k=\texttt{gauge\_f}-1$.
 
 \item[\texttt{maximal}] This is maximal slicing which corresponds to
   the condition that the trace of the extrinsic curvature remains
@@ -1171,7 +1171,6 @@ In spherical symmetry the Laplacian operator reduces to:
 \nabla^2 = \partial_r^2 + \left( \frac{2}{r} - \frac{\partial_r A}{2A} 
 + \frac{\partial_r B}{B} + 2 \: \partial_r \phi \right) \partial_r \; .
 \end{equation}
-
 
 \end{list}
 
@@ -1203,13 +1202,9 @@ The initial value of the lapse can also be controlled by the parameter
 \item[\texttt{one}] The initial lapse is set to 1 again AFTER all
   initial data routines have been called.
 
-\item[\texttt{isotropic}] The initial lapse it set to
-  $\alpha=2/\psi-1$ after all initial data routines have been called,
-  with $\psi$ the conformal factor.  Notice that this is the correct
-  value of the lapse for a static Schwarzschild spacetime in isotropic
-  coordinates, but we can use it for any type of initial data and it
-  should still result in a lapse that keeps the spacetime
-  approximately static far away.
+\item[\texttt{isotropic}] The initial lapse is set to the
+  corresponding isotropic lapse for a static black hole (useful for
+  testing).
 
 \item[\texttt{psiminus2}] The initial lapse is set to
   $\alpha=1/\psi^2$ after all initial data routines have been called,
@@ -1832,7 +1827,7 @@ defined, they are usually explained in the comments). \\
 \setlength{\labelsep}{10mm}
 \setlength{\labelwidth}{50mm}}
 
-\item[\texttt{dr0 (real(8))}] Spatial interval for base (coarsest) (default 1.0).
+\item[\texttt{dr0 (real)}] Spatial interval for base (coarsest) grid (default 1.0).
 
 \item[\texttt{Nrtotal (integer)}] Total number of grid points for base grid (default
   10).
@@ -1846,9 +1841,10 @@ defined, they are usually explained in the comments). \\
 \item[\texttt{intorder (integer)}] Order of interpolation (default
   3).  Don't change this unless you know what you are doing!
 
-\item[\texttt{boundary (character)}] Type of outer boundary condition.
+\item[\texttt{boundtype(character)}] Type of outer boundary condition.
   Can take the following values: \texttt{none}, \texttt{static},
-  \texttt{flat}, \texttt{radiative} (default \texttt{flat}).
+  \texttt{flat}, \texttt{radiative}, \texttt{constraint} (default
+  \texttt{constraint}).
 
 \end{list}
 
@@ -1859,12 +1855,12 @@ defined, they are usually explained in the comments). \\
 \setlength{\labelsep}{10mm}
 \setlength{\labelwidth}{50mm}}
 
-\item[\texttt{dt0 (real(8))}] Time step for base (coarsest) grid
-  (default 0.0).  This should NOT be set in the parameter file, as it
-  is calculated at run time based on the value of \texttt{dt0} and
-  \texttt{dtfac}.
+\item[\texttt{dtfac (real)}] Courant parameter (default 0.5).
 
-\item[\texttt{dtfac (real(8))}] Courant parameter dt/dr (default 0.5).
+\item[\texttt{dt0 (real)}] Time step for base (coarsest) grid
+  (default 0.0).  This should NOT be set in the parameter file, as it
+  is calculated at run time based on the value of \texttt{dtfac}:
+  \texttt{dt0=dtfac*r0}.
 
 \item[\texttt{adjuststep (logical)}] Dynamically adjust the time step in order
 to satisfy the Courant stability condition (default .false.).
@@ -1971,6 +1967,14 @@ output files \linebreak (range = \{\texttt{xgraph}, \texttt{gnuplot}\}, default
 \item[\texttt{eta (real)}] Parameter that controls the multiple of the
   momentum constraints that is added to the evolution equation for
   $\Delta^r$ in the BSSN formulation (default \texttt{2.0}).
+
+\item[\texttt{idata (character)}] Type of initial data (default ``minkowski'').
+
+\item[\texttt{slicing (character)}] Type of slicing condition (default
+  ``harmonic'').
+
+\item[\texttt{geodiss (real)}] Kreiss-Oliger dissipation coefficient
+  for geometric variables.
 
 \end{list}
 
