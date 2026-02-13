@@ -10,10 +10,9 @@ Nt = 4000		# Number of time steps
 
 Nl = 2                  # Number of refinement levels
 
-ilapse = psiminus2      # Precollapsed lapse alpha=1/psi**2
-
 slicing = 1+log 	# Type of slicing condition
 gauge_f = 2.0	        # Coefficient for harmonic slicing
+ilapse = psiminus2      # Precollapsed lapse alpha=1/psi**2
 
 shift = Gammadriver2    # Shift condition
 drivercsi = 0.75        # Coefficient of Gammadriver shift
@@ -23,6 +22,7 @@ geodiss = 0.01		# Dissipation for geometric variables
 
 chimethod = .true.      # Use chi method for conformal factor
 chipower  = 4           # Power of 1/psi in definition of chi
+
 regular2 = .true.       # Puncture regularization
 dorigin = onesided      # One sided derivatives at origin
 
