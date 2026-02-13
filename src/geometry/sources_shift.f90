@@ -101,9 +101,17 @@
 !       Source for shift.
 
         if (.not.cosmic_run) then
-           sbeta(l,:) = drivercsi*Deltar(l,:) !+ beta(l,:)*DA_beta(l,:)
+
+           sbeta(l,:) = drivercsi*Deltar(l,:)
+
+           if (driveradv) then
+              sbeta(l,:) = sbeta(l,:) + beta(l,:)*DA_beta(l,:)
+           end if
+
         else
+
            sbeta(l,:) = drivercsi*Deltar(l,:)/cosmobg_a(l)**2
+
         end if
 
         if (driverD0) then
@@ -118,11 +126,19 @@
 
 !       Source for fdriver.
 
-        sfdriver(l,:) = - two*third*fdriver(l,:)*DIV_beta(l,:) !+ beta(l,:)*DA_fdriver(l,:)
+        sfdriver(l,:) = - two*third*fdriver(l,:)*DIV_beta(l,:)
+
+        if (driveradv) then
+           sfdriver(l,:) = sfdriver(l,:) + beta(l,:)*DA_fdriver(l,:)
+        end if
 
 !       Source for shift.
 
-        sbeta(l,:) = drivercsi*fdriver(l,:)*Deltar(l,:) !+ beta(l,:)*DA_beta(l,:)
+        sbeta(l,:) = drivercsi*fdriver(l,:)*Deltar(l,:)
+
+        if (driveradv) then
+           sbeta(l,:) = sbeta(l,:) + beta(l,:)*DA_beta(l,:)
+        end if
 
         if (driverD0) then
            sbeta(l,:) = sbeta(l,:) - drivercsi*fdriver(l,:)*Deltar0(l,:)
@@ -175,27 +191,51 @@
 
 !    Source for shift.
 
-     sbeta(l,:) = dtbeta(l,:) !+ beta(l,:)*DA_beta(l,:)
+     sbeta(l,:) = dtbeta(l,:) 
+
+     if (driveradv) then
+        sbeta(l,:) = sbeta(l,:) + beta(l,:)*DA_beta(l,:)
+     end if
+
+!    Source for dtbeta.
 
      if (shift=="Gammadriver2") then
 
-!       Source for dtbeta.
+!       Standard run.
 
         if (.not.cosmic_run) then
-           sdtbeta(l,:) = drivercsi*sDeltar(l,:) !+ beta(l,:)*DA_dtbeta(l,:)
+
+           sdtbeta(l,:) = drivercsi*sDeltar(l,:)
+
+           if (driveradv) then
+              sdtbeta(l,:) = sdtbeta(l,:) + beta(l,:)*(DA_dtbeta(l,:)-DA_Deltar(l,:))
+           end if
+
+!       Cosmic run.
+
         else
+
            sdtbeta(l,:) = drivercsi*sDeltar(l,:)/cosmobg_a(l)**2
+
         end if
 
      else if (shift=="Gammadrivershock2") then
 
 !       Source for fdriver.
 
-        sfdriver(l,:) = - two*third*fdriver(l,:)*DIV_beta(l,:) !+ beta(l,:)*DA_fdriver(l,:)
+        sfdriver(l,:) = - two*third*fdriver(l,:)*DIV_beta(l,:)
+
+        if (driveradv) then
+           sfdriver(l,:) = sfdriver(l,:) + beta(l,:)*DA_fdriver(l,:)
+        end if
 
 !       Source for dtbeta.
 
-        sdtbeta(l,:) = drivercsi*(fdriver(l,:)*sDeltar(l,:) + sfdriver(l,:)*Deltar(l,:)) !+ beta(l,:)*DA_dtbeta(l,:)
+        sdtbeta(l,:) = drivercsi*(fdriver(l,:)*sDeltar(l,:) + sfdriver(l,:)*Deltar(l,:))
+
+        if (driveradv) then
+           sdtbeta(l,:) = sdtbeta(l,:) + beta(l,:)*(DA_dtbeta(l,:)-DA_Deltar(l,:))
+        end if
 
         if (driverD0) then
            sdtbeta(l,:) = sdtbeta(l,:) - drivercsi*sfdriver(l,:)*Deltar0(l,:)
@@ -206,14 +246,6 @@
 !    Damping term.
 
      sdtbeta(l,:) = sdtbeta(l,:) - drivereta*dtbeta(l,:)
-
-!    Dissipation.
-
-     !if (geodiss/=0.d0) then
-     !   dissipvar => dtbeta
-     !   sourcevar => sdtbeta
-     !   call dissipation(l,-1,geodiss)
-     !end if
 
 
 ! ****************************************************
