@@ -26,7 +26,9 @@
 #
 # 26/9/24:       Added button for first derivative, plus fixed a few minor details.
 #
-# 3/12/24:       Fixed soime bugs.
+# 3/12/24:       Fixed some bugs.
+#
+# 13/2/26:       Fexied bug in polar button.
 
 
 #######################
@@ -1698,7 +1700,7 @@ bsave.on_clicked(callback.save)
 
 if (polar):
 
-    axpol = plt.axes([0.86,0.36,0.12,0.07])
+    axpol = plt.axes([0.73,0.91,0.1,0.07])
     bpol  = Button(axpol,'Polar',color='darkorchid',hovercolor='orchid')
     bpol.on_clicked(callback.polar)
 
