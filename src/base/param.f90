@@ -236,20 +236,23 @@
 ! drivercsi:     Coefficient of Deltar for Gammadriver.
 ! drivereta:     Coefficient of damping term for Gammadriver.
 !
+! driveradv:     Do we include advection terms in driver conditions?
+!
 ! shiftpert:     Perturbation to initial shift.
 ! shift_a0:      Amplitude of initial profile.
 ! shift_r0:      Center of initial profile.
 ! shift_s0:      Width of initial profile.
 ! shift_t0:      Transition width of initial profile (for top-hat profile).
 
-  character(30) :: shift = "none"          ! range = (none,zero,static,Gammadriver0,Gammadriver1,Gammadriver2,Gammadriver3,Gammadrivershock1,Gammadrivershock2)
+  character(30) :: shift = "none"       ! range = (none,zero,static,Gammadriver0,Gammadriver1,Gammadriver2,Gammadriver3,Gammadrivershock1,Gammadrivershock2)
 
   logical :: driverD0 = .false.
+  logical :: driveradv = .false.        ! Seems to work better with advection terms off.
 
   real(8) :: drivercsi = 0.75d0
   real(8) :: drivereta = 0.d0
 
-  character(30) :: shiftpert = "none"      ! range = (none,gaussian,tophat)
+  character(30) :: shiftpert = "none"   ! range = (none,gaussian,tophat)
   real(8) :: shift_a0 = 0.d0
   real(8) :: shift_r0 = 0.d0
   real(8) :: shift_s0 = 1.d0
