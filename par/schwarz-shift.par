@@ -15,7 +15,7 @@ ilapse = psiminus2      # Precollapsed lapse alpha=1/psi**2
 slicing = 1+log 	# Type of slicing condition
 gauge_f = 2.0	        # Coefficient for harmonic slicing
 
-shift = Gammadriver1    # Shift condition
+shift = Gammadriver2    # Shift condition
 drivercsi = 0.75        # Coefficient of Gammadriver shift
 drivereta = 2.0         # Damping term for Gammadriver shift
 
