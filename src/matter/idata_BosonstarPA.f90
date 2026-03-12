@@ -1,9 +1,9 @@
 
   subroutine idata_BosonstarPA
 
-! *******************************************************
-! ***   BOSON STAR INITIAL DATA IN POLAR-AREAL GAUGE  ***
-! *******************************************************
+! ********************************************************
+! ***   BOSON STAR INITIAL DATA IN POLAR-AREAL GAUGE   ***
+! ********************************************************
 
 ! Boson stars are solutions such that the spacetime is static
 ! and the complex scalar field has a harmonic dependence on time.
