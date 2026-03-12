@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/virial.f90,v 1.4 2025/09/24 17:27:36 malcubi Exp $
 
   subroutine virialintegral1
 
@@ -32,12 +31,15 @@
 !         2
 ! dV  =  r  dr
 !
+!
 ! Altough the integral above is not directly the virial theorem
 ! (which is much better expressed in the conformally flat case),
 ! it is a related integral condition.
 !
-! The viriao integral is useful to check initial data for solutions
-! that are supposed to be static.
+! The virial integral is useful to check initial data for solutions
+! that are supposed to be static.  For a static spacetime in the
+! areal gauge the integral should become zero as soon as we are
+! in the vacuum region.
 
 ! Include modules.
 
@@ -130,7 +132,7 @@
 !
 ! with tr(S) = SAA + 2*SBB the trace of the stress tensor.
 !
-! Notice that the integration abovr must be done using the 
+! Notice that the integration above must be done using the 
 ! PHYSICAL volume element.  We ignore the integral over the
 ! angles that just gives 4*pi, so our volume element is:
 !
@@ -143,7 +145,9 @@
 ! we need to raise the index in some of the derivatives.
 !
 ! The virial integral is useful to check initial data for
-! solutions that are supposed to be static.
+! solutions that are supposed to be static.  For a static
+! spacetime in the conformally flat gauge this integral should
+! approcah zero as 1/r asymptotically in the vacuum region.
 
 ! Include modules.
 
