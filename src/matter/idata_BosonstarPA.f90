@@ -9,6 +9,7 @@
 ! and the complex scalar field has a harmonic dependence on time.
 ! This subroutine calculates initial data for a boson star
 ! in the polar-areal gauge (PA) using a shooting method.
+!
 ! (There is in fact an option to use a relaxation method
 ! by setting boson_relax=.true. in the parameter file,
 ! but it is only second order accurate so the shooting
@@ -225,10 +226,10 @@
 
      if (rank==0) then
         if (complex_l==0) then
-           write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', boson_phi0
+           write(*,'(A,ES23.16)') ' Using "harmonic" normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', boson_phi0
            print *
         else
-           write(*,'(A,E16.10)') ' Using "harmonic" normalization at origin: phi/r**l ~ phi0/sqrt(4pi*(2l+1)) = ', boson_phi0
+           write(*,'(A,ES23.16)') ' Using "harmonic" normalization at origin: phi/r**l ~ phi0/sqrt(4pi*(2l+1)) = ', boson_phi0
            print *
         end if
      end if
@@ -940,8 +941,8 @@
 
      omega_new = boson_omega/alphafac
 
-     write(*,'(A,E23.16)') ' Omega (not-rescaled) = ', boson_omega
-     write(*,'(A,E23.16)') ' Omega (rescaled)     = ', omega_new
+     write(*,'(A,ES23.16)') ' Omega (not-rescaled) = ', boson_omega
+     write(*,'(A,ES23.16)') ' Omega (rescaled)     = ', omega_new
      print *
 
 
@@ -1945,8 +1946,8 @@
 
      omega_new = boson_omega/alphafac
 
-     write(*,'(A,E23.16)') ' Omega (not-rescaled) = ', boson_omega
-     write(*,'(A,E23.16)') ' Omega (rescaled)     = ', omega_new
+     write(*,'(A,ES23.16)') ' Omega (not-rescaled) = ', boson_omega
+     write(*,'(A,ES23.16)') ' Omega (rescaled)     = ', omega_new
      print *
 
 
