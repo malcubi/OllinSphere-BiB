@@ -117,7 +117,6 @@
 ! ANGULAR MOMENTUM:  This routine does not yet allow for the
 ! case of non-zero angular momentum (complex_l must be zero).
 
-
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
 ! solved in parallel.  It is in fact solved only on processor
 ! zero on a full size array, and then it is distributed
@@ -139,7 +138,7 @@
 
   integer i,l,iter                      ! Counters.
   integer imin                          ! Leftmost grid point.
-  integer :: maxiter = 1000             ! Maximum number of iterations.
+  integer :: maxiter = 200              ! Maximum number of iterations.
 
   real(8) r0,delta                      ! Local radius and grid spacing.
   real(8) psi0,Dpsi0                    ! Initial values of variables.
@@ -188,6 +187,15 @@
      print *
   end if
 
+! Sanity check.
+
+  if (spacetime=="minkowski") then
+     print *, 'Boson star initial data is not compatible with a Minkowski background ...'
+     print *, 'Aborting! (subroutine idata_BosonstarCF)'
+     print *
+     call die
+  end if
+
 
 ! *************************
 ! ***   NORMALIZATION   ***
@@ -203,11 +211,13 @@
 
      if (rank==0) then
         if (complex_l==0) then
-           write(*,'(A,E23.16)') ' Using physical normalization for phi0 ...'
+           write(*,'(A)') ' Using "physical" normalization at origin: phi(r=0) = phi0'
            print *
         else
-           write(*,'(A,E23.16)') ' Rescaled phi0 (phi0*sqrt(2l+1)): ', boson_phi0
+           print *, 'complex_l different from zero not yet implemented'
+           print *, 'Aborting! (subroutine idata_BosonstarCF)'
            print *
+           call die
         end if
      end if
 
@@ -217,10 +227,11 @@
 
      if (rank==0) then
         if (complex_l==0) then
-           write(*,'(A,E23.16)') ' Physical phi0 (phi0/sqrt(4pi)): ', boson_phi0
+           write(*,'(A,ES23.16)') ' Using "harmonic" normalization at origin: phi(r=0) = phi0/sqrt(4pi) = ', boson_phi0
            print *
         else
-           write(*,'(A,E23.16)') ' Rescaled phi0 (phi0*sqrt((2l+1)/4pi)): ', boson_phi0
+           print *, 'complex_l different from zero not yet implemented'
+           print *, 'Aborting! (subroutine idata_BosonstarCF)'
            print *
         end if
      end if
@@ -285,6 +296,20 @@
 
   phi_g = 0.d0
   xi_g  = 0.d0
+
+
+! **********************************
+! ***   SOLVE WITH RELAXATION?   ***
+! **********************************
+
+  if (boson_relax) then
+     if (rank==0) then
+        print *, 'Relaxation method not yet implemented ...'
+        print *, 'Aborting! (subroutine idata_BosonstarCF)'
+        print *
+        call die
+     end if
+  end if
 
 
 ! *********************************************
@@ -792,7 +817,7 @@
 !                Check if solution is blowing up. This helps to reduce
 !                the need for a very fine tuned initial guess.
 
-                 if (abs(phi_g(l,i))>boson_phi0) then
+                 if (abs(phi_g(l,i))>2.d0*boson_phi0) then
                     if (.not.left) then
                        omega_left = omega_left + domega
                        boson_omega = omega_left
@@ -802,6 +827,15 @@
                        boson_omega = omega_right
                        goto 200
                     end if
+                 end if
+
+!                Check if solution is already very small.
+
+                 if (abs(phi_g(l,i))+abs(phi_g(l,i-1))<epsilon) then
+                    phi_g(l,i) = 0.d0
+                    xi_g(l,i) = 0.d0
+                    phi_g(l,i) = 0.d0
+                    xi_g(l,i) = 0.d0
                  end if
 
               end do
@@ -933,14 +967,18 @@
      end if
 
      print *
-     print *, 'Asymptotic value of conformal factor: ',aux
-     print *, 'Omega: ',boson_omega
+     write(*,'(A,ES23.16)') ' Asymptotic value of conformal factor: ',aux
+     !write(*,'(A,ES23.16)') ' Omega (not-rescaled): ',boson_omega
 
      if (psiorigin==1.d0) then
-        print *
+
         print *, 'Restarting iterations with rescaled conformal factor at origin ...'
+        print *
+
         psiorigin = 1.d0/aux
+
         goto 100
+
      end if
 
 !    Print success message.
