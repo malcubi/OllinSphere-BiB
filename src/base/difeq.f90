@@ -2,9 +2,9 @@
 
   subroutine difeq(kk,kk1,kk2,jsf,is1,isf,indexv,ss,rr,yy,ll)
 
-! *******************************************************
-! ***   MATRIX OF DERIVATIVES FOR RELAXATION METHODS   **
-! *******************************************************
+! ********************************************************
+! ***   MATRIX OF DERIVATIVES FOR RELAXATION METHODS   ***
+! ********************************************************
 !
 ! This routine generalizes the original Numerical Recipes
 ! routine for calculating the matrix of derivatives for
@@ -12,15 +12,15 @@
 ! Notice that it must be adapted to each problem!
 !
 ! On entry we have:
-
+!
 ! kk   =  current mesh point
 ! kk1  =  first point
 ! kk2  =  last point
 ! ll   =  current grid level
 !
 ! The array yy contains the current guess for the solution.
-! The routine sets the value of the matrix ss, which corresponds
-! to the derivatives of the system of equation, and the
+! The routine sets the value of the matrix SS, which corresponds
+! to the derivatives of the system of equations, and the
 ! equations themselves.
 !
 ! The matrix SS has dimensions (ne,2*ne+1), where ne is
@@ -102,7 +102,7 @@
 ! In this case we have 2 equations, one for psi and one for dpsi/dr.
 ! We have chosen y1=dpsi/dr, y2=psi.
 !
-! The matrix ss is a 2x5 matrix.  The equations are in column 5
+! The matrix SS is a 2x5 matrix.  The equations are in column 5
 ! for each variable, while the derivatives with respect to y(j,kk-1)
 ! are on columns 1 and 2, and with respect to y(j,kk) on columns 4 and 5.
 
@@ -249,7 +249,7 @@
 ! y5  =  omega  (eigenvalue)
 !
 ! The matrix SS is a 5x11 matrix.  The equations are in column 11
-! for each variable with all terms on the same size (that is EQ=0),
+! for each variable with all terms on the same side (that is EQ=0),
 ! while the derivatives with respect to y(j,kk-1) are on columns 1-5,
 ! and with respect to y(j,kk) on columns 6-10. The expressions below
 ! are obtained with MAPLE, so they look nasty.
@@ -544,10 +544,16 @@
      end if
 
 
-! *****************************************
-! ***   PROCA STARS POLAR AREAL GAUGE   ***
-! *****************************************
+! ***********************************************
+! ***   BOSON STARS IN CONFORMAL FLAT GAUGE   ***
+! ***********************************************
 
+  else if ((idata=="bosonstar").and.(boson_gauge=="PA")) then
+
+     print *, "Derivatives in difeq.f90 not implemeted for bosonstar initial data in CF gauge"
+     print *, "Aborting ..."
+     print *
+     call die
 
   end if
 
