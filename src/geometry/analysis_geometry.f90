@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/analysis_geometry.f90,v 1.34 2025/09/24 17:22:23 malcubi Exp $
 
   subroutine analysis_geometry
 
