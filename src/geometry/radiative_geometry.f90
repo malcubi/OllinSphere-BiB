@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/radiative_geometry.f90,v 1.50 2024/08/28 17:26:21 malcubi Exp $
 
   subroutine radiative_geometry(l)
 
