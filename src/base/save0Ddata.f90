@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/save0Ddata.f90,v 1.26 2023/03/09 01:58:02 malcubi Exp $
 
   subroutine save0Ddata
 

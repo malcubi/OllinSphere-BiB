@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/save1Ddata.f90,v 1.30 2021/06/21 16:37:06 malcubi Exp $
 
   subroutine save1Ddata
 
@@ -168,13 +167,13 @@
 !
 ! outdir      =  Name of output directory.
 ! varname     =  A string with the name of the variable to be saved.
-! nvar        =  Number of the variable to be saved in teh list outvars1Darray.
+! nvar        =  Number of the variable to be saved in the list outvars1Darray.
 !                This is needed because we keep a file open for each variable.
 ! step        =  Time step. This is needed so that we known when to close the
 !                open files (when step=Nt).
 ! filestatus  =  "replace" or "old".
 ! ll          =  If ll is less than 0 we output all time levels, otherwise we
-!                only output the time lebel ll.
+!                only output the time level ll.
 
 ! Load modules.
 
