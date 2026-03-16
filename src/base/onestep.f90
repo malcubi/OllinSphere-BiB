@@ -11,7 +11,6 @@
   use param
   use arrays
   use procinfo
-  use derivatives
 
 ! Extra variables.
 
