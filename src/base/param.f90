@@ -530,7 +530,7 @@
 ! omega_right:       Right frequency guess.
 !
 ! boson_gauge:       Gauge for boson star initial data (PA=polar-areal,CF=conformally flat)   
-! boson_relax:       Do we use relaxation method for boson star initial data?
+! boson_method:      Method for solving boson star initial data.
 
   real(8) :: boson_phi0  = 0.d0
 
@@ -540,8 +540,7 @@
 
   character(1000) :: boson_factor = "harmonic" ! range=(physical,harmonic)
   character(1000) :: boson_gauge  = "PA"       ! range=(PA,CF)
-
-  logical :: boson_relax = .false.
+  character(1000) :: boson_method = "shoot"    ! range=(shoot,relax,evolve)
 
 ! Boson star perturbation.
 !
