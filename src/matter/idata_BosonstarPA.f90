@@ -292,26 +292,38 @@
   xires_g  = 0.d0
 
 
-! **********************************
-! ***   SOLVE WITH RELAXATION?   ***
-! **********************************
+! ******************************************
+! ***   SOLVE WITH ALTERNATIVE METHODS   ***
+! ******************************************
 
-! If we want to use the relaxation method from Numerical Recipes we call
-! the routine "BosonstarPArelax" (last routine at the end of the file)
-! and then return.
+  if (boson_method=="relax") then
+
+!    If we want to use the relaxation method from Numerical Recipes we call
+!    the routine "BosonstarPArelax" (last routine at the end of the file)
+!    and then return.
 !
-! Notice that at this point the relaxation routine does not allow for
-! perturbations.  We could fix this later, but for the moment this is
-! just for testing since the shooting algorithm works well and is fourth
-! order, while the relaxation routine is only second order.
+!    Notice that at this point the relaxation routine does not allow for
+!    perturbations.  We could fix this later, but for the moment this is
+!    just for testing since the shooting algorithm works well and is fourth
+!    order, while the relaxation routine is only second order.
 
-  if (boson_relax) then
      if (rank==0) then
         print *, 'Switching to relaxation method instead of shooting ...'
         print *
      end if
+
      call BosonstarPArelax(rr,A_g,alpha_g,phi_g,xi_g)
      return
+
+  else if (boson_method=="evolve") then
+
+     if (rank==0) then
+        print *, 'boson_method=evolve only works for confomally flat gauge.'
+        print *, 'Aborting! (subroutine idata_BosonstarPA)'
+        print *
+        call die
+     end if
+
   end if
 
 
