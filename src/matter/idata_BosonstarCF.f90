@@ -298,17 +298,34 @@
   xi_g  = 0.d0
 
 
-! **********************************
-! ***   SOLVE WITH RELAXATION?   ***
-! **********************************
+! ******************************************
+! ***   SOLVE WITH ALTERNATIVE METHODS   ***
+! ******************************************
 
-  if (boson_relax) then
+! Relaxation method (not yet implemented).
+
+  if (boson_method=="relax") then
+
      if (rank==0) then
-        print *, 'Relaxation method not yet implemented ...'
+        print *, 'Relaxation method not yet implemented for conformally flat gauge ...'
         print *, 'Aborting! (subroutine idata_BosonstarCF)'
         print *
         call die
      end if
+
+! Evolution method.
+
+  else if (boson_method=="evolve") then
+
+     if (rank==0) then
+        print *, 'Switching to evolution method instead of shooting ...'
+        print *
+     end if
+
+     call BosonstarCFevolve
+
+     return
+
   end if
 
 
@@ -1379,5 +1396,760 @@
 
 
 
+
+
+
+
+ subroutine BosonstarCFevolve
+
+! *****************************************************************
+! ***   SOLVE THE EIGENVALUE PROBLEM WITH AN EVOLUTION METHOD   ***
+! *****************************************************************
+
+! Here we solve the system by turning the elliptic equations
+! into hyperbolic wave equations and "evolving" to a steady state.
+!
+! In order to solve the eigenvalue problem for omega, I fix the central
+! value of the scalar field, and solve for omega at that point every
+! time step.
+!
+! This method is slow (specially at at high resolution), but quite robust. 
+! I can be improved by using a good initial guess (I'll try this later),
+! and maybe something like multi-grid since it converges much faster
+! at low resolutions.
+
+! Include modules.
+
+  use mpi
+  use param
+  use arrays
+  use procinfo
+  use derivatives
+  use radialfunctions
+
+! Extra variables.
+
+  implicit none
+
+  logical savedata
+
+  integer i,l                    ! Counters.
+  integer step                   ! Iteration counter.
+  integer Nl_old                 ! Original number of levels.
+  integer :: maxiter = 50000     ! Maximum number of iterations.
+
+  real(8) lres,gres              ! Local and global residuals.
+  real(8) cfac                   ! Courant parameter.
+  real(8) :: small = 1.d-6       ! Tolerance.
+
+  integer s_ext(0:Nl-1)          ! External values of step counter.
+  real(8) t_ext(0:Nl-1)          ! External values of time counter.
+  real(8) t1_ext(0:Nl-1)         ! External values of t1 counter.
+  real(8) t2_ext(0:Nl-1)         ! External values of t2 counter.
+
+
+! ************************************************
+! ***   SAVE EXTERNAL STEP AND TIME COUNTERS   ***
+! ************************************************
+
+! Since I just do calls to "bosonstep" here, I need to use the step
+! and time counters.  But once we leave the routine they must be
+! set back to their original external values, so I save those here.
+
+  s_ext = s
+  t_ext = t
+
+  t1_ext = t1
+  t2_ext = t2
+
+! Now set time and time step counters to zero.
+
+  s = 0
+  t = 0.d0
+
+  t1 = 0.d0
+  t2 = 0.d0
+
+
+! *******************************
+! ***   INITIALIZE SOLUTION   ***
+! *******************************
+
+! Initialize boson_omega.
+
+  boson_omega = 1.d0
+
+! The lapse and conformal factor are initialized to 1.
+! This is not a very good initial guess, and can of
+! course be improved.
+!
+! Notice that we use the array "phi" for the conformal
+! factor "psi" (this is because in the code "psi" is
+! declared non-evolving).
+
+  alpha = 1.d0
+  phi   = 1.d0
+
+! The scalar field is initialized to a gaussian centered
+! on the origin with the correct amplitude.
+
+  complex_phiR = gaussian(boson_phi0,complexR_r0,complexR_s0)
+
+! Initialize time derivatives to 0.
+
+  dtalpha = 0.d0       ! Time derivative of alpha
+  dtphi = 0.d0         ! Time derivatve of phi
+  complex_piR = 0.d0   ! Time derivative of complex_phiR
+
+
+! *****************************
+! ***   SAVE INITIAL DATA   ***
+! *****************************
+
+! Change this flag to "true" if you want output of the
+! internal evolutions (for testing).
+
+  savedata = .false.
+
+! Save initial data to file if required.
+
+  if (savedata) then
+     savevar => alpha
+     call save1Dvariable(directory,'boson_alpha',1,0,'replace',-1)
+     savevar => phi
+     call save1Dvariable(directory,'boson_psi',1,0,'replace',-1)
+     savevar => complex_phiR
+     call save1Dvariable(directory,'boson_phi',1,0,'replace',-1)
+  end if
+
+
+! *****************************
+! ***   COURANT PARAMETER   ***
+! *****************************
+
+! Set internal Courant parameter to 0.7. 
+! This seems to work well.
+
+  cfac = 0.7d0
+
+! Modify time step.
+
+  dt0 = cfac*dr0
+
+! Finer grids.
+
+  do l=0,Nl-1
+     dt(l) = dt0/2**l
+  end do
+
+
+! ****************************
+! ***   START ITERATIONS   ***
+! ****************************
+
+! If we have refinement boxes, we first solve on the coarse
+! grid, and then we use this as initial guess for the full
+! solution. This should speed up the solver considerably.
+
+  Nl_old = Nl
+
+  if (Nl>1) then
+     Nl = 1
+  end if
+
+! Initialize tolerance, residual and iteration number.
+
+  lres = 1.d0
+  gres = 1.d0
+
+  step = 0
+
+! Start iterations.
+
+  do while ((step<100).or.((gres>small).and.(step<maxiter)))
+
+!    ******************************************
+!    ***   ADVANCE ONE INTERNAL TIME STEP   ***
+!    ******************************************
+
+!    Increment step counter.
+
+     step = step + 1
+
+!    Advance one time step.
+
+     call bosonstep(0)
+
+
+!    *************************
+!    ***   FIND RESIDUAL   ***
+!    *************************
+
+!    Find local residual.
+
+     lres = 0.d0
+     gres = 0.d0
+
+     do i=1,Nr
+        lres = lres + abs(dtalpha(0,i)) + abs(dtphi(0,i)) + abs(complex_piR(0,i))
+     end do
+
+!    Find global residual.
+
+     call MPI_Allreduce(lres,gres,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)
+
+
+!    ******************
+!    ***   OUTPUT   ***
+!    ******************
+
+!    Output if required.
+
+     if ((savedata).and.(mod(step,Noutput1D)==0)) then
+
+!       Data to screen.
+
+        if (rank==0) then
+           write(*,'(A,i5,A,ES23.16)') ' Iteration = ',step,'         Residual = ',gres
+        end if
+
+        savevar => alpha
+        call save1Dvariable(directory,'boson_alpha',1,0,'old',-1)
+
+        savevar => phi
+        call save1Dvariable(directory,'boson_psi',1,0,'old',-1)
+
+        savevar => complex_phiR
+        call save1Dvariable(directory,'boson_phi',1,0,'old',-1)
+
+     end if
+
+  end do
+
+
+! ****************************
+! ***   DID WE CONVERGE?   ***
+! ****************************
+
+  if (rank==0) then
+     if (step==maxiter) then
+        write(*,'(A,i6,A)') ' BosonstarCFevolve: Iterations did not converge after ',maxiter,' iterations.'
+        print *
+     else
+        write(*,'(A,i5,A)') ' BosonstarCFevolve: Solution converged after ',step,' iterations.'
+        write(*,'(A,ES23.16)') ' Final residual = ',gres
+        write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
+        print *
+     end if
+  end if
+
+
+! *****************************
+! ***   REFINEMENT LEVELS   ***
+! *****************************
+
+! If we converged and we have refinement levels, inject the
+! coarse solution into fine grids and solve again.
+
+  if ((step/=maxiter).and.(l<Nl_old-1)) then
+
+!    Set again Nl to its original value.
+
+     Nl = Nl_old
+
+     print *, ' BosonstarCFevolve: At the moment this routine does not work on multiple levels.'
+     print *, ' Aborting ...'
+     call die
+ 
+  end if
+
+
+! ************************************************************
+! ***   SET BACK TO ZERO THE TIME AND TIME STEP COUNTERS   ***
+! ************************************************************
+
+! Since we advanced internally the time and time step counter arrays,
+! we now need to set them back to their original external values.
+
+  s = s_ext
+  t = t_ext
+
+  t1 = t1_ext
+  t2 = t2_ext
+
+! And fix the time step with the correct Courant factor.
+
+  dt0 = dtfac*dr0
+
+  do l=0,Nl-1
+     dt(l) = dt0/2**l
+  end do
+
+
+! ********************************************
+! ***   RECOVER CORRECT CONFORMAL FACTOR   ***
+! ********************************************
+
+! Remember that we where using "phi" instead of "psi",
+! so copy the result back into "psi".
+
+  psi = phi
+
+! Now calculate the correct "phi".
+
+  phi  = dlog(psi)
+  D1_phi = D1_psi/psi
+
+! Find "chi" and derviative.
+
+  if (chimethod) then
+     chi  = 1.d0/psi**chipower
+     D1_chi = - dble(chipower)*D1_psi/psi**3
+  end if
+
+! Find (psi2,psi4).
+
+  psi2 = psi**2
+  psi4 = psi**4
+
+
+! **********************************************************
+! ***   IMAGINARY PART OF (phi,xi) AND REAL PART OF pi   ***
+! **********************************************************
+
+! Find spatial derivative of complex_phiR.
+
+  diffvar => complex_phiR
+
+  do l=0,Nl-1
+     complex_xiR(l,:) = diff1(l,+1)
+  end do
+
+! Set the imaginary part of the scalar field and its spatial derivative to zero.
+
+  complex_phiI = 0.d0
+  complex_xiI  = 0.d0
+
+! Set time derivative of the real part of phi to zero.
+
+  complex_piR  = 0.d0
+
+! Set time derivative of imaginary part to (omega/alpha)*phiR.
+
+  complex_piI = boson_omega*complex_phiR/alpha
+
+
+! ***************
+! ***   END   ***
+! ***************
+
+  end subroutine BosonstarCFevolve
+
+
+
+
+
+
+
+  recursive subroutine bosonstep(l)
+
+! *********************************
+! ***   ADVANCE ONE TIME STEP   ***
+! *********************************
+
+! This routine is just a simplified version of the main
+! routine "onestep", used to calculate the sources of
+! the evolution equations and advance one time step.
+
+! Include modules.
+
+  use mpi
+  use param
+  use arrays
+  use procinfo
+  use derivatives
+
+! Extra variables.
+
+  implicit none
+
+  integer i,imax           ! Grid point counter.
+  integer l                ! Refinement level counter.
+  integer k                ! Counter for internal iterations.
+  integer niter            ! Number of internal iterations.
+
+  real(8) dtw              ! Internal time step.
+  real(8) weight           ! Weight for rk4.
+  real(8) damp             ! Damping coefficient.
+  real(8) one,half,smallpi ! Numbers.
+  real(8) aux
+
+
+! *******************
+! ***   NUMBERS   ***
+! *******************
+
+  one  = 1.d0
+  half = 0.5d0
+
+  smallpi = acos(-1.d0)
+
+
+! ******************************
+! ***   SAVE OLD TIME STEP   ***
+! ******************************
+
+! Here we save the values of the functions in the
+! previous time step, and also inner boundary values
+! for grid refinement.
+
+! Old values of lapse and time derivative.
+
+  alpha_p(l,:) = alpha(l,:)
+
+  do i=0,ghost-1
+     alpha_bound(l,i,3) = alpha_bound(l,i,2)
+     alpha_bound(l,i,2) = alpha_bound(l,i,1)
+     alpha_bound(l,i,1) = alpha(l,Nr-i)
+  end do
+
+  dtalpha_p(l,:) = dtalpha(l,:)
+
+  do i=0,ghost-1
+     dtalpha_bound(l,i,3) = dtalpha_bound(l,i,2)
+     dtalpha_bound(l,i,2) = dtalpha_bound(l,i,1)
+     dtalpha_bound(l,i,1) = dtalpha(l,Nr-i)
+  end do
+
+! Old values of conformal factor and time derivative.
+
+  phi_p(l,:) = phi(l,:)
+
+  do i=0,ghost-1
+     phi_bound(l,i,3) = phi_bound(l,i,2)
+     phi_bound(l,i,2) = phi_bound(l,i,1)
+     phi_bound(l,i,1) = phi(l,Nr-i)
+  end do
+
+  dtphi_p(l,:) = dtphi(l,:)
+
+  do i=0,ghost-1
+     dtphi_bound(l,i,3) = dtphi_bound(l,i,2)
+     dtphi_bound(l,i,2) = dtphi_bound(l,i,1)
+     dtphi_bound(l,i,1) = dtphi(l,Nr-i)
+  end do
+
+! Old values of complex_phiR and time derivative.
+
+  complex_phiR_p(l,:) = complex_phiR(l,:)
+
+  do i=0,ghost-1
+     complex_phiR_bound(l,i,3) = complex_phiR_bound(l,i,2)
+     complex_phiR_bound(l,i,2) = complex_phiR_bound(l,i,1)
+     complex_phiR_bound(l,i,1) = complex_phiR(l,Nr-i)
+  end do
+
+  complex_piR_p(l,:) = complex_piR(l,:)
+
+  do i=0,ghost-1
+     complex_piR_bound(l,i,3) = complex_piR_bound(l,i,2)
+     complex_piR_bound(l,i,2) = complex_piR_bound(l,i,1)
+     complex_piR_bound(l,i,1) = complex_piR(l,Nr-i)
+  end do
+
+
+! **********************************************
+! ***   FIND NUMBER OF INTERNAL ITERATIONS   ***
+! **********************************************
+
+  if (integrator=="icn") then
+     niter = icniter
+  else if (integrator=="rk4") then
+     niter = 4
+  end if
+
+
+! **************************************
+! ***   ADVANCE ONE FULL TIME STEP   ***
+! **************************************
+
+  do k=1,niter
+
+!    ************************
+!    ***   FIND WEIGHTS   ***
+!    ************************
+
+!    Find out weights for each iteration for the
+!    different time integration schemes.
+
+     if (integrator=="icn") then
+
+!       In normal ICN, all iterations except the last one
+!       jump only half a time step.
+
+        if (k<niter) then
+           dtw = 0.5d0*dt(l)
+        else
+           dtw = dt(l)
+        end if
+
+!    Fourth order Runge-Kutta.
+
+     else if (integrator=="rk4") then
+
+!       In fourth order Runge-Kutta the first two iterations
+!       jump half a time step and the last two a full time step.
+!       Here we also set the weights with which intermediate
+!       results contribute to final answer: 1/6 for first and
+!       last intermediate results and 1/3 for the two middle ones.
+
+        if (k==1) then
+           dtw = 0.5d0*dt(l)
+           weight = 1.d0/6.d0
+        else if (k==2) then
+           dtw = 0.5d0*dt(l)
+           weight = 1.d0/3.d0
+        else if (k==3) then
+           dtw = dt(l)
+           weight = 1.d0/3.d0
+        else
+           dtw = dt(l)
+           weight = 1.d0/6.d0
+        end if
+
+     end if
+
+
+!    *******************
+!    ***   SOURCES   ***
+!    *******************
+
+!    Calculate derivatives.
+
+     diffvar => alpha
+     D1_alpha(l,:) = diff1(l,+1)
+     D2_alpha(l,:) = diff2(l,+1)
+
+     diffvar => phi
+     D1_phi(l,:) = diff1(l,+1)
+     D2_phi(l,:) = diff2(l,+1)
+
+     diffvar => complex_phiR
+     D1_complex_phiR(l,:) = diff1(l,+1)
+     D2_complex_phiR(l,:) = diff2(l,+1)
+
+!    Potential (only the mass term for now).
+
+     complex_V(l,:)   = half*complex_mass**2*complex_phiR(l,:)**2
+     complex_VPR(l,:) = complex_mass**2*complex_phiR(l,:)
+
+!    Find omega.
+
+     aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
+         *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
+         + D1_alpha(l,1)/alpha(l,1) + 2.d0*D1_phi(l,1)/phi(l,1))))
+
+     boson_omega = sqrt(abs(aux))
+
+!    Source for alpha.
+
+     salpha(l,:) = dtalpha(l,:)
+
+!    Source for phi.
+
+     sphi(l,:) = dtphi(l,:)
+
+!    Source for complex_phiR.
+
+     scomplex_phiR(l,:) = complex_piR(l,:)
+
+!    Source for dtalpha (from maximal slicing).
+
+     sdtalpha(l,:) = D2_alpha(l,:) + 2.d0*D1_alpha(l,:)*(one/r(l,:) + D1_phi(l,:)/phi(l,:)) &
+                   - 8.d0*smallpi*alpha(l,:)*phi(l,:)**4 &
+                   *((boson_omega*complex_phiR(l,:)/alpha(l,:))**2 - complex_V(l,:))
+
+!    Source for dtphi (from Hamiltonian constraint).
+
+     sdtphi(l,:) = D2_phi(l,:) + 2.d0*D1_phi(l,:)/r(l,:) + smallpi*phi(l,:)**5 &
+                 *(D1_complex_phiR(l,:)**2/phi(l,:)**4 + (boson_omega*complex_phiR(l,:)/alpha(l,:))**2 &
+                 + 2.d0*complex_V(l,:))
+
+!    Source for complex_phiR (from Klein-Gordon equation).
+!    But set the source at the first point to 0 so the value
+!    there does not change.
+
+     scomplex_piR(l,:) = D2_complex_phiR(l,:) + D1_complex_phiR(l,:)*(2.d0/r(l,:) &
+                       + D1_alpha(l,:)/alpha(l,:) + 2.d0*D1_phi(l,:)/phi(l,:)) &
+                       - phi(l,:)**4*(complex_VPR(l,:) - complex_phiR(l,:)*(boson_omega/alpha(l,:))**2)
+
+     scomplex_piR(l,1) = 0.d0
+
+!    Damping term (only for Klein-Gordon).  This
+!    is needed in order to avoid large oscillations.
+
+     scomplex_piR(l,:) = scomplex_piR(l,:) - 0.01d0*complex_piR(l,:)/dt(l)
+
+!    Dissipation.
+
+     dissipvar => complex_piR
+     sourcevar => scomplex_piR
+     call dissipation(l,+1,0.1d0)
+
+!    Symmetries.
+
+     do i=1,ghost
+        sdtalpha(l,1-i) = sdtalpha(l,i)
+        sdtphi(l,1-i)   = sdtphi(l,i)
+     end do
+
+
+!    *******************************
+!    ***   BOUNDARY CONDITIONS   ***
+!    *******************************
+
+!    Simple radiative boundaries for all three equations.
+
+     sdtalpha(l,Nr) = - (dtalpha(l,Nr)-dtalpha(l,Nr-1))/dr(l) - dtalpha(l,Nr)/r(l,Nr)
+
+     sdtphi(l,Nr)   = - (dtphi(l,Nr)-dtphi(l,Nr-1))/dr(l) - dtphi(l,Nr)/r(l,Nr)
+
+     scomplex_piR(l,Nr)   = - (complex_piR(l,Nr)-complex_piR(l,Nr-1))/dr(l) - complex_piR(l,Nr)/r(l,Nr)
+
+
+!    *****************************************************
+!    ***   FOR RUNGE-KUTTA ADD TO ACCUMULATOR ARRAYS   ***
+!    *****************************************************
+
+     if (integrator=="rk4") then
+
+        if (k==1) then
+
+           alpha_a(l,:)   = weight*salpha(l,:)
+           dtalpha_a(l,:) = weight*sdtalpha(l,:)
+
+           phi_a(l,:) = weight*sphi(l,:)
+           dtphi_a(l,:) = weight*sdtphi(l,:)
+
+           complex_phiR_a(l,:) = weight*scomplex_phiR(l,:)
+           complex_piR_a(l,:)  = weight*scomplex_piR(l,:)
+
+        else if (k<niter) then
+
+           alpha_a(l,:)   = alpha_a(l,:)   + weight*salpha(l,:)
+           dtalpha_a(l,:) = dtalpha_a(l,:) + weight*sdtalpha(l,:)
+
+           phi_a(l,:)   = phi_a(l,:)   + weight*sphi(l,:)
+           dtphi_a(l,:) = dtphi_a(l,:) + weight*sdtphi(l,:)
+
+           complex_phiR_a(l,:) = complex_phiR_a(l,:) + weight*scomplex_phiR(l,:)
+           complex_piR_a(l,:)  = complex_piR_a(l,:)  + weight*scomplex_piR(l,:)
+
+        else
+
+           salpha(l,:)   = alpha_a(l,:)   + weight*salpha(l,:)
+           sdtalpha(l,:) = dtalpha_a(l,:) + weight*sdtalpha(l,:)
+
+           sphi(l,:)   = phi_a(l,:)   + weight*sphi(l,:)
+           sdtphi(l,:) = dtphi_a(l,:) + weight*sdtphi(l,:)
+
+           scomplex_phiR(l,:) = complex_phiR_a(l,:) + weight*scomplex_phiR(l,:)
+           scomplex_piR(l,:)  = complex_piR_a(l,:)  + weight*scomplex_piR(l,:)
+
+        end if
+
+     end if
+
+
+!    ****************************
+!    ***   UPDATE VARIABLES   ***
+!    ****************************
+
+     alpha(l,:)   = alpha_p(l,:)   + dtw*salpha(l,:)
+     dtalpha(l,:) = dtalpha_p(l,:) + dtw*sdtalpha(l,:)
+
+     phi(l,:)   = phi_p(l,:)   + dtw*sphi(l,:)
+     dtphi(l,:) = dtphi_p(l,:) + dtw*sdtphi(l,:)
+
+     complex_phiR(l,:) = complex_phiR_p(l,:) + dtw*scomplex_phiR(l,:)
+     complex_piR(l,:)  = complex_piR_p(l,:)  + dtw*scomplex_piR(l,:)
+
+
+!    *************************************************
+!    ***   FOR FINE GRIDS INTERPOLATE BOUNDARIES   ***
+!    *************************************************
+
+
+!    **********************
+!    ***   SYMMETRIES   ***
+!    **********************
+
+     if (rank==0) then
+        do i=1,ghost
+
+           alpha(l,1-i)   = alpha(l,i)
+           dtalpha(l,1-i) = dtalpha(l,i)
+
+           phi(l,1-i)   = phi(l,i)
+           dtphi(l,1-i) = dtphi(l,i)
+
+           complex_phiR(l,1-i) = complex_phiR(l,i)
+           complex_piR(l,1-i)  = complex_piR(l,i)
+
+        end do
+     end if
+
+
+!    ***********************
+!    ***   SYNCHRONIZE   ***
+!    ***********************
+
+
+!    ***********************************
+!    ***   END INTERNAL ITERATIONS   ***
+!    ***********************************
+
+  end do
+
+
+! ****************************************************
+! ***   ADVANCE LOCAL TIME AND TIME STEP COUNTER   ***
+! ****************************************************
+
+! Save old local times.
+
+  t2(l) = t1(l)
+  t1(l) = t(l)
+
+! Advance time step counter and local time.
+
+  s(l) = s(l) + 1
+  t(l) = t(l) + dt(l)
+
+
+! **********************************
+! ***   ARE THERE FINER GRIDS?   ***
+! **********************************
+
+! If there is a finer grid we need to advance it twice
+! to catch up.  Notice that here I am calling the
+! current subroutine "onestep" recursively.
+
+  if (l<Nl-1) then
+     call bosonstep(l+1)
+     call bosonstep(l+1)
+  end if
+
+
+! ****************************************************
+! ***   RESTRICT FINE GRID DATA INTO COARSE GRID   ***
+! ****************************************************
+
+
+! ***************
+! ***   END   ***
+! ***************
+
+  end subroutine bosonstep
 
 
