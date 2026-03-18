@@ -1413,10 +1413,10 @@
 ! value of the scalar field, and solve for omega at that point every
 ! time step.
 !
-! This method is slow (specially at at high resolution), but quite robust. 
+! This method is slow (specially at high resolution), but quite robust. 
 ! I can be improved by using a good initial guess (I'll try this later),
 ! and maybe something like multi-grid since it converges much faster
-! at low resolutions.
+! at lower resolutions.
 
 ! Include modules.
 
