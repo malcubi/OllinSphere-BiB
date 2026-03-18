@@ -148,12 +148,12 @@
            bind = mass_int(0,Nr) - complex_mass*complex_NB(0,Nr)
 
            if (size==1) then
-              write(*,'(A,ES23.16)') ' Binding energy (M-m*NB) = ',bind
+              write(*,'(A,ES23.16)') ' Binding energy (M_int - m*NB) = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,ES23.16)') ' Binding energy (M-m*NB) = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_int - m*NB) = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
@@ -345,12 +345,12 @@
            bind = mass_int(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
 
            if (size==1) then
-              write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+              write(*,'(A,ES23.16)') ' Binding energy (M_int - m*N) = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,E23.16)') ' Binding energy (M-m*N) = ',bind
+                 write(*,'(A,E23.16)') ' Binding energy (M_int - m*N) = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
@@ -417,12 +417,12 @@
            bind = mass_int(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
 
            if (size==1) then
-              write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+              write(*,'(A,ES23.16)') ' Binding energy (M_int - m*N) = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_int - m*N) = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
@@ -494,12 +494,12 @@
            bind = mass_int(0,Nr) - fluid_restmass(0,Nr)
 
            if (size==1) then
-              write(*,'(A,ES23.16)') ' Binding energy (M-M0)    = ',bind
+              write(*,'(A,ES23.16)') ' Binding energy (M_int - M0)    = ',bind
            else
               if (rank==0) then
                  p = size-1
                  call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                 write(*,'(A,ES23.16)') ' Binding energy (M-M0)    = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_int - M0)    = ',bind
               else if (rank==size-1) then
                  call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
               end if
@@ -666,12 +666,12 @@
               bind = mass_rn(0,Nr) - complex_mass*complex_NB(0,Nr)
 
               if (size==1) then
-                 write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
               else
                  if (rank==0) then
                     p = size-1
                     call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                    write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                    write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
                  else if (rank==size-1) then
                     call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
                  end if
@@ -682,12 +682,12 @@
               bind = mass_rn(0,Nr) - cproca_mass*cproca_Qint(0,Nr)
 
               if (size==1) then
-                 write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
               else
                  if (rank==0) then
                     p = size-1
                     call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                    write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                    write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
                  else if (rank==size-1) then
                     call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
                  end if
@@ -698,12 +698,12 @@
               bind = mass_rn(0,Nr) - dirac_mass*dirac_Nint(0,Nr)
 
               if (size==1) then
-                 write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                 write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
               else
                  if (rank==0) then
                     p = size-1
                     call MPI_RECV(bind,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-                    write(*,'(A,ES23.16)') ' Binding energy (M-m*N) = ',bind
+                    write(*,'(A,ES23.16)') ' Binding energy (M_rn - m*N) = ',bind
                  else if (rank==size-1) then
                     call MPI_SEND(bind,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
                  end if
