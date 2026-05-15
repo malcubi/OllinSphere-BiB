@@ -860,7 +860,7 @@
   real(8) :: dust_s0 = 1.d0
   real(8) :: dust_t0 = 1.d0
 
-  real(8) :: dust_atmos = 1.d-6 ! This is rescaled with the maximum density at t=0
+  real(8) :: dust_atmos = 1.d-6
 
   character(1000) :: dustprofile = "gaussian"  ! range=(gaussian,tophat)
   character(1000) :: dust_method = "limiter"   ! range=(center,upwind,limiter,mp5)
@@ -911,7 +911,7 @@
 ! this is the level of roundoff error in fluidprimitive.f90
 ! (it involves square roots).
 
-  real(8) :: fluid_atmos = 1.d-8
+  real(8) :: fluid_atmos = 1.d-6
 
 ! Set artificial viscosity to zero by default.
 
