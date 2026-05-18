@@ -96,19 +96,19 @@
      firstcall = .false.
   end if
 
-! For initial data we don't need to recover the
-! primitive variables, they are fixed by the initial
-! data routines.  We also don't add the atmosphere at t=0.
+! For initial data we don't need to recover the primitive
+! variables, they should be fixed by the initial data routines. 
+! We also don't add the atmosphere at t=0.
 
   if (t(l)==0.d0) goto 20
 
-! Find atmosphere values.  We set both rho0 and e to a small value,
+! Find atmosphere values.  We set both "rho0" and "e" to a small value,
 ! and obtain the pressure from the polytropic equation of state.
 !
 ! Notice that we can't just set e=p=0, since in that case the speed of
 ! sound vanishes and the routine that calculates the fluid sources fails.
 
-  rhoatmos = fluid_atmos/10.d0
+  rhoatmos = fluid_atmos/2.d0
 
   patmos = fluid_kappa*rhoatmos**fluid_gamma
   Eatmos = fluid_kappa*rhoatmos**(fluid_gamma-1.d0)/(fluid_gamma-1.d0)
@@ -118,21 +118,15 @@
   do i=1,Nr
 
 !    Atmosphere: If the density is too low we run the risk of dividing
-!    by a very small quantity to recover the fluid speed, which will
-!    introduce very large round-off errors.
+!    by a very small quantity in ordfer to recover the fluid speed,
+!    which will introduce very large round-off errors and can cause
+!    the code to crash.
 !
 !    In order to avoid this, we set the conserved mass density to a small
 !    value and the momentum density to zero. For the conserved energy
-!    density we take E = rho0*e. We then set all other variables to values 
-!    consistent with this and we jump out of here.
-!
-!    I have found that sometimes it happens that one can have values
-!    above fluid_atmos at a given point, but below at the two neighboring
-!    points.  This is caused by numerical error and can cause the code
-!    to crash, so I don't allow it.
+!    density we take E = rho0*e.
 
-     if ((fluid_cD(l,i)<=fluid_atmos).or. &
-        ((fluid_cD(l,i-1)<=fluid_atmos).and.(fluid_cD(l,i+1)<=fluid_atmos))) then
+     if (fluid_cD(l,i)<=fluid_atmos) then
 
 !       Conserved quantities (D,E,S).
 
@@ -140,18 +134,18 @@
         fluid_cE(l,i) = rhoatmos*Eatmos
         fluid_cS(l,i) = 0.d0
 
-!       Primitive variables.
-
-        fluid_rho(l,i) = rhoatmos
-        fluid_p(l,i) = patmos
-        fluid_e(l,i) = Eatmos
-
 !       Fluid speed and Lorentz factor.
 
-        fluid_v(l,i) = 0.d0
-        fluid_W(l,i) = 1.d0
+        !fluid_v(l,i) = 0.d0
+        !fluid_W(l,i) = 1.d0
 
-        goto 10
+!       Primitive variables.
+
+        !fluid_rho(l,i) = rhoatmos
+        !fluid_p(l,i) = patmos
+        !fluid_e(l,i) = Eatmos
+
+        !goto 10
 
      end if
 
