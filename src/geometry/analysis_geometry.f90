@@ -43,7 +43,7 @@
 !
 ! r_area  =  r psi**2 sqrt(B)
 
-  r_area = r*psi**2*sqrt(B)
+  r_area = r*psi**2*dsqrt(B)
 
 ! Derivative.
 
@@ -80,7 +80,7 @@
 
   if (allocated(hembed)) then
 
-     auxarray = r_area*sqrt(abs((A/B - 1.d0)/r - (2.d0*D1_phi + 0.5d0*D1_B/B) &
+     auxarray = r_area*dsqrt(abs((A/B - 1.d0)/r - (2.d0*D1_phi + 0.5d0*D1_B/B) &
               *(2.d0/r + 2.d0*D1_phi + 0.d0*D1_B/B)))
 
      intvar => auxarray
@@ -168,14 +168,14 @@
 ! a flat spacetime.
 
   if (allocated(expansion)) then
-     expansion = r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/sqrt(A)/psi**2 - 2.d0*KBPHYS)
+     expansion = r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/dsqrt(A)/psi**2 - 2.d0*KBPHYS)
   end if
 
 ! Expansion of ingoing null lines.  This is the same as above, but changing
 ! the sign of the first term. For a flat spacetime it should be -2.
 
   if (allocated(expansion_in)) then
-     expansion_in = - r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/sqrt(A)/psi**2 + 2.d0*KBPHYS)
+     expansion_in = - r*((2.d0/r + D1_B/B + 4.d0*D1_phi)/dsqrt(A)/psi**2 + 2.d0*KBPHYS)
   end if
 
 
@@ -187,7 +187,7 @@
 ! This does not take into account the shift.
 
   if (allocated(vlight)) then
-     vlight = alpha/sqrt(abs(A))/psi**2
+     vlight = alpha/dsqrt(abs(A))/psi**2
   end if
 
 
@@ -198,7 +198,7 @@
   if (allocated(vgauge)) then
      if ((slicing=="harmonic").or.(slicing=="1+log").or. &
          (slicing=="shockavoid").or.(slicing=="alphaminus2")) then
-        vgauge = sqrt(falpha/abs(A))/psi**2
+        vgauge = dsqrt(falpha/abs(A))/psi**2
      end if
   end if
 
@@ -212,11 +212,11 @@
   if (slicing/="maximal") then
 
      if (allocated(wp_gauge)) then
-        wp_gauge = alpha*sqrt(falpha*A)*psi**2*trK + D1_alpha
+        wp_gauge = alpha*dsqrt(falpha*A)*psi**2*trK + D1_alpha
      end if
 
      if (allocated(wm_gauge)) then
-        wm_gauge = alpha*sqrt(falpha*A)*psi**2*trK - D1_alpha
+        wm_gauge = alpha*dsqrt(falpha*A)*psi**2*trK - D1_alpha
      end if
 
   end if
@@ -224,12 +224,12 @@
 ! Eigenfields associated with KTA.
 
   if (allocated(wp_eta)) then
-     wp_eta = sqrt(A)*psi**2*sqrt((2.d0*eta-1.d0)/3.d0)*(KTA - 2.d0*trK/3.d0) &
+     wp_eta = dsqrt(A)*psi**2*dsqrt((2.d0*eta-1.d0)/3.d0)*(KTA - 2.d0*trK/3.d0) &
             + ((D1_A/A - D1_B/B) - 2.d0*A*Deltar + 4.d0*D1_phi)/3.d0
   end if
 
   if (allocated(wm_eta)) then
-     wm_eta = sqrt(A)*psi**2*sqrt((2.d0*eta-1.d0)/3.d0)*(KTA - 2.d0*trK/3.d0) &
+     wm_eta = dsqrt(A)*psi**2*dsqrt((2.d0*eta-1.d0)/3.d0)*(KTA - 2.d0*trK/3.d0) &
             - ((D1_A/A - D1_B/B) - 2.d0*A*Deltar + 4.d0*D1_phi)/3.d0
   end if
 

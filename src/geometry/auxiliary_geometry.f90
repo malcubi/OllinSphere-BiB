@@ -263,7 +263,7 @@
 ! For Lagrangian evolutions, find B from A.
 
   if ((t(l)>0.d0).and.(bssnflavor=="lagrangian")) then
-     B(l,:) = sqrt(abs(AB2(l,:)/A(l,:)))
+     B(l,:) = dsqrt(abs(AB2(l,:)/A(l,:)))
   end if
 
 ! Derivatives of conformal spatial metric A.

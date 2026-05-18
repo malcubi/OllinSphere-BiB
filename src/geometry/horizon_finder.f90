@@ -119,7 +119,7 @@
 !       Find expansion.
 
         theta = (2.d0/r(l,i) + D1_B(l,i)/B(l,i) &
-              + 4.d0*D1_phi(l,i))/sqrt(A(l,i))/psi(l,i)**2 - 2.d0*KBPHYS(l,i)
+              + 4.d0*D1_phi(l,i))/dsqrt(A(l,i))/psi(l,i)**2 - 2.d0*KBPHYS(l,i)
 
 !       If the expansion is already negative at the outermost point
 !       then the horizon is outside so we just jump out of here.
@@ -213,7 +213,7 @@
 !
 !       r_schw  =  r  psi**2 sqrt(B)
 
-        ah_schw(l) = ah_r(l)*ah_psi(l)**2*sqrt(ah_B(l))
+        ah_schw(l) = ah_r(l)*ah_psi(l)**2*dsqrt(ah_B(l))
         hdata(l,6) = ah_schw(l)
 
 !       Calculate the area of the horizon:
@@ -227,7 +227,7 @@
 !
 !       mass  =  sqrt( area / (16 pi) )
 
-        ah_mass(l) = sqrt(ah_area(l)/16.d0/smallpi)
+        ah_mass(l) = dsqrt(ah_area(l)/16.d0/smallpi)
         hdata(l,8) = ah_mass(l)
 
 !       Interpolate electric charge at horizon if required.

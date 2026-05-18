@@ -133,9 +133,9 @@
 !          plus an outgoing wave.
 
            if (index(adjustl(slicing),"cosmo")==1) then
-              aux = sqrt(gauge_f)*cosmobg_alpha(l)/cosmobg_a(l)
+              aux = dsqrt(gauge_f)*cosmobg_alpha(l)/cosmobg_a(l)
            else
-              aux = sqrt(cosmobg_falpha(l))/cosmobg_a(l)
+              aux = dsqrt(cosmobg_falpha(l))/cosmobg_a(l)
            end if
 
            strK(l,Nr) = scosmobg_trK(l) - aux*(D1_trK(l,Nr) + (trK(l,Nr) - cosmobg_trK(l))/r(l,Nr))
@@ -147,7 +147,7 @@
 !          turn it on after the main pulse has gone through the
 !          boundary.
 
-           if (t(0)>sqrt(gauge_f)*r(0,Nr)) then
+           if (t(0)>dsqrt(gauge_f)*r(0,Nr)) then
               strK(l,Nr) = strK(l,Nr) - 0.01d0*(trK(l,Nr) - cosmobg_trK(l))
            end if
 
@@ -204,7 +204,7 @@
                          + 2.d0*third*(1.d0 - 1.d0/va)*(strK(l,Nr) - scosmobg_trK(l))
            else
               sKTA(l,Nr) = - aux*(D1_KTA(l,Nr) + KTA(l,Nr)/r(l,Nr)) &
-                         + 2.d0*third*(1.d0 - cosmobg_alpha(l)/sqrt(cosmobg_falpha(l)))*(strK(l,Nr)-scosmobg_trK(l))
+                         + 2.d0*third*(1.d0 - cosmobg_alpha(l)/dsqrt(cosmobg_falpha(l)))*(strK(l,Nr)-scosmobg_trK(l))
            end if
 
         end if
