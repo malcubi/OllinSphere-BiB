@@ -312,8 +312,13 @@
 
 ! h  =  1 + e + (p+q)/rho
 
-  fluid_h(l,:) = 1.d0 + fluid_e(l,:) + (fluid_p(l,:) + fluid_q(l,:))/fluid_rho(l,:)
-
+  do i=1-ghost,Nr
+     if (fluid_rho(l,i)==0.d0) then
+        fluid_h(l,i) = 0.d0
+     else
+        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (fluid_p(l,i) + fluid_q(l,i))/fluid_rho(l,i)
+     end if
+  end do
 
 
 ! **************************
@@ -332,8 +337,14 @@
 !
 !             =  p gamma (gamma - 1) / (p gamma + rho0 (gamma - 1))
 
-        fluid_vs(l,:) = sqrt(abs(fluid_p(l,:)*fluid_gamma*(fluid_gamma-1.d0) &
-                      /(fluid_p(l,:)*fluid_gamma + fluid_rho(l,:)*(fluid_gamma-1.d0))))
+        do i=1-ghost,Nr
+           if (fluid_rho(l,i)==0.d0) then
+              fluid_vs(l,i) = 0.d0
+           else
+              fluid_vs(l,i) = sqrt(abs(fluid_p(l,i)*fluid_gamma*(fluid_gamma-1.d0) &
+                            /(fluid_p(l,i)*fluid_gamma + fluid_rho(l,i)*(fluid_gamma-1.d0))))
+          end if
+        end do
 
 !    ADD IF STATEMENTS FOR NEW EQUATIONS OF STATE HERE.
 
@@ -355,7 +366,13 @@
 
   else
 
-     fluid_vs(l,:) = sqrt(abs(fluid_gamma*fluid_p(l,:)/(fluid_rho(l,:)*fluid_h(l,:))))
+     do i=1-ghost,Nr
+        if (fluid_rho(l,i)==0.d0) then
+           fluid_vs(l,i) = 0.d0
+        else
+           fluid_vs(l,i) = sqrt(abs(fluid_gamma*fluid_p(l,i)/(fluid_rho(l,i)*fluid_h(l,i))))
+        end if
+     end do
 
   end if
 
