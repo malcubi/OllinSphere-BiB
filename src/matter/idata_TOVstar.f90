@@ -754,8 +754,17 @@
   end if
 
 ! Find enthalpy: h = 1 + e + p/rho.
+! Avoid divisions by zero!
 
-  fluid_h = 1.d0 + fluid_e + fluid_p/fluid_rho
+  do l=0,Nl-1
+     do i=1-ghost,Nr
+        if (fluid_rho(l,i)==0.d0) then
+           fluid_h(l,i) = 0.d0
+        else
+           fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (fluid_p(l,i) + fluid_q(l,i))/fluid_rho(l,i)
+        end if
+     end do
+  end do
 
 ! Set fluid velocity to zero.
 
@@ -780,7 +789,8 @@
 !   2
 ! vs  =  gamma (gamma - 1) e / (1 + gamma e)
 
-  fluid_vs = sqrt(abs(fluid_gamma*(fluid_gamma-1.d0)*fluid_e/(1.d0+fluid_gamma*fluid_e)))
+  fluid_vs = sqrt(abs(fluid_gamma*(fluid_gamma - 1.d0)*fluid_e &
+           /(1.d0 + fluid_gamma*fluid_e)))
 
 
 
