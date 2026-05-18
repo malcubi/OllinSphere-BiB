@@ -91,9 +91,9 @@
 
 ! Find integrand.
 
-  St = sqrt(B/A)*r/alpha*(rho*(two*D1_phi + half*D1_B/B + one/r) - JA*(third*trK + KTB))
+  St = dsqrt(B/A)*r/alpha*(rho*(two*D1_phi + half*D1_B/B + one/r) - JA*(third*trK + KTB))
 
-  auxarray = 4.d0*smallpi*r**2*alpha*exp(6.d0*phi)*sqrt(A)*B*St
+  auxarray = 4.d0*smallpi*r**2*alpha*exp(6.d0*phi)*dsqrt(A)*B*St
 
 ! Integrate.
 
@@ -165,17 +165,17 @@
 ! ***   ENERGY FLUX   ***
 ! ***********************
 
-  auxarray(l,:) = sqrt(B(l,:)/A(l,:))*r(l,:)*(JA(l,:)/(psi4(l,:)*A(l,:))*(two*D1_phi(l,:) &
+  auxarray(l,:) = dsqrt(B(l,:)/A(l,:))*r(l,:)*(JA(l,:)/(psi4(l,:)*A(l,:))*(two*D1_phi(l,:) &
                 + half*D1_B(l,:)/B(l,:)+one/r(l,:)) - SAA(l,:)*(third*trK(l,:) + KTB(l,:)))
 
   if (shift/="none") then
-     auxarray(l,:) = auxarray(l,:) - rho(l,:)*beta(l,:)/alpha(l,:)*sqrt(B(l,:)/A(l,:))*r(l,:) &
+     auxarray(l,:) = auxarray(l,:) - rho(l,:)*beta(l,:)/alpha(l,:)*dsqrt(B(l,:)/A(l,:))*r(l,:) &
                    *(two*D1_phi(l,:) + half*D1_B(l,:)/B(l,:) + one/r(l,:)) &
-                   + rho(l,:)*beta(l,:)**2/alpha(l,:)**2*psi4(l,:)*sqrt(A(l,:)*B(l,:))*r(l,:)*(third*trK(l,:) + KTB(l,:)) &
-                   - JA(l,:)*beta(l,:)/alpha(l,:)*sqrt(B(l,:)/A(l,:))*r(l,:)*(third*trK(l,:) + KTB(l,:))
+                   + rho(l,:)*beta(l,:)**2/alpha(l,:)**2*psi4(l,:)*dsqrt(A(l,:)*B(l,:))*r(l,:)*(third*trK(l,:) + KTB(l,:)) &
+                   - JA(l,:)*beta(l,:)/alpha(l,:)*dsqrt(B(l,:)/A(l,:))*r(l,:)*(third*trK(l,:) + KTB(l,:))
   end if
 
-  auxarray(l,:) = 4.d0*smallpi*alpha(l,:)*psi(l,:)**6*sqrt(A(l,:))*B(l,:)*r(l,:)**2*auxarray(l,:)
+  auxarray(l,:) = 4.d0*smallpi*alpha(l,:)*psi(l,:)**6*dsqrt(A(l,:))*B(l,:)*r(l,:)**2*auxarray(l,:)
 
   sP_Kodama(l,:) = auxarray(l,:)
 

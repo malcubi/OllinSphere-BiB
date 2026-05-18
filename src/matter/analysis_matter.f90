@@ -100,11 +100,11 @@
 !    Scalar eigenfields.
 
      if (allocated(wp_scalar)) then
-        wp_scalar = scalar_pi - scalar_xi/(sqrt(A)*psi2)
+        wp_scalar = scalar_pi - scalar_xi/(dsqrt(A)*psi2)
      end if
 
      if (allocated(wm_scalar)) then
-        wm_scalar = scalar_pi + scalar_xi/(sqrt(A)*psi2)
+        wm_scalar = scalar_pi + scalar_xi/(dsqrt(A)*psi2)
      end if
 
   end if
@@ -119,7 +119,7 @@
 !    Norm of complex scalar field: sqrt(phiR**2 + phiI**2).
 
      if (allocated(complex_phi_norm)) then
-        complex_phi_norm = sqrt(complex_phiR**2 + complex_phiI**2)
+        complex_phi_norm = dsqrt(complex_phiR**2 + complex_phiI**2)
      end if
 
 !    Boson density times r**2.
@@ -175,7 +175,7 @@
 !    Norm of complex ghost scalar field: sqrt(phiR**2 + phiI**2).
 
      if (allocated(complexghost_phi_norm)) then
-        complexghost_phi_norm = sqrt(complexghost_phiR**2 + complexghost_phiI**2)
+        complexghost_phi_norm = dsqrt(complexghost_phiR**2 + complexghost_phiI**2)
      end if
 
   end if
@@ -207,11 +207,11 @@
 !    Proca eigenfields.
 
      if (allocated(wp_proca)) then
-        wp_proca = procaPhi + procaA/(sqrt(A)*psi2)
+        wp_proca = procaPhi + procaA/(dsqrt(A)*psi2)
      end if
 
      if (allocated(wm_proca)) then
-        wm_proca = procaPhi - procaA/(sqrt(A)*psi2)
+        wm_proca = procaPhi - procaA/(dsqrt(A)*psi2)
      end if
 
   end if
@@ -296,27 +296,27 @@
 !    Norms.
 
      if (allocated(cprocaPhi_norm)) then
-        cprocaPhi_norm = sqrt(cprocaPhi_R**2 + cprocaPhi_I**2)
+        cprocaPhi_norm = dsqrt(cprocaPhi_R**2 + cprocaPhi_I**2)
      end if
 
      if (allocated(cprocaA_norm)) then
-        cprocaA_norm = sqrt(cprocaA_R**2 + cprocaA_I**2)
+        cprocaA_norm = dsqrt(cprocaA_R**2 + cprocaA_I**2)
      end if
 
      if (allocated(cprocaB_norm)) then
-        cprocaB_norm = sqrt(cprocaB_R**2 + cprocaB_I**2)
+        cprocaB_norm = dsqrt(cprocaB_R**2 + cprocaB_I**2)
      end if
 
      if (allocated(cprocaE_norm)) then
-        cprocaE_norm = sqrt(cprocaE_R**2 + cprocaE_I**2)
+        cprocaE_norm = dsqrt(cprocaE_R**2 + cprocaE_I**2)
      end if
 
      if (allocated(cprocaXi_norm)) then
-        cprocaXi_norm = sqrt(cprocaXi_R**2 + cprocaXi_I**2)
+        cprocaXi_norm = dsqrt(cprocaXi_R**2 + cprocaXi_I**2)
      end if
 
      if (allocated(Ccomplexproca_norm)) then
-        Ccomplexproca_norm = sqrt(Ccomplexproca_R**2 + Ccomplexproca_I**2)
+        Ccomplexproca_norm = dsqrt(Ccomplexproca_R**2 + Ccomplexproca_I**2)
      end if
 
 !    Proca charge density times r**2.
@@ -390,11 +390,11 @@
 !    Norms.
 
      if (allocated(dirac_F_norm)) then
-        dirac_F_norm = sqrt(dirac_FR**2 + dirac_FI**2)
+        dirac_F_norm = dsqrt(dirac_FR**2 + dirac_FI**2)
      end if
 
      if (allocated(dirac_G_norm)) then
-        dirac_G_norm = sqrt(dirac_GR**2 + dirac_GI**2)
+        dirac_G_norm = dsqrt(dirac_GR**2 + dirac_GI**2)
      end if
 
 !    The integrated particle number is:
@@ -530,7 +530,7 @@
 
 !    Calculate electric charge from surface integral (divergence theorem).
 
-     eQ_surf = r**2*sqrt(A)*B*psi**6*electric
+     eQ_surf = r**2*dsqrt(A)*B*psi**6*electric
 
      if (rank==0) then
         do l=0,Nl-1
@@ -560,11 +560,11 @@
 !    Electric eigenfields.
 
      if (allocated(wp_electric)) then
-        wp_electric = ePhi + eAr/(sqrt(A)*psi2)
+        wp_electric = ePhi + eAr/(dsqrt(A)*psi2)
      end if
 
      if (allocated(wm_electric)) then
-        wm_electric = ePhi - eAr/(sqrt(A)*psi2)
+        wm_electric = ePhi - eAr/(dsqrt(A)*psi2)
      end if
 
 

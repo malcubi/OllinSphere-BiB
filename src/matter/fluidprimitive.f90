@@ -185,12 +185,12 @@
            print *, aux,fluid_v(l,i),fluid_cS(l,i),fluid_cD(l,i),fluid_cE(l,i)
            print *
            if (fluid_cS(l,i)>0.d0) then
-              fluid_v(l,i) = + sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
+              fluid_v(l,i) = + dsqrt((1.d0 - 1.d0/W**2))/dsqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
            else
-              fluid_v(l,i) = - sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
+              fluid_v(l,i) = - dsqrt((1.d0 - 1.d0/W**2))/dsqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
            end if
         else
-           W = 1.d0/sqrt(abs(aux))
+           W = 1.d0/dsqrt(abs(aux))
         end if
 
         fluid_W(l,i) = W
@@ -311,6 +311,8 @@
 ! ********************
 
 ! h  =  1 + e + (p+q)/rho
+!
+! Avoid divisions by zero!
 
   do i=1-ghost,Nr
      if (fluid_rho(l,i)==0.d0) then
@@ -336,12 +338,14 @@
 !       vs^2  = gamma (gamma - 1) e / ( 1 + gamma e)
 !
 !             =  p gamma (gamma - 1) / (p gamma + rho0 (gamma - 1))
+!
+!       Avoid divisions by zero!
 
         do i=1-ghost,Nr
            if (fluid_rho(l,i)==0.d0) then
               fluid_vs(l,i) = 0.d0
            else
-              fluid_vs(l,i) = sqrt(abs(fluid_p(l,i)*fluid_gamma*(fluid_gamma-1.d0) &
+              fluid_vs(l,i) = dsqrt(abs(fluid_p(l,i)*fluid_gamma*(fluid_gamma-1.d0) &
                             /(fluid_p(l,i)*fluid_gamma + fluid_rho(l,i)*(fluid_gamma-1.d0))))
           end if
         end do
@@ -370,7 +374,7 @@
         if (fluid_rho(l,i)==0.d0) then
            fluid_vs(l,i) = 0.d0
         else
-           fluid_vs(l,i) = sqrt(abs(fluid_gamma*fluid_p(l,i)/(fluid_rho(l,i)*fluid_h(l,i))))
+           fluid_vs(l,i) = dsqrt(abs(fluid_gamma*fluid_p(l,i)/(fluid_rho(l,i)*fluid_h(l,i))))
         end if
      end do
 
@@ -392,7 +396,8 @@
 
   do i=1-ghost,Nr
 
-     aux = fluid_vs(l,i)*abs(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2)/sqrt(A(l,i))/exp(2.d0*phi(l,i))
+     aux = fluid_vs(l,i)*abs(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2) &
+         /dsqrt(A(l,i))/exp(2.d0*phi(l,i))
 
      fluid_vcp(l,i) = alpha(l,i)/(1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2*fluid_vs(l,i)**2) &
                     *(fluid_v(l,i)*(1.d0 - fluid_vs(l,i)**2) + aux)

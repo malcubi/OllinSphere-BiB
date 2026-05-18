@@ -152,10 +152,10 @@
 ! Calculate fluxes at grid points.
 
   flux_D(:) = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+            *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   flux_E(:) = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-            *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+            *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   flux_S(:) = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
 
@@ -263,8 +263,8 @@
 
 !             Local speed of light.
 
-              aux = 0.5d0*(alpha(l,i  )/sqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
-                         + alpha(l,i+1)/sqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
+              aux = 0.5d0*(alpha(l,i  )/dsqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
+                         + alpha(l,i+1)/dsqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
 
               if (shift=="none") then
                  vllf = aux
@@ -320,8 +320,8 @@
   do i=1,Nr-1
      !sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))
      !sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))
-     sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
-     sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))/(sqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
+     sfluid_cD(l,i) = - idr*(flux_D(i) - flux_D(i-1))/(dsqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
+     sfluid_cE(l,i) = - idr*(flux_E(i) - flux_E(i-1))/(dsqrt(A(l,i))*B(l,i)*exp(6.d0*phi(l,i)))
      sfluid_cS(l,i) = - idr*(flux_S(i) - flux_S(i-1))
   end do
 
@@ -842,10 +842,10 @@
 ! Calculate fluxes at grid points.
 
   FD = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
-     *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+     *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   FE = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-     *(sqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
+     *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   FS = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
 
@@ -921,8 +921,8 @@
 
 !          Local speed of light.
 
-           aux = 0.5d0*(alpha(l,i  )/sqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
-                      + alpha(l,i+1)/sqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
+           aux = 0.5d0*(alpha(l,i  )/dsqrt(A(l,i  ))/exp(2.d0*phi(l,i  )) &
+                      + alpha(l,i+1)/dsqrt(A(l,i+1))/exp(2.d0*phi(l,i+1)))
 
            if (shift=="none") then
               vllf = aux
@@ -1059,7 +1059,7 @@
 
   real(8) :: eps
   
-  vnorm = sqrt(um2*um2 + um1*um1 + u*u + up1*up1 + up2*up2)
+  vnorm = dsqrt(um2*um2 + um1*um1 + u*u + up1*up1 + up2*up2)
   
   eps = mp5_eps
 

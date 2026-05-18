@@ -824,9 +824,9 @@
      else
         rho(l,:) = rho(l,:) + aux &
                  *(dirac_mass*(dirac_FR(l,:)**2 + dirac_FI(l,:)**2 - dirac_GR(l,:)**2 - dirac_GI(l,:)**2) &
-                 + 2.d0/(r(l,:)*sqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
+                 + 2.d0/(r(l,:)*dsqrt(B(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:)) &
                  +(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
-                 + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(sqrt(A(l,:))*psi2(l,:)))
+                 + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))/(dsqrt(A(l,:))*psi2(l,:)))
      end if
 
 !    Radial momentum density (index down).
@@ -835,7 +835,7 @@
         JA(l,:) = JA(l,:) + 0.5d0*aux &
                 *(dirac_FR(l,:)*D1_dirac_FI(l,:) - dirac_FI(l,:)*D1_dirac_FR(l,:) &
                 + dirac_GR(l,:)*D1_dirac_GI(l,:) - dirac_GI(l,:)*D1_dirac_GR(l,:) &
-                - sqrt(A(l,:))*psi2(l,:) &
+                - dsqrt(A(l,:))*psi2(l,:) &
                 *(dirac_FR(l,:)*dirac_PiGI(l,:) - dirac_FI(l,:)*dirac_PiGR(l,:) &
                 + dirac_GR(l,:)*dirac_PiFI(l,:) - dirac_GI(l,:)*dirac_PiFR(l,:)))
      else
@@ -846,11 +846,11 @@
 
 !    Stress tensor.
 
-     SAA(l,:) = SAA(l,:) + aux/(sqrt(A(l,:))*psi2(l,:)) &
+     SAA(l,:) = SAA(l,:) + aux/(dsqrt(A(l,:))*psi2(l,:)) &
               *(dirac_FR(l,:)*D1_dirac_GI(l,:) - dirac_FI(l,:)*D1_dirac_GR(l,:) &
               + dirac_GR(l,:)*D1_dirac_FI(l,:) - dirac_GI(l,:)*D1_dirac_FR(l,:))
 
-     SBB(l,:) = SBB(l,:) + aux/(r(l,:)*sqrt(B(l,:))*psi2(l,:)) &
+     SBB(l,:) = SBB(l,:) + aux/(r(l,:)*dsqrt(B(l,:))*psi2(l,:)) &
               *(dirac_FR(l,:)*dirac_GI(l,:) - dirac_FI(l,:)*dirac_GR(l,:))
 
 !    SLL = (SAA - SBB)/r**2.  This term is somewhat complicated, and in order
@@ -862,10 +862,10 @@
 !         + lambda / (1 + sqrt(A/B)) ( FR HI - HR FI ) ]
 
      if (.not.nolambda) then
-        SLL(l,:) = SLL(l,:) + aux/(sqrt(A(l,:))*psi2(l,:)) &
+        SLL(l,:) = SLL(l,:) + aux/(dsqrt(A(l,:))*psi2(l,:)) &
                  *((dirac_FR(l,:)*D1_dirac_HI(l,:) - dirac_FI(l,:)*D1_dirac_HR(l,:) &
                  +  dirac_HR(l,:)*D1_dirac_FI(l,:) - dirac_HI(l,:)*D1_dirac_FR(l,:))/r(l,:) &
-                 + lambda(l,:)/(1.d0 + sqrt(A(l,:)/B(l,:)))*(dirac_FR(l,:)*dirac_HI(l,:) - dirac_HR(l,:)*dirac_FI(l,:)))
+                 + lambda(l,:)/(1.d0 + dsqrt(A(l,:)/B(l,:)))*(dirac_FR(l,:)*dirac_HI(l,:) - dirac_HR(l,:)*dirac_FI(l,:)))
      end if
 
 !    Dirac particle density:
@@ -878,7 +878,7 @@
 !                                  2       *       *                          2
 !    flux  =  1 / (2 pi sqrt(A) psi ) [ F G  +  G F  ]  =  1 / (pi sqrt(A) psi ) [ FR GR + FI GI ]
 
-     dirac_flux(l,:) = 2.d0*aux/(sqrt(A(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GR(l,:) + dirac_FI(l,:)*dirac_GI(l,:))
+     dirac_flux(l,:) = 2.d0*aux/(dsqrt(A(l,:))*psi2(l,:))*(dirac_FR(l,:)*dirac_GR(l,:) + dirac_FI(l,:)*dirac_GI(l,:))
 
 !    Corrections for charged Dirac fields.
 
