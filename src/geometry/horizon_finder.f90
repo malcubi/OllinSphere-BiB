@@ -353,12 +353,21 @@
 !       Save apparent horizon position.
 
         if (filestatus == 'replace') then
+
            open(1,file=trim(directory)//'/ah_rad'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus)
-           write(1,*) '"ah_rad.tl'
+
+           if (commenttype=='xgraph') then
+              write(1,*) '"ah_rad.tl'
+           else
+              write(1,*) '#ah_rad.tl'
+           end if
+
         else
+
            open(1,file=trim(directory)//'/ah_rad'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus,position='append')
+
         end if
   
         if (isnan(ah_r(l))) then
@@ -373,12 +382,21 @@
 !       Save apparent horizon position in Schwarzschild coordinates.
 
         if (filestatus == 'replace') then
+
            open(1,file=trim(directory)//'/ah_schw'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus)
-           write(1,*) '"ah_schw.tl'
+
+           if (commenttype=='xgraph') then
+              write(1,*) '"ah_schw.tl'
+           else
+              write(1,*) '#ah_schw.tl'
+           end if
+
         else
+
            open(1,file=trim(directory)//'/ah_schw'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus,position='append')
+
         end if
   
         write(1,"(2ES14.6)") t(0),ah_schw(l)
@@ -387,12 +405,21 @@
 !       Save lapse at the apparent horizon position.
 
         if (filestatus == 'replace') then
+
            open(1,file=trim(directory)//'/ah_alpha'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus)
-           write(1,*) '"ah_alpha.tl'
+
+           if (commenttype=='xgraph') then
+              write(1,*) '"ah_alpha.tl'
+           else
+              write(1,*) '#ah_alpha.tl'
+           end if
+
         else
+
            open(1,file=trim(directory)//'/ah_alpha'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus,position='append')
+
         end if
   
         write(1,"(2ES14.6)") t(0),ah_alpha(l)
@@ -401,12 +428,21 @@
 !       Save area of the apparent horizon.
 
         if (filestatus == 'replace') then
+
            open(1,file=trim(directory)//'/ah_area'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus)
-           write(1,*) '"ah_area.tl'
+
+           if (commenttype=='xgraph') then
+              write(1,*) '"ah_area.tl'
+           else
+              write(1,*) '#ah_area.tl'
+           end if
+
         else
+
            open(1,file=trim(directory)//'/ah_area'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus,position='append')
+
         end if
   
         write(1,"(2ES14.6)") t(0),ah_area(l)
@@ -415,12 +451,21 @@
 !       Save mass of the apparent horizon.
 
         if (filestatus == 'replace') then
+
            open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus)
-           write(1,*) '"ah_mass.tl'
+
+           if (commenttype=='xgraph') then
+              write(1,*) '"ah_mass.tl'
+           else
+              write(1,*) '#ah_mass.tl'
+           end if
+
         else
+
            open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
                 status=filestatus,position='append')
+
         end if
   
         write(1,"(2ES14.6)") t(0),ah_mass(l)
@@ -431,12 +476,21 @@
         if (contains(mattertype,"electric")) then
 
            if (filestatus == 'replace') then
+
               open(1,file=trim(directory)//'/ah_eQ'//trim(filen)//'.tl',form='formatted', &
                    status=filestatus)
-              write(1,*) '"ah_eQ.tl'
+
+              if (commenttype=='xgraph') then
+                 write(1,*) '"ah_eQ.tl'
+              else
+                 write(1,*) '#ah_eQ.tl'
+              end if
+
            else
+
               open(1,file=trim(directory)//'/ah_eQ'//trim(filen)//'.tl',form='formatted', &
                    status=filestatus,position='append')
+
            end if
   
            write(1,"(2ES14.6)") t(0),ah_eQ(l)
