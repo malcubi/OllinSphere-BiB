@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/tools/FFT.f90,v 1.11 2024/10/02 18:20:10 malcubi Exp $
 
   program FFT
 
