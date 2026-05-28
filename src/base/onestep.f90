@@ -261,12 +261,14 @@
 !       interpvar => array
 !       aux1 = interp(l-1,r0,.false.)
 !       call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)
-!       if (border==1) then
-!          array(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*array_p(l,Nr-i)
-!       else
-!          array(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &
-!                   + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*array_bound(l,i,1) &
-!                   + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*array_bound(l,i,2)
+!       if (rank==size-1) then
+!          if (border==1) then
+!             array(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*array_p(l,Nr-i)
+!          else
+!             array(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &
+!                      + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*array_bound(l,i,1) &
+!                      + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*array_bound(l,i,2)
+!          end if
 !       end if
 !
 !       The interpolation above is done to second order, except
@@ -278,7 +280,8 @@
 !       (processors that don't own that point will just return 0).
 !       The MPI_ALLREDUCE call above makes all processors end up
 !       with the same boundary value (aux2), but this doesn't matter
-!       as it will be fixed when we synchronize below.
+!       as we later only calculate bpundary values for the processor
+!       with rank=size-1.
 
         if (tp==tl) then
            imax = ghost+2
