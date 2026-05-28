@@ -129,7 +129,8 @@ print FILE_SYMMETRIES "  do i=1,ghost\n\n";
 print FILE_SYNCALL "! Automatically generated file.  Do not edit!\n\n";
 print FILE_SYNCALL "  subroutine syncall(l)\n\n";
 print FILE_SYNCALL "  use param\n";
-print FILE_SYNCALL "  use arrays\n\n";
+print FILE_SYNCALL "  use arrays\n";
+print FILE_SYNCALL "  use procinfo\n\n";
 print FILE_SYNCALL "  implicit none\n\n";
 print FILE_SYNCALL "  logical contains\n\n";
 print FILE_SYNCALL "  integer l\n\n";
@@ -613,11 +614,11 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                 $cond = $1;
                 print FILE_SYNCALL  "  if (",$cond,") then\n";
-	        print FILE_SYNCALL  "     syncvar => ",$var,"(l,:)\n";
+	        print FILE_SYNCALL  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	        print FILE_SYNCALL  "     call sync\n";
                 print FILE_SYNCALL  "  end if\n\n";
             } else {
-	        print FILE_SYNCALL  "  syncvar => ",$var,"(l,:)\n";
+	        print FILE_SYNCALL  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	        print FILE_SYNCALL  "  call sync\n\n";
             }
          }
@@ -666,12 +667,14 @@ while ($line=<INFILE>) {
                print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
                print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
                print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
-               print FILE_BOUNDINTERP  "     if (border==1) then\n";
-               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
-               print FILE_BOUNDINTERP  "     else\n";
-               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
+               print FILE_BOUNDINTERP  "        if (border==1) then\n";
+               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+               print FILE_BOUNDINTERP  "        else\n";
+               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "        end if\n";
                print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
             } elsif ($var eq "alpha") {
@@ -679,24 +682,28 @@ while ($line=<INFILE>) {
                print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
                print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
                print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
-               print FILE_BOUNDINTERP  "     if (border==1) then\n";
-               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
-               print FILE_BOUNDINTERP  "     else\n";
-               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
+               print FILE_BOUNDINTERP  "        if (border==1) then\n";
+               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+               print FILE_BOUNDINTERP  "        else\n";
+               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "        end if\n";
                print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
             } else {
                print FILE_BOUNDINTERP  "  interpvar => ",$var,"\n";
                print FILE_BOUNDINTERP  "  aux1 = interp(l-1,r0,.false.)\n";
                print FILE_BOUNDINTERP  "  call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
-               print FILE_BOUNDINTERP  "  if (border==1) then\n";
-               print FILE_BOUNDINTERP  "     ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
-               print FILE_BOUNDINTERP  "  else\n";
-               print FILE_BOUNDINTERP  "     ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
-               print FILE_BOUNDINTERP  "              + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "  if (rank==size-1) then\n";
+               print FILE_BOUNDINTERP  "     if (border==1) then\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+               print FILE_BOUNDINTERP  "     else\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+               print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+               print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
             }
          }
