@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/distribute.f90,v 1.4 2019/05/08 15:39:42 malcubi Exp $
 
   subroutine distribute(lmin,lmax,varl,varg)
 
@@ -126,7 +125,7 @@
 
   do l=lmin,lmax
      syncvar(1-ghost:Nrmax) => varl(l,:)
-     !call sync
+     call sync
   end do
 
 
