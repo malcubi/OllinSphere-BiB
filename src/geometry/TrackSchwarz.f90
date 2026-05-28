@@ -264,9 +264,9 @@
 ! For parallel runs synchronize across processors.
 
   if (size>1) then
-     syncvar => CSI_SCHWARZ(l,:)
+     syncvar(1-ghost:Nrmax) => CSI_SCHWARZ(l,:)
      call sync
-     syncvar => ETA_SCHWARZ(l,:)
+     syncvar(1-ghost:Nrmax) => ETA_SCHWARZ(l,:)
      call sync
   end if
 
@@ -292,9 +292,9 @@
 !    Sync.
 
      if (size>1) then
-        syncvar => CSI_SCHWARZ(l,:)
+        syncvar(1-ghost:Nrmax) => CSI_SCHWARZ(l,:)
         call sync
-        syncvar => ETA_SCHWARZ(l,:)
+        syncvar(1-ghost:Nrmax) => ETA_SCHWARZ(l,:)
         call sync
      end if
 
