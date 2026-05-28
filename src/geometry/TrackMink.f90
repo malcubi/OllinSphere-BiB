@@ -221,9 +221,9 @@
 ! For parallel runs synchronize across processors.
 
   if (size>1) then
-     syncvar => R_MINK(l,:)
+     syncvar(1-ghost:Nrmax) => R_MINK(l,:)
      call sync
-     syncvar => T_MINK(l,:)
+     syncvar(1-ghost:Nrmax) => T_MINK(l,:)
      call sync
   end if
 
@@ -251,9 +251,9 @@
 !    Sync.
 
      if (size>1) then
-        syncvar => R_MINK(l,:)
+        syncvar(1-ghost:Nrmax) => R_MINK(l,:)
         call sync
-        syncvar => T_MINK(l,:)
+        syncvar(1-ghost:Nrmax) => T_MINK(l,:)
         call sync
      end if
 
