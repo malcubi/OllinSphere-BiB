@@ -125,8 +125,8 @@
 ! ***********************
 
   do l=lmin,lmax
-     syncvar => varl(l,:)
-     call sync
+     syncvar(1-ghost:Nrmax) => varl(l,:)
+     !call sync
   end do
 
 
