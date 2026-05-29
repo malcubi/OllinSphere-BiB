@@ -366,7 +366,7 @@
 
      if (shift/="none") then
         !$OMP PARALLEL DO SCHEDULE(GUIDED)
-        do i=1-ghost,Nrmax
+        do i=1-ghost,Nr
            sDeltar(l,i) = sDeltar(l,i) + beta(l,i)*DA_Deltar(l,i) - Deltar(l,i)*D1_beta(l,i) &
                 + D2_beta(l,i)/A(l,i) + two/B(l,i)*DD_beta(l,i) &
                 + sigma*third*(D1_DIV_beta(l,i)/A(l,i) + two*Deltar(l,i)*DIV_beta(l,i))
@@ -545,7 +545,7 @@
 !       Sources for Klambda2.  They are separated by type of contribution.
 
         !$OMP PARALLEL DO SCHEDULE(GUIDED)
-        do i=1-ghost,Nrmax
+        do i=1-ghost,Nr
 
 !          I) Terms coming from derivatives of lapse and conformal factor:
 
