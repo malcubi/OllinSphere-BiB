@@ -1161,7 +1161,7 @@
 !    end of the routine.
 
      !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
+     do i=1-ghost,Nr
 
      nonmin_rhs(l,i) = (nonmin_f(l,i)*nonmin_VP(l,i) - 2.d0*nonmin_fp(l,i)*nonmin_V(l,i) &
           - 0.5d0*nonmin_fp(l,i)*(1.d0 + 3.d0*nonmin_fpp(l,i))*(nonmin_xi(l,i)**2/(A(l,i)*psi4(l,i)) &
