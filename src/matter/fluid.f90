@@ -427,6 +427,9 @@
  
 ! For the moment I just copy the sources from one point in.
 ! Normally for stars the fluid shouldn't reach the boundary.
+!
+! I do it for all grid levels and all processors, but this
+! is Ok as it will be fixed by the sync and retrictions.
 
   sfluid_cD(l,Nr) = sfluid_cD(l,Nr-1)
   sfluid_cE(l,Nr) = sfluid_cE(l,Nr-1)
