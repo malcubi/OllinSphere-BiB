@@ -197,15 +197,20 @@
 
 !    On finer grids we always use Dirichlet boundary
 !    conditions, with the boundary value interpolated
-!    from the coarser grid.
+!    from the coarser grid (I use cubic interpolation).
 
      else
 
         bd = "dirichlet"
 
-        r0 = r(l,Nrtotal)
-        interpvar => u
-        ub = interp(l-1,r0,.false.)
+        aux = 0.25d0
+
+        i0 = Nrtotal/2
+
+        ub = u(l-1,i0) &
+           - aux*(u(l-1,i0+2) - 6.d0*u(l-1,i0+1) + 3.d0*u(l-1,i0) + 2.d0*u(l-1,i0-1))/6.d0 &
+           + aux**2*(3.d0*u(l-1,i0+1) - 6.d0*u(l-1,i0) + 3.d0*u(l-1,i0-1))/6.d0 &
+           + aux**3*(u(l-1,i0+2) - 3.d0*u(l-1,i0+1) + 3.d0*u(l-1,i0) - u(l-1,i0-1))/6.d0
 
      end if
 
