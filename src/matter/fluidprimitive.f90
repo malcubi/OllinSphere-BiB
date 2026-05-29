@@ -62,6 +62,7 @@
 
 ! Include modules.
 
+  use mpi
   use procinfo
   use param
   use arrays
@@ -93,6 +94,8 @@
 
   if (firstcall) then
      fluid_atmos = maxval(fluid_rho)*fluid_atmos
+     call MPI_Allreduce(fluid_atmos,aux,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,ierr)
+     fluid_atmos = aux
      firstcall = .false.
   end if
 
