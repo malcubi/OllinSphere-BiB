@@ -753,8 +753,7 @@
      fluid_e = fluid_kappa*fluid_rho**(fluid_gamma-1.d0)/(fluid_gamma-1.d0)
   end if
 
-! Find enthalpy: h = 1 + e + p/rho.
-! Avoid divisions by zero!
+! Find enthalpy: h = 1 + e + p/rho. Avoid divisions by zero!
 
   do l=0,Nl-1
      do i=1-ghost,Nr
@@ -769,10 +768,15 @@
 ! Set fluid velocity to zero.
 
   fluid_v = 0.d0
+  fluid_u = 0.d0
 
 ! Set Lorentz factor to one.
 
   fluid_W = 1.d0
+
+! Find csi = rho*h*W.
+
+  fluid_csi = fluid_rho*fluid_h*fluid_W
 
 ! Conserved quantities.
 

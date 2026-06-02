@@ -82,10 +82,15 @@
 ! Set fluid velocity to zero.
 
   fluid_v = 0.d0
+  fluid_u = 0.d0
 
 ! Set Lorentz factor to one.
 
   fluid_W = 1.d0
+
+! Find csi = rho*h*W.
+
+  fluid_csi = fluid_rho*fluid_h*fluid_W
 
 ! Conserved quantities.
 
