@@ -923,7 +923,7 @@
   character(1000) :: fluid_EOS       = "ideal"    ! range=(none,ideal)
   character(1000) :: fluid_method    = "hlle"     ! range=(llf,hlle,mp5)
   character(1000) :: fluid_limiter   = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
-  character(1000) :: fluid_primitive = "direct"   ! range=(direct,csi)
+  character(1000) :: fluid_primitive = "csi"      ! range=(direct,csi)
 
 ! Do we use the speed of sound for calculating 
 ! fluxed in the different fluid methods?
