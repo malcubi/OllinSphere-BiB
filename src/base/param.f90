@@ -889,6 +889,7 @@
 !
 ! fluid_method:      Method for fluid integration.
 ! fluid_limiter:     Type of limiter for reconstruction.
+! fluid_primitive:   Method used for solving for primitive variables.
 !
 ! Notice that one should have gamma = 1 + 1/N.  The default values
 ! use here are compatible with that:  N=3/2, gamma=5/3.
@@ -918,10 +919,11 @@
   real(8) :: fluid_q1 = 0.d0
   real(8) :: fluid_q2 = 0.d0
 
-  character(1000) :: fluidprofile  = "gaussian" ! range=(gaussian,tophat)
-  character(1000) :: fluid_EOS     = "ideal"    ! range=(none,ideal)
-  character(1000) :: fluid_method  = "hlle"     ! range=(llf,hlle,mp5)
-  character(1000) :: fluid_limiter = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
+  character(1000) :: fluidprofile    = "gaussian" ! range=(gaussian,tophat)
+  character(1000) :: fluid_EOS       = "ideal"    ! range=(none,ideal)
+  character(1000) :: fluid_method    = "hlle"     ! range=(llf,hlle,mp5)
+  character(1000) :: fluid_limiter   = "mc"       ! range=(minmod,vanleer,superbee,mc,koren,ospre,sweby)
+  character(1000) :: fluid_primitive = "direct"   ! range=(direct,csi)
 
 ! Do we use the speed of sound for calculating 
 ! fluxed in the different fluid methods?
