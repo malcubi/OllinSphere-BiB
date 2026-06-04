@@ -259,7 +259,7 @@
   real(8) :: p1,p2,f1,f2
   real(8) :: csi1,csi2,S2
 
-  real(8) :: epsilon = 1.d-10 ! Tolerance
+  real(8) :: epsilon = 1.d-8  ! Tolerance
   real(8) :: Wmax = 1.d5      ! Maximum allowed Lorentz factor
 
 
@@ -273,7 +273,7 @@
 ! Notice that we can't just set e=p=0, since in that case the speed of
 ! sound vanishes and the routine that calculates the fluid sources fails.
 
-  rhoatmos = fluid_atmos/2.d0
+  rhoatmos = fluid_atmos/10.d0
 
   patmos = fluid_kappa*rhoatmos**fluid_gamma
   Eatmos = fluid_kappa*rhoatmos**(fluid_gamma-1.d0)/(fluid_gamma-1.d0)
@@ -299,7 +299,7 @@
 !    value and the momentum density to zero. For the conserved energy
 !    density we take E = rho0*e.
 
-     if (fluid_cD(l,i)<=fluid_atmos) then
+     if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cE(l,i)<=rhoatmos*Eatmos)) then
 
 !       Conserved quantities (D,E,S).
 
@@ -469,17 +469,6 @@
 
         end do
 
-!       If we exceeded the maximum number of iterations
-!       send message to screen.
-
-        if (j==maxiter) then
-           print *
-           print *, 'Maximum iteration number reached in fluidprimitive.f90 at point: i = ',i,', r = ',r(l,i)
-           print *, 'Residue = ',real(res)
-           print *
-           call die
-        end if
-
 !       Save last value of p.
 
         fluid_p(l,i) = p1
@@ -557,7 +546,7 @@
 !    with this procedure we will always have v^2 < 1.
 !
 !    To proceed we caculate the energy density rho,
-!    the enthalpy h and the pressure p as:
+!    the enthalpy h, and the pressure p as:
 !
 !    rho = D / W
 !
@@ -642,17 +631,6 @@
 
         end do
 
-!       If we exceeded the maximum number of iterations
-!       send message to screen.
-
-        if (j==maxiter) then
-           print *
-           print *, 'Maximum iteration number reached in fluidprimitive.f90 at point: i = ',i,', r = ',r(l,i)
-           print *, 'Residue = ',real(res)
-           print *
-           call die
-        end if
-
 !       Save last value of csi.
 
         fluid_csi(l,i) = csi1
@@ -669,6 +647,46 @@
         fluid_p(l,i)   = fluid_csi(l,i)*fluid_W(l,i) - fluid_cE(l,i) - fluid_cD(l,i)
         fluid_e(l,i)   = fluid_p(l,i)/(fluid_gamma - 1.d0)/fluid_rho(l,i)
         fluid_h(l,i)   = fluid_csi(l,i)/fluid_cD(l,i)
+
+     end if
+
+
+!    ************************************************************
+!    ***   DID WE EXCEED THE MAXIMUM NUMBER OF ITERARTIONS?   ***
+!    ************************************************************
+
+!    If we exceeded the maximum number of iterations
+!    we set everything to the atmosphere.
+
+     if (j==maxiter) then
+
+        !print *
+        !print *, 'Maximum iteration number reached in fluidprimitive.f90 at point: i = ',i,', r = ',r(l,i)
+        !print *, 'Residue = ',real(res)
+        !print *
+
+!       Conserved quantities (D,E,S).
+
+        fluid_cD(l,i) = rhoatmos
+        fluid_cE(l,i) = rhoatmos*Eatmos
+        fluid_cS(l,i) = 0.d0
+
+!       Fluid speed and Lorentz factor.
+
+        fluid_v(l,i) = 0.d0
+        fluid_u(l,i) = 0.d0
+        fluid_W(l,i) = 1.d0
+
+!       Primitive variables.
+
+        fluid_rho(l,i) = rhoatmos
+        fluid_p(l,i) = patmos
+        fluid_e(l,i) = Eatmos
+
+!       Enthalpy and csi.
+
+        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
+        fluid_csi(l,i) = fluid_rho(l,i)*fluid_h(l,i)*fluid_W(l,i)
 
      end if
 
