@@ -1047,9 +1047,6 @@
 !
 !
 ! SBB  =  p
-!
-! Notice that when we use artificial viscosity we must add
-! the corresponding contribution to the pressure "fluid_q".
 
   if (contains(mattertype,"fluid")) then
 
@@ -1070,8 +1067,8 @@
 
 !          Stress tensor.
 
-           SAA(l,i) = SAA(l,i) + fluid_v(l,i)*fluid_cS(l,i) + fluid_p(l,i) + fluid_q(l,i)
-           SBB(l,i) = SBB(l,i) + fluid_p(l,i) + fluid_q(l,i)
+           SAA(l,i) = SAA(l,i) + fluid_v(l,i)*fluid_cS(l,i) + fluid_p(l,i)
+           SBB(l,i) = SBB(l,i) + fluid_p(l,i)
 
 !          SLL = (SAA - SBB)/r**2.
 
