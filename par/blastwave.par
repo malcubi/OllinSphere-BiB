@@ -24,7 +24,7 @@ fluid_limiter = mc        # Type of limiter
 fluid_gamma = 1.666666667 # Adiabatic index
 
 idata = blastwave         # Type of initial data
-blast_R = 0.5             # Radius of inner region
+blast_R = 1.0             # Radius of inner region
 blast_rhol = 1.0          # Density on inner region
 blast_rhor = 0.125        # Density on outer region
 blast_pl = 1.0            # Pressure on inner region
