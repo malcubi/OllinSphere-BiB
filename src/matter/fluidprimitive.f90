@@ -6,10 +6,34 @@
 ! *********************************************
 
 ! This routine recovers the fluid primitive variables (rho0,p,v)
-! starting from the conserved quantities (D,E,S).
+! starting from the conserved quantities (D,E,S). The different
+! quantities are related through:
 !
-! Since the system of equations we need to invert is coupled and
-! non-linear, we do the inversion using Newton-Raphson's method.
+! D   = rho0 / W
+!
+! S_i = rho0 h W^2 v_i
+!
+! E   = rho0 h W^2 - p - rho0 W
+!
+! with W the Lorentz factor:
+!
+! W = 1 / ( 1 - v_i v^i)
+!
+! and h the enthalpy:
+!
+! h = 1 + e + p /rho0
+!
+! where e is the specific internal energy which can be recovered
+! from the definition of h as:
+!
+! e  =  h - 1 - p / rho0 
+!
+!    = [ E + rho0 W (1-W) + p (1-W^2) ] / rho W^2
+!
+!    = [ E + D (1-W) + p (1-W^2) ] / D W
+!
+! Since the system of equations above is coupled and non-linear,
+! we do the inversion using Newton-Raphson's method.
 
 ! Include modules.
 
@@ -79,13 +103,13 @@
 
 ! h  =  1 + e + (p+q)/rho
 !
-! Avoid divisions by zero!
+! Avoid possible divisions by zero!
 
   do i=1-ghost,Nr
      if (fluid_rho(l,i)==0.d0) then
         fluid_h(l,i) = 0.d0
      else
-        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (fluid_p(l,i) + fluid_q(l,i))/fluid_rho(l,i)
+        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
      end if
   end do
 
@@ -184,45 +208,6 @@
   end do
 
 
-! ********************************
-! ***   ARTIFICIAL VISCOSITY   ***
-! ********************************
-
-! Update artificial viscosity:
-!
-! 1) If the divergence of S is positive then set
-! fluid_q to zero.
-!
-! 2) If the divergence is negative compute the artificial
-! viscosity contribution. The artificial viscosity has
-! two contributions and has the following general form:
-!
-! q  =  dr abs(div.S) ( q1 vs + q2 dr abs(div.S) / rho )
-!
-! with q1 and q2 positive constants, and vs the speed
-! of sound. Notice that the term with q1 introduces a first
-! order error, so one must keep q1 small.  The term with q2
-! introduces a second order error. For rho we use the ADM
-! energy density: rho = E + D.
-
-  if ((fluid_q1/=0.d0).or.(fluid_q2/=0.d0)) then
-
-     do i=1-ghost,Nr
-
-        aux = dr(l)*D1_fluid_cS(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
-
-        if (aux>=0.d0) then
-           fluid_q(l,i) = 0.d0
-        else
-           fluid_q(l,i) = abs(aux)*(fluid_q1*fluid_vs(l,i) &
-                        + fluid_q2*abs(aux)/(fluid_cE(l,i) + fluid_cD(l,i)))
-        end if
-
-     end do
-
-  end if
-
-
 ! ***************
 ! ***   END   ***
 ! ***************
@@ -251,16 +236,21 @@
 
   implicit none
 
+  logical :: atmos
+
   integer :: i,j,l
-  integer :: maxiter = 1000
+  integer :: maxiter = 100
 
   real(8) :: rhoatmos,Eatmos,patmos
-  real(8) :: W,W2,res,aux
-  real(8) :: p1,p2,f1,f2
-  real(8) :: csi1,csi2,S2
+  real(8) :: u1,u2,v1,v2,W1,W2
+  real(8) :: rho1,rho2,e1,e2,h1,h2
+  real(8) :: p1,p2,dp
+  real(8) :: f1,f2,df
+  real(8) :: csi1,csi2,dcsi
+  real(8) :: aux
 
-  real(8) :: epsilon = 1.d-8  ! Tolerance
-  real(8) :: Wmax = 1.d5      ! Maximum allowed Lorentz factor
+  real(8) :: epsilon = 1.d-12  ! Tolerance
+  real(8) :: Wmax = 1.d5       ! Maximum allowed Lorentz factor
 
 
 ! ********************************
@@ -285,6 +275,8 @@
 
   do i=1,Nr
 
+     atmos = .false.
+
 
 !    **********************
 !    ***   ATMOSPHERE   ***
@@ -300,6 +292,8 @@
 !    density we take E = rho0*e.
 
      if ((fluid_cD(l,i)<=fluid_atmos).or.(fluid_cE(l,i)<=rhoatmos*Eatmos)) then
+
+        atmos = .true.
 
 !       Conserved quantities (D,E,S).
 
@@ -333,139 +327,126 @@
 !    ***   DIRECT METHOD   ***
 !    *************************
 
-!    The idea of the "direct" method is to choose a trial value of
-!    the pressure (the value at the old time level).  From this we
-!    calculate first the fluid velocity from:
+!    The idea of the "direct" method is to solve for the pressure p.
 !
-!     r                             4 phi
-!    v   =  S  / (E + D + p) / ( A e     )
-!            r
+!    The way we proceed is as follows:
 !
-!    where the geometric factor is there in order to raise the index
-!    (v has index up, while S has index down), and where "q" is the
-!    contribution to the pressure coming from the artificial viscosity.
+!    1) We take an initial value of p=p1 (the
+!       value at the previous time level).
 !
-!    We then calculate the Lorentz factor W from:
+!    2) Using this value of p, and the new values of
+!       the conserved quantities (D,E,S), we calculate
+!       the velocity v, Lorentz factor W, density rho,
+!       and specific internal energy e from:
 !
-!                             4 phi  2
-!    W  =  1 / sqrt( 1  -  A e      v  )
+!       v1 = S  / (E + D + p1) / ( A psi**4 )
 !
+!       W1 = 1 / sqrt( 1  -  A psi**4 v1**2 )
 !
-!    Notice that we must always have:  A exp(4 phi) v^2 < 1.
+!       rho1 = D / W
 !
-!    The rest-mass energy density is then obtained as:
+!       e1  =  [ E + D (1 - W1) + p1 (1 - W1**2 ) ] / D W1
+
+!       The factors of A psi**4 are there since the code
+!       uses S with lower index, but u and v with upper index.
 !
+!    3) We calculate the difference between the pressure
+!       p1 and the one we obtain from the equation of state:
 !
-!    rho  =  D / W
+!       f1 = p(EOS) - p1
+
+!    4) We consider a increment in p: p2 = p1 + delta.
+!       We then do the same calculation all over again in order
+!       to obtain a new value of f=f2. This is because for
+!       Newton-Raphson we need to calculate the derivative
+!       of f, and we do it numerically:
 !
+!       f' = (f2-f1)/(p2-p1)
 !
-!    and the specific internal energy is:
+!    5) We update p1:
 !
-!                                          2
-!    e  =  ( E + D (1 - W) + (p + q) (1 - W ) ) / D W
+!       p1 = p1 - f1/h'  = p1 - f1 (p2-p1)/(f2-f1)
 !
-!
-!    The above expression can be found from the definitions of
-!    E and the enthalpy h.
-!
-!    Having found these variables, we find the difference between
-!    the trial value of the pressure and the one obtained from
-!    the equation of state, and iterate until this difference
-!    is smaller than a tolerance set by "epsilon".
+!    6) If abs(f1) is below the tolerance we end the iterations.
 
      if (fluid_primitive=="direct") then
 
-!       Initialize counter and residue.
+!       Initial guess for pressure.
 
-        j = 0
-        res = 1.d0
+        p1 = fluid_p(l,i)
 
 !       Start iterations for Newton-Raphson's method.
 
-        do while ((abs(res)>epsilon).and.(j<maxiter))
+        do j=1,maxiter
 
-!          Increment counter.
+!          Calculate f1 for p1.
 
-           j = j + 1
+           v1 = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + p1)/(A(l,i)*exp(4.d0*phi(l,i)))
 
-!          Set initial guess for pressure to old value.
-
-           if (j==1) p1 = fluid_p(l,i)
-
-!          Find value of v using old value of pressure.
-
-           if (abs(fluid_cS(l,i))==0.d0) then
-              fluid_v(l,i) = 0.d0
-           else
-              fluid_v(l,i) = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + p1 + fluid_q(l,i)) &
-                           /(A(l,i)*exp(4.d0*phi(l,i)))
-           end if
-
-!          Find Lorentz factor W, and check that v^2 is less than 1.
-
-           aux = 1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2
+           aux = 1.d0 - A(l,i)*exp(4.d0*phi(l,i))*v1**2
 
            if (aux<=0.d0) then
-              W = Wmax
-              if (fluid_cS(l,i)>0.d0) then
-                 fluid_v(l,i) = + sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
-              else
-                 fluid_v(l,i) = - sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
-              end if
+              W1 = Wmax
            else
-              W = 1.d0/sqrt(abs(aux))
+              W1 = 1.d0/sqrt(aux)
            end if
 
-!          Find rest-mass density: rho = D/W.
+           rho1 = fluid_cD(l,i)/W1
 
-           fluid_rho(l,i) = fluid_cD(l,i)/W
-
-!          Find specific internal energy.
-
-           aux = fluid_cD(l,i)*(W - 1.d0) + (p1 + fluid_q(l,i))*(W**2 - 1.d0)
-           fluid_e(l,i) = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*W)
-
-!          Calculate difference between trial value of the pressure
-!          and its predicted value from the equation of state, and
-!          update the value of the pressure for the next iteration.
-!
-!          If there is NO equation of state (for example if you forced
-!          some specific form of rho for the initial data and solved
-!          the TOV equations), then we just set the difference to 0.
-
-!          Ideal gas equation of state: p = (1-gamma) rho e
+           aux = fluid_cD(l,i)*(W1 - 1.d0) + p1*(W1**2 - 1.d0)
+           e1 = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*W1)
 
            if (fluid_EOS=="ideal") then
-
-              f1 = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i) - p1
-
-              if (j==1) then
-                 aux = (fluid_gamma-1.d0)*fluid_rho(l,i)*fluid_e(l,i)
-              else
-                 aux = p1 - f1*(p2-p1)/(f2-f1)
-              end if
-
-              p2 = p1
-              f2 = f1
-
-              p1 = aux
-              if (p1<=patmos) p1=patmos
-
-!             Calculate residual.
-
-              res = abs(p2 - p1)
-
-!          ADD IF STATEMENTS FOR NEW EQUATIONS OF STATE HERE.
-
+              f1 = (fluid_gamma-1.d0)*rho1*e1 - p1
            else
-
               print *
               print *, 'Unknown equation of state'
               print *, 'Aborting! (subroutine fluidprimitive)'
               print *
               call die
-
            end if
+
+!          Calculate f1 for p2.
+
+           p2 = p1 + 1.d-8
+
+           v2 = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + p2)/(A(l,i)*exp(4.d0*phi(l,i)))
+
+           aux = 1.d0 - A(l,i)*exp(4.d0*phi(l,i))*v2**2
+
+           if (aux<=0.d0) then
+              W2 = Wmax
+           else
+              W2 = 1.d0/sqrt(aux)
+           end if
+
+           rho2 = fluid_cD(l,i)/W2
+
+           aux = fluid_cD(l,i)*(W2 - 1.d0) + p2*(W2**2 - 1.d0)
+           e2 = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*W2)
+
+           if (fluid_EOS=="ideal") then
+              f2 = (fluid_gamma-1.d0)*rho2*e2 - p2
+           else
+              print *
+              print *, 'Unknown equation of state'
+              print *, 'Aborting! (subroutine fluidprimitive)'
+              print *
+              call die
+           end if
+
+!          Find dcsi and df.
+
+           dp = p2 - p1
+           df = f2 - f1
+
+!          Update cs1.
+
+           p1 = p1 - f1*dp/df
+
+!          Did we reach the desired tolerance?
+
+           if (abs(f1)<epsilon) exit
 
         end do
 
@@ -475,26 +456,16 @@
 
 !       Recalculate fluid speed and Lorentz number using new value of pressure.
 
-        fluid_v(l,i) = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + fluid_p(l,i) + fluid_q(l,i)) &
+        fluid_v(l,i) = fluid_cS(l,i)/(fluid_cE(l,i) + fluid_cD(l,i) + fluid_p(l,i)) &
                      /(A(l,i)*exp(4.d0*phi(l,i)))
 
         aux = 1.d0 - A(l,i)*exp(4.d0*phi(l,i))*fluid_v(l,i)**2
 
         if (aux<=0.d0) then
-           W = Wmax
-           print *, "Warning: Fluid speed larger than light speed at point ",i," radius",r(l,i)," time",t(l)
-           print *, aux,fluid_v(l,i),fluid_cS(l,i),fluid_cD(l,i),fluid_cE(l,i)
-           print *
-           if (fluid_cS(l,i)>0.d0) then
-              fluid_v(l,i) = + sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
-           else
-              fluid_v(l,i) = - sqrt((1.d0 - 1.d0/W**2))/sqrt(abs(A(l,i)))/exp(2.d0*phi(l,i))
-           end if
+           atmos = .true.
         else
-           W = 1.d0/sqrt(abs(aux))
+           fluid_W(l,i) = 1.d0/sqrt(aux)
         end if
-
-        fluid_W(l,i) = W
 
         fluid_u(l,i) = fluid_W(l,i)*fluid_v(l,i)
 
@@ -502,20 +473,12 @@
 
         fluid_rho(l,i) = fluid_cD(l,i)/fluid_W(l,i)
 
-        aux = fluid_cD(l,i)*(fluid_W(l,i) - 1.d0) + (p1 + fluid_q(l,i))*(fluid_W(l,i)**2 - 1.d0)
-
-        if (fluid_cE(l,i)>aux) then
-           fluid_e(l,i) = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*W)
-        else
-           fluid_cE(l,i) = aux
-           fluid_e(l,i)  = 0.d0
-        end if
-
+        aux = fluid_cD(l,i)*(fluid_W(l,i) - 1.d0) + p1*(fluid_W(l,i)**2 - 1.d0)
         fluid_e(l,i) = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*fluid_W(l,i))
 
 !       Recalculate enthalpy and csi.
 
-        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (fluid_p(l,i) + fluid_q(l,i))/fluid_rho(l,i)
+        fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
         fluid_csi(l,i) = fluid_rho(l,i)*fluid_h(l,i)*fluid_W(l,i)
 
 
@@ -523,111 +486,101 @@
 !    ***   CSI METHOD   ***
 !    **********************
 
-!    With this method we solve for csi=rho*h*W instead
-!    of the pressure.  We choose a trial value of csi
-!    (we use the value at the last time level), and
-!    calculate the 4-velocity from:
+!    With this method we solve for:
 !
-!                                  4
-!    u^r  =  ( S_r / csi ) / (A psi )
+!    csi = rho h W
 !
+!    The way we proceed is as follows:
 !
-!    Next we can calculate the Lorentz factor from:
+!    1) We take an initial value of csi=csi1 (the
+!       value at the previous time level).
 !
-!                        1/2                 4      2  1/2
-!    W = ( 1 + u_r u^r  )    =    ( 1 + A psi  (u^r)  )
-!               
+!    2) Using this value of csi, and the new values of
+!       the conserved quantities (D,E,S), we calculate
+!       the 4-velocity u, Lorentz factor W, density rho,
+!       pressure p, and enthalpy h from:
 !
-!    Notice that this guarantees that W is real.
-!    We can now calculate the fluid speed as:
+!       u1 = S / csi1 / A psi**4
 !
-!    v^r  =  u^r / W
+!       W1 = sqrt(1 + A psi**4 u1**2)
 !
-!    with this procedure we will always have v^2 < 1.
+!       rho1 = D/W1
 !
-!    To proceed we caculate the energy density rho,
-!    the enthalpy h, and the pressure p as:
+!       p1 = csi1 W1 - E - D
 !
-!    rho = D / W
+!       h1 = csi1 / D
 !
-!    h = csi / D
+!       The factors of A psi**4 are there since the code
+!       uses S with lower index, but u and v with upper index.
 !
-!    p = csi W - E - D
+!    3) We calculate the difference between the enthalpy
+!       h we just calculated and the one we obtain from
+!       the equation of state:
 !
-!    We can now use the fact that the enthalpy for
-!    a perfect fluid can also be calculated as:
+!       f1 = h1(EOS) - h1(csi)
 !
-!    h' = ( 1 + gamma/(gamma-1) (rho/p) )
+!    4) We consider a increment in csi:  csi2 = csi1 + delta.
+!       We then do the same calculation all over again in order
+!       to obtain a new value of f=f2. This is because for
+!       Newton-Raphson we need to calculate the derivative
+!       of f, and we do it numerically:
 !
-!    Wew then calculate the residue h-h', and iterate
-!    until this difference reaches the desired tolerance.
+!       f' = (f2-f1)/(csi2-csi1)
+!
+!    5) We update csi1:
+!
+!       csi1 = csi1 - f1/h'  = csi1 - f1 (csi2-csi1)/(f2-f1)
+!
+!    6) If abs(f1) is below the tolerance we end the iterations.
 
      else if (fluid_primitive=="csi") then
 
-!       Initialize counter and residue.
+!       Initial guess.
 
-        j = 0
-        res = 1.d0
+        csi1 = fluid_csi(l,i)
 
 !       Start iterations for Newton-Raphson's method.
 
-        do while ((abs(res)>epsilon).and.(j<maxiter))
+        do j=1,maxiter
 
-!          Increment counter.
+!          Calculate f1 for csi1.
 
-           j = j + 1
+           u1 = fluid_cS(l,i)/csi1/(A(l,i)*exp(4.d0*phi(l,i)))
 
-!          Set initial guess for csi to old value.
+           W1 = sqrt(1.d0 + A(l,i)*exp(4.d0*phi(l,i))*u1**2)
 
-           if (j==1) csi1 = fluid_csi(l,i)
+           rho1 = fluid_cD(l,i)/W1
+           p1   = csi1*W1 - fluid_cE(l,i) - fluid_cD(l,i)
+           h1   = csi1/fluid_cD(l,i)
 
-!          Find 4-velocity from u^r = (S_r/csi) / (A psi^4)
+           f1 = (1.d0 + fluid_gamma/(fluid_gamma-1.d0)*p1/rho1) - h1
 
-           fluid_u(l,i) = fluid_cS(l,i)/csi1/(A(l,i)*exp(4.d0*phi(l,i)))
+!          Calculate f2 for csi2.
 
-!          Find Lorentz factor from W = sqrt(1 + u^2).
+           csi2 = csi1 + 1.d-8
 
-           W2 = 1.d0 + A(l,i)*exp(4.d0*phi(l,i))*fluid_u(l,i)**2
+           u2 = fluid_cS(l,i)/csi1/(A(l,i)*exp(4.d0*phi(l,i)))
 
-           fluid_W(l,i) = sqrt(W2)
+           W2 = sqrt(1.d0 + A(l,i)*exp(4.d0*phi(l,i))*u2**2)
 
-!          Find fluid speed.
+           rho2 = fluid_cD(l,i)/W2
+           h2   = csi2/fluid_cD(l,i)
+           p2   = csi2*W2 - fluid_cE(l,i) - fluid_cD(l,i)
 
-           fluid_v(l,i) = fluid_u(l,i)/fluid_W(l,i)
+           f2 = (1.d0 + fluid_gamma/(fluid_gamma-1.d0)*p2/rho2) - h2
 
-!          Find rest-mass density: rho = D/W.
+!          Find dcsi and df.
 
-           fluid_rho(l,i) = fluid_cD(l,i)/fluid_W(l,i)
+           dcsi = csi2 - csi1
+           df = f2 - f1
 
-!          Find enthalpy.
+!          Update cs1.
 
-           fluid_h(l,i) = csi1/fluid_cD(l,i)
+           csi1 = csi1 - f1*dcsi/df
 
-!          Find pressure from p = csi*W - E - D.
+!          Did we reach the desired tolerance?
 
-           fluid_p(l,i) = csi1*fluid_W(l,i) - fluid_cE(l,i) - fluid_cD(l,i)
-
-!          Calculate difference between trial value of the enthalpy and
-!          its predicted value from equation of state:
-!
-!          h = ( 1 + gamma/(gamma-1) (rho/p) )
-
-           f1 = (1.d0 + fluid_gamma/(fluid_gamma-1.d0)*fluid_p(l,i)/fluid_rho(l,i)) - fluid_h(l,i)
-
-           if (j==1) then
-              aux = (1.d0 + fluid_gamma/(fluid_gamma-1.d0)*fluid_p(l,i)/fluid_rho(l,i))
-           else
-              aux = csi1 - f1*(csi2-csi1)/(f2-f1)
-           end if
-
-           csi2 = csi1
-           f2 = f1
-
-           csi1 = aux
-
-!          Calculate residual.
-
-           res = abs(csi2 - csi1)
+           if (abs(f1)<epsilon) exit
 
         end do
 
@@ -635,35 +588,38 @@
 
         fluid_csi(l,i) = csi1
 
-!       Recalculate fluid speed and Lorentz number.
+!       Recalculate fluid speed, Lorentz factor and fluid speed.
 
         fluid_u(l,i) = fluid_cS(l,i)/fluid_csi(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
         fluid_W(l,i) = sqrt(1.d0 + A(l,i)*exp(4.d0*phi(l,i))*fluid_u(l,i)**2)
         fluid_v(l,i) = fluid_u(l,i)/fluid_W(l,i)
 
-!       Recalculate (rho,p,e,h).
+!       Recalculate (rho,p,h).
 
         fluid_rho(l,i) = fluid_cD(l,i)/fluid_W(l,i)
         fluid_p(l,i)   = fluid_csi(l,i)*fluid_W(l,i) - fluid_cE(l,i) - fluid_cD(l,i)
-        fluid_e(l,i)   = fluid_p(l,i)/(fluid_gamma - 1.d0)/fluid_rho(l,i)
         fluid_h(l,i)   = fluid_csi(l,i)/fluid_cD(l,i)
+
+!       Calculate the specific internal energy e.
+
+        aux = fluid_cD(l,i)*(fluid_W(l,i) - 1.d0) + p1*(fluid_W(l,i)**2 - 1.d0)
+        fluid_e(l,i) = (fluid_cE(l,i) - aux)/(fluid_cD(l,i)*fluid_W(l,i))
 
      end if
 
 
-!    ************************************************************
-!    ***   DID WE EXCEED THE MAXIMUM NUMBER OF ITERARTIONS?   ***
-!    ************************************************************
+!    ************************
+!    ***   DID WE FAIL?   ***
+!    ************************
 
-!    If we exceeded the maximum number of iterations
-!    we set everything to the atmosphere.
+!    Check if we are below atmosphere levels.
 
-     if (j==maxiter) then
+     if ((fluid_rho(l,i)<rhoatmos).or.(fluid_p(l,i)<patmos).or.(fluid_e(l,i)<eatmos)) atmos=.true.
 
-        !print *
-        !print *, 'Maximum iteration number reached in fluidprimitive.f90 at point: i = ',i,', r = ',r(l,i)
-        !print *, 'Residue = ',real(res)
-        !print *
+!    If we exceeded the maximum number of iterations or failed
+!    in other ways we set everything to the atmosphere.
+
+     if ((j==maxiter).or.atmos) then
 
 !       Conserved quantities (D,E,S).
 
