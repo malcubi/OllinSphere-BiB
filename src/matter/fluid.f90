@@ -154,7 +154,7 @@
   flux_D(:) = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
             *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
-  flux_E(:) = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+  flux_E(:) = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:)) &
             *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   flux_S(:) = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
@@ -378,11 +378,11 @@
 ! d ln g   =  d g / 2g  =  d A / 2A + d B / B + 6 d phi + 2/r
 !  r           r            r          r           r
 
-  sfluid_cE(l,:) = sfluid_cE(l,:) + alpha(l,:)*trK(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
-                 + (fluid_cE(l,:) + fluid_cD(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+  sfluid_cE(l,:) = sfluid_cE(l,:) + alpha(l,:)*trK(l,:)*(fluid_cE(l,:) + fluid_p(l,:)) &
+                 + (fluid_cE(l,:) + fluid_cD(l,:) + fluid_p(l,:)) &
                  *(alpha(l,:)*fluid_v(l,:)**2*A(l,:)*exp(4.d0*phi(l,:)) &
                  *(KTA(l,:) + third*trK(l,:)) - fluid_v(l,:)*D1_alpha(l,:)) &
-                 - alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+                 - alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:)) &
                  !*(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 6.d0*D1_phi(l,:) + 2.d0/r(l,:))
                  *(2.d0/r(l,:))
 
@@ -847,7 +847,7 @@
   FD = alpha(l,:)*fluid_v(l,:)*fluid_cD(l,:) &
      *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
-  FE = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:) + fluid_q(l,:)) &
+  FE = alpha(l,:)*fluid_v(l,:)*(fluid_cE(l,:) + fluid_p(l,:)) &
      *(dsqrt(A(l,:))*B(l,:)*exp(6.d0*phi(l,:)))
 
   FS = alpha(l,:)*(fluid_v(l,:)*fluid_cS(l,:) + fluid_p(l,:))
