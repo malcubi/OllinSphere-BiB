@@ -98,10 +98,6 @@
   fluid_cE = fluid_rho*fluid_e
   fluid_cS = 0.d0
 
-! Initialize artificial viscosity to zero.
-
-  fluid_q = 0.d0
-
 
 ! ***************
 ! ***   END   ***

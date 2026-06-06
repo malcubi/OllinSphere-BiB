@@ -760,7 +760,7 @@
         if (fluid_rho(l,i)==0.d0) then
            fluid_h(l,i) = 0.d0
         else
-           fluid_h(l,i) = 1.d0 + fluid_e(l,i) + (fluid_p(l,i) + fluid_q(l,i))/fluid_rho(l,i)
+           fluid_h(l,i) = 1.d0 + fluid_e(l,i) + fluid_p(l,i)/fluid_rho(l,i)
         end if
      end do
   end do
@@ -783,10 +783,6 @@
   fluid_cD = fluid_rho
   fluid_cE = fluid_rho*fluid_e
   fluid_cS = 0.d0
-
-! Initialize artificial viscosity to zero.
-
-  fluid_q = 0.d0
 
 ! Initialize speed of sound for a polytropic equation of state:
 !
