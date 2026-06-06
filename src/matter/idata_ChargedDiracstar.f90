@@ -656,7 +656,8 @@
 
      end do
 
-!    Message in case we reached the maximum number of iterations.
+!    Message in case we reached the maximum number of iterations
+!    or we have not reached the surface.
 
      if ((iter>=maxiter).and.(maxiter/=1)) then
         print *
@@ -664,6 +665,12 @@
         print *, 'Aborting! (subroutine idata_chargeddiracstar)'
         print *
         call die
+     else if ((abs(F_g(0,Nrtotal))>epsilon).or.(abs(G_g(0,Nrtotal))>epsilon)) then
+        print *
+        print *
+        print *, 'WARNING:  You have not reached the surface of the star.'
+        print *
+        print *
      else
         print *
         print *, 'Done!'

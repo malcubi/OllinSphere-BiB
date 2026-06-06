@@ -752,12 +752,19 @@
 
      end do
 
-!    Message in case we reached the maximum number of iterations.
+!    Message in case we reached the maximum number of iterations
+!    or we have not reached the surface.
 
      if (iter>=maxiter) then
         print *
         print *, 'Maximum iteration number reached, initial data solver did not converge.'
         print *, 'Aborting! (subroutine idata_ChargedBosonstar)'
+        print *
+     else if (abs(phi_g(0,Nrtotal))>epsilon) then
+        print *
+        print *
+        print *, 'WARNING:  You have not reached the surface of the star.'
+        print *
         print *
      else
         print *
