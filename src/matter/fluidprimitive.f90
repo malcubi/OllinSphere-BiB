@@ -588,7 +588,7 @@
 
         fluid_csi(l,i) = csi1
 
-!       Recalculate fluid speed, Lorentz factor and fluid speed.
+!       Recalculate fluid 4-velocity, Lorentz factor and fluid speed.
 
         fluid_u(l,i) = fluid_cS(l,i)/fluid_csi(l,i)/(A(l,i)*exp(4.d0*phi(l,i)))
         fluid_W(l,i) = sqrt(1.d0 + A(l,i)*exp(4.d0*phi(l,i))*fluid_u(l,i)**2)
