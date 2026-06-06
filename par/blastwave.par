@@ -30,9 +30,6 @@ blast_rhor = 0.125        # Density on outer region
 blast_pl = 1.0            # Pressure on inner region
 blast_pr = 0.1            # Pressure on outer region
 
-fluid_q1 = 0.0		  # Coefficient for linear artificial viscosity term
-fluid_q2 = 0.0		  # Coefficient for quadratic artificial viscosity term
-
 directory = blastwave     # Name of output directory
 Ninfo = 100		  # How often do we want to output information to screen?
 Noutput0D = 10		  # How often do we want 0D output?
