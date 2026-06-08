@@ -491,12 +491,10 @@
 
 ! Delta in terms of its definition.
 
-!$OMP PARALLEL DO SCHEDULE(GUIDED)
   do i=1-ghost,Nrmax
      DeltaAB(l,i) = (half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
                   - two*r(l,i)*lambda(l,i))/A(l,i)
   end do
-!$OMP END PARALLEL DO
 
 ! If we don't want to evolve the BSSN variable Delta, then
 ! here we calculate it in terms of derivatives of the metric.
@@ -510,14 +508,12 @@
   diffvar => Deltar
   D1_Deltar(l,:) = diff1(l,-1)
 
-!$OMP PARALLEL DO SCHEDULE(GUIDED)
   do i=1-ghost,Nrmax
      D1_DeltaAB(l,i) = - D1_A(l,i)/A(l,i)*DeltaAB(l,i) + one/A(l,i) &
                      *(half*(D2_A(l,i)/A(l,i) - (D1_A(l,i)/A(l,i))**2) &
                      - (D2_B(l,i)/B(l,i) - (D1_B(l,i)/B(l,i))**2) &
                      - two*(lambda(l,i) + r(l,i)*D1_lambda(l,i)))
   end do
-!$OMP END PARALLEL DO
 
 ! DD_Deltar = d ( Deltar / r )
 !              r
@@ -648,8 +644,6 @@
 ! ***   RICCI TENSOR   ***
 ! ************************
 
-!$OMP PARALLEL DO SCHEDULE(GUIDED)
-
   do i=1-ghost,Nrmax
 
 !    Mixed radial component of physical Ricci tensor R^r_r, found with MAPLE.
@@ -675,8 +669,6 @@
 !               - D1_psi(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) - two/r(l,i)))
 
   end do
-
-!$OMP END PARALLEL DO
 
 
 ! ***************
