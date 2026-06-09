@@ -163,12 +163,14 @@
 
   if (idata=="schwarzschild") then
 
-        print *, 'Schwarzschild initial data in isotropic cordinates with:'
-        write(*,'(A,E14.8)') ' M = ',BHmass
-        print *
-        print *, 'The initial horizon position should be at:'
-        write(*,'(A,E14.8)') ' r_H = M/2 = ',BHmass/2.d0
-        print *
+        if (rank==0) then
+           print *, 'Schwarzschild initial data in isotropic cordinates with:'
+           write(*,'(A,E14.8)') ' M = ',BHmass
+           print *
+           print *, 'The initial horizon position should be at:'
+           write(*,'(A,E14.8)') ' r_H = M/2 = ',BHmass/2.d0
+           print *
+        end if
 
      if (newr) then
 
@@ -375,17 +377,19 @@
 
      if (contains(mattertype,"electric")) then
 
-        print *, 'Reissner-Nordstrom initial data in isotropic coordinates with:'
-        write(*,'(A,E14.8,A,E14.8)') ' M = ',BHmass,'     Q = ',BHcharge
-        print *
-        print *, 'The horizon mass should be:'
-        write(*,'(A,E14.8)') ' M_H = ',(sqrt(BHmass**2-BHcharge**2)+BHmass)/2.d0
-        print *, 'The initial horizon position should be at:'
-        write(*,'(A,E14.8)') ' r_H = ',sqrt(BHmass**2-BHcharge**2)/2.d0
-        print *, 'The areal radius for the inner and outer horizons should be:'
-        write(*,'(A,E14.8,A,E14.8)') ' R_IN  = ',BHmass-sqrt(BHmass**2-BHcharge**2), &
-                                 '     R_OUT = ',BHmass+sqrt(BHmass**2-BHcharge**2)
-        print *
+        if (rank==0) then
+           print *, 'Reissner-Nordstrom initial data in isotropic coordinates with:'
+           write(*,'(A,E14.8,A,E14.8)') ' M = ',BHmass,'     Q = ',BHcharge
+           print *
+           print *, 'The horizon mass should be:'
+           write(*,'(A,E14.8)') ' M_H = ',(sqrt(BHmass**2-BHcharge**2)+BHmass)/2.d0
+           print *, 'The initial horizon position should be at:'
+           write(*,'(A,E14.8)') ' r_H = ',sqrt(BHmass**2-BHcharge**2)/2.d0
+           print *, 'The areal radius for the inner and outer horizons should be:'
+           write(*,'(A,E14.8,A,E14.8)') ' R_IN  = ',BHmass-sqrt(BHmass**2-BHcharge**2), &
+                                    '     R_OUT = ',BHmass+sqrt(BHmass**2-BHcharge**2)
+           print *
+        end if
 
 !       Conformal factor.
 
@@ -412,9 +416,12 @@
 
      else
 
-        print *, 'Reissner-Nordstrom initial data needs "electric" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Reissner-Nordstrom initial data needs "electric" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -437,9 +444,12 @@
 
      else
 
-        print *, 'Scalar pulse initial data needs "scalar" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Scalar pulse initial data needs "scalar" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -462,9 +472,12 @@
 
      else
 
-        print *, 'Ghost pulse initial data needs "ghost" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Ghost pulse initial data needs "ghost" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -511,9 +524,12 @@
 
      else
 
-        print *, 'Ghost wormhole initial data needs "ghost" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Ghost wormhole initial data needs "ghost" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -552,9 +568,11 @@
            if (contains(mattertype,"electric")) then
               call idata_complexpulse_charged
            else
-              print *, 'Charged complex scalar field initial data needs electric type matter ...'
-              print *, 'Aborting! (subroutine initial)'
-              print *
+              if (rank==0) then
+                 print *, 'Charged complex scalar field initial data needs electric type matter ...'
+                 print *, 'Aborting! (subroutine initial)'
+                 print *
+              end if
               call die
            end if
 
@@ -564,9 +582,12 @@
 
      else
 
-        print *, 'Complex pulse initial data needs "complex" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Complex pulse initial data needs "complex" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -588,9 +609,12 @@
 
      else
 
-        print *, 'Complex ghost pulse initial data needs "complexghost" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Complex ghost pulse initial data needs "complexghost" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -613,9 +637,12 @@
 
      else
 
-        print *, 'Nonmin pulse initial data needs "nonmin" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Nonmin pulse initial data needs "nonmin" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -638,9 +665,12 @@
 
      else
 
-        print *, 'Proca pulse initial data needs "proca" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Proca pulse initial data needs "proca" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -663,9 +693,12 @@
 
      else
 
-        print *, 'Complex Proca pulse initial data needs "complexproca" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Complex Proca pulse initial data needs "complexproca" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -684,9 +717,11 @@
      if (contains(mattertype,"complex")) then
 
         if (complexpotential=="none") then
-           print *, 'For boson star initial data we need a massive scalar field.'
-           print *, 'Aborting! (subroutine initial)'
-           print *
+           if (rank==0) then
+              print *, 'For boson star initial data we need a massive scalar field.'
+              print *, 'Aborting! (subroutine initial)'
+              print *
+           end if
            call die
         else
            if (boson_gauge=="PA") then
@@ -698,9 +733,12 @@
 
      else
 
-        print *, 'Boson star initial data needs "complex" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Boson star initial data needs "complex" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -722,9 +760,12 @@
 
      else
 
-        print *, 'Charged boson star initial data needs both "complex" and "electric" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Charged boson star initial data needs both "complex" and "electric" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -746,9 +787,12 @@
 
      else
 
-        print *, 'Proca star initial data needs "complexproca" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Proca star initial data needs "complexproca" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -770,9 +814,12 @@
 
      else
 
-        print *, 'Charged Proca star initial data needs "complexproca" and "electric" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Charged Proca star initial data needs "complexproca" and "electric" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -794,9 +841,12 @@
 
      else
 
-        print *, 'Proca star initial data needs "complexproca" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Proca star initial data needs "complexproca" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -816,9 +866,12 @@
 
      else
 
-        print *, 'Dirac pulse initial data needs "dirac" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Dirac pulse initial data needs "dirac" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -838,9 +891,12 @@
 
      else
 
-        print *, 'Dirac star initial data needs "dirac" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Dirac star initial data needs "dirac" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -862,9 +918,12 @@
 
      else
 
-        print *, 'Charged Dirac star initial data needs "dirac" and "electric" type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Charged Dirac star initial data needs "dirac" and "electric" type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -886,9 +945,12 @@
 
      else
 
-        print *, 'dustshell initial data needs fluid or dust type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'dustshell initial data needs fluid or dust type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -911,9 +973,12 @@
 
      else
 
-        print *, 'Fluidshell initial data needs fluid or dust type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Fluidshell initial data needs fluid or dust type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -928,9 +993,12 @@
 
      else
 
-        print *, 'Blastwave initial data needs fluid type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Blastwave initial data needs fluid type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -952,9 +1020,12 @@
 
      else
 
-        print *, 'TOV initial data needs fluid type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'TOV initial data needs fluid type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -979,9 +1050,12 @@
 
      else
 
-        print *, 'TOVcomplex initial data needs fluid + complex type matter ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'TOVcomplex initial data needs fluid + complex type matter ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -1022,9 +1096,11 @@
         if (lambda_cosmo>=zero) then
            trK = - 3.d0*sqrt(lambda_cosmo/3.d0)
         else
-           print *, 'deSitter initial data needs a positive cosmological constant ...'
-           print *, 'Aborting! (subroutine initial)'
-           print *
+           if (rank==0) then
+              print *, 'deSitter initial data needs a positive cosmological constant ...'
+              print *, 'Aborting! (subroutine initial)'
+              print *
+           end if
            call die
         end if
 
@@ -1037,9 +1113,12 @@
 
      else
 
-        print *, 'deSitter initial data needs a positive cosmological constant ...'
-        print *, 'Aborting! (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'deSitter initial data needs a positive cosmological constant ...'
+           print *, 'Aborting! (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -1062,9 +1141,12 @@
 
      else
 
-        print *, 'Scalar field Dark Matter initial data needs scalar field type matter ...'
-        print *, 'Aborting!  (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Scalar field Dark Matter initial data needs scalar field type matter ...'
+           print *, 'Aborting!  (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -1086,9 +1168,12 @@
 
      if (.not.contains(mattertype,"complex")) then
 
-        print *, 'Complex field Dark Matter initial data needs complex field type matter ...'
-        print *, 'Aborting!  (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'Complex field Dark Matter initial data needs complex field type matter ...'
+           print *, 'Aborting!  (subroutine initial)'
+           print *
+        end if
+
         call die
 
      end if
@@ -1327,18 +1412,24 @@
 
      if ((shift=="none").or.(shift=="zero")) then
 
-        print *, 'shift=(none,zero) is incompatible with adding a perturbation.'
-        print *, 'Aborting!  (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'shift=(none,zero) is incompatible with adding a perturbation.'
+           print *, 'Aborting!  (subroutine initial)'
+           print *
+        end if
+
         call die
 
 !    For a shift perturbation shift_r0 must be non-zero.
 
      else if (shift_r0==0.d0) then
 
-        print *, 'The shift perturbation must be odd, so shift_r0 must be non-zero.'
-        print *, 'Aborting!  (subroutine initial)'
-        print *
+        if (rank==0) then
+           print *, 'The shift perturbation must be odd, so shift_r0 must be non-zero.'
+           print *, 'Aborting!  (subroutine initial)'
+           print *
+        end if
+
         call die
 
 !    Gaussian perturbation.
