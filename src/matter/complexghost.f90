@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/complexghost.f90,v 1.4 2023/03/02 19:49:55 malcubi Exp $
 
   subroutine sources_complexghost(l)
 
@@ -103,25 +102,17 @@
 
 !    Term with second derivative of phi.
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
-        scomplexghost_piR(l,i) = alpha(l,i)/(A(l,i)*psi4(l,i))*D2_complexghost_phiR(l,i)
-        scomplexghost_piI(l,i) = alpha(l,i)/(A(l,i)*psi4(l,i))*D2_complexghost_phiI(l,i)
-     end do
-     !$OMP END PARALLEL DO
+     scomplexghost_piR(l,:) = alpha(l,:)/(A(l,:)*psi4(l,:))*D2_complexghost_phiR(l,:)
+     scomplexghost_piI(l,:) = alpha(l,:)/(A(l,:)*psi4(l,:))*D2_complexghost_phiI(l,:)
 
 !    Terms coming from Christoffel symbols.
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
-        scomplexghost_piR(l,i) = scomplexghost_piR(l,i) + (alpha(l,i)*D1_complexghost_phiR(l,i)*(2.d0/r(l,i) &
-                          - 0.5d0*D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i) + 2.d0*D1_phi(l,i))  &
-                          + D1_complexghost_phiR(l,i)*D1_alpha(l,i))/(A(l,i)*psi4(l,i))
-        scomplexghost_piI(l,i) = scomplexghost_piI(l,i) + (alpha(l,i)*D1_complexghost_phiI(l,i)*(2.d0/r(l,i) &
-                          - 0.5d0*D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i) + 2.d0*D1_phi(l,i))  &
-                          + D1_complexghost_phiI(l,i)*D1_alpha(l,i))/(A(l,i)*psi4(l,i))
-     end do
-    !$OMP END PARALLEL DO
+     scomplexghost_piR(l,:) = scomplexghost_piR(l,:) + (alpha(l,:)*D1_complexghost_phiR(l,:)*(2.d0/r(l,:) &
+                       - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
+                       + D1_complexghost_phiR(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
+     scomplexghost_piI(l,:) = scomplexghost_piI(l,:) + (alpha(l,:)*D1_complexghost_phiI(l,:)*(2.d0/r(l,:) &
+                       - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
+                       + D1_complexghost_phiI(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
 
   end if
 

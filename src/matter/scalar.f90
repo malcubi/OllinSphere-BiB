@@ -91,21 +91,13 @@
 
 !    Term with second derivative of phi.
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
-        sscalar_pi(l,i) = alpha(l,i)/(A(l,i)*psi4(l,i))*D2_scalar_phi(l,i)
-     end do
-     !$OMP END PARALLEL DO
+     sscalar_pi(l,:) = alpha(l,:)/(A(l,:)*psi4(l,:))*D2_scalar_phi(l,:)
 
 !    Terms coming from Christoffel symbols.
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nrmax
-        sscalar_pi(l,i) = sscalar_pi(l,i) + (alpha(l,i)*D1_scalar_phi(l,i)*(2.d0/r(l,i) &
-                        - 0.5d0*D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i) + 2.d0*D1_phi(l,i)) &
-                        + D1_scalar_phi(l,i)*D1_alpha(l,i))/(A(l,i)*psi4(l,i))
-     end do
-     !$OMP END PARALLEL DO
+     sscalar_pi(l,:) = sscalar_pi(l,:) + (alpha(l,:)*D1_scalar_phi(l,:)*(2.d0/r(l,:) &
+                     - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:)) &
+                     + D1_scalar_phi(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
 
   end if
                   

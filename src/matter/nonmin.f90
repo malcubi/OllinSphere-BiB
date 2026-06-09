@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/nonmin.f90,v 1.4 2022/01/26 19:01:56 erik Exp $
 
   subroutine sources_nonmin(l)
 
@@ -104,19 +103,17 @@
              + nonmin_xi(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
 
   else
-  !$OMP PARALLEL DO SCHEDULE(GUIDED)
-  do i=1-ghost,Nrmax
+
 !    Term with second derivative of phi.
 
-     snonmin_pi(l,i) = alpha(l,i)*D2_nonmin_phi(l,i)/(A(l,i)*psi4(l,i))
+     snonmin_pi(l,:) = alpha(l,:)*D2_nonmin_phi(l,:)/(A(l,:)*psi4(l,:))
 
 !    Terms coming from Christoffel symbols.
 
-     snonmin_pi(l,i) = snonmin_pi(l,i) + (alpha(l,i)*D1_nonmin_phi(l,i)*(2.d0/r(l,i) &
-             - 0.5d0*D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i) + 2.d0*D1_phi(l,i))  &
-             + D1_nonmin_phi(l,i)*D1_alpha(l,i))/(A(l,i)*psi4(l,i))
-  end do
-  !$OMP END PARALLEL DO
+     snonmin_pi(l,:) = snonmin_pi(l,:) + (alpha(l,:)*D1_nonmin_phi(l,:)*(2.d0/r(l,:) &
+             - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
+             + D1_nonmin_phi(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
+
   end if
 
 ! Terms proportional to trK and nonmin_rhs.

@@ -1157,50 +1157,44 @@
 !    This is the reason why the nonmin field must be at the
 !    end of the routine.
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nr
-
-     nonmin_rhs(l,i) = (nonmin_f(l,i)*nonmin_VP(l,i) - 2.d0*nonmin_fp(l,i)*nonmin_V(l,i) &
-          - 0.5d0*nonmin_fp(l,i)*(1.d0 + 3.d0*nonmin_fpp(l,i))*(nonmin_xi(l,i)**2/(A(l,i)*psi4(l,i)) &
-          - nonmin_pi(l,i)**2) + 0.5d0*nonmin_fp(l,i)*(SAA(l,i) + two*SBB(l,i) - rho(l,i))) &
-          /(nonmin_f(l,i)*(1.d0 + 1.5d0*nonmin_fp(l,i)**2/nonmin_f(l,i)))
+     nonmin_rhs(l,:) = (nonmin_f(l,:)*nonmin_VP(l,:) - 2.d0*nonmin_fp(l,:)*nonmin_V(l,:) &
+          - 0.5d0*nonmin_fp(l,:)*(1.d0 + 3.d0*nonmin_fpp(l,:))*(nonmin_xi(l,:)**2/(A(l,:)*psi4(l,:)) &
+          - nonmin_pi(l,:)**2) + 0.5d0*nonmin_fp(l,:)*(SAA(l,:) + two*SBB(l,:) - rho(l,:))) &
+          /(nonmin_f(l,:)*(1.d0 + 1.5d0*nonmin_fp(l,:)**2/nonmin_f(l,:)))
 
 !    Energy density.
 
-     rho(l,i) = rho(l,i) + half*(nonmin_pi(l,i)**2 + nonmin_xi(l,i)**2*(1.d0 + two*nonmin_fpp(l,i))/(A(l,i)*psi4(l,i))) &
-         + nonmin_fp(l,i)*((D1_nonmin_xi(l,i) - nonmin_xi(l,i)*(half*D1_A(l,i)/A(l,i) &
-         - D1_B(l,i)/B(l,i) - two*D1_phi(l,i) - two/r(l,i)))/(A(l,i)*psi4(l,i)) + nonmin_pi(l,i)*trK(l,i)) &
-         + nonmin_V(l,i)
+     rho(l,:) = rho(l,:) + half*(nonmin_pi(l,:)**2 + nonmin_xi(l,:)**2*(1.d0 + two*nonmin_fpp(l,:))/(A(l,:)*psi4(l,:))) &
+         + nonmin_fp(l,:)*((D1_nonmin_xi(l,:) - nonmin_xi(l,:)*(half*D1_A(l,:)/A(l,:) &
+         - D1_B(l,:)/B(l,:) - two*D1_phi(l,:) - two/r(l,:)))/(A(l,:)*psi4(l,:)) + nonmin_pi(l,:)*trK(l,:)) &
+         + nonmin_V(l,:)
 
 !    Momentum density (lower index).
 
-     JA(l,i) = JA(l,i) - nonmin_pi(l,i)*nonmin_xi(l,i)*(1.d0 + nonmin_fpp(l,i)) &
-             - nonmin_fp(l,i)*(D1_nonmin_pi(l,i) + (KTA(l,i) + third*trK(l,i))*nonmin_xi(l,i))
+     JA(l,:) = JA(l,:) - nonmin_pi(l,:)*nonmin_xi(l,:)*(1.d0 + nonmin_fpp(l,:)) &
+             - nonmin_fp(l,:)*(D1_nonmin_pi(l,:) + (KTA(l,:) + third*trK(l,:))*nonmin_xi(l,:))
 
 !    Stress tensor.
 
-     SAA(l,i) = SAA(l,i) + half*(nonmin_pi(l,i)**2 + nonmin_xi(l,i)**2/(A(l,i)*psi4(l,i))) &
-         + nonmin_fp(l,i)*(nonmin_pi(l,i)*(KTA(l,i) + third*trK(l,i)) &
-         + (D1_nonmin_xi(l,i) - nonmin_xi(l,i)*(half*D1_A(l,i)/A(l,i) + two*D1_phi(l,i)))/(A(l,i)*psi4(l,i)) &
-         - nonmin_rhs(l,i)) + nonmin_fpp(l,i)*nonmin_pi(l,i)**2 &
-         - nonmin_V(l,i)
+     SAA(l,:) = SAA(l,:) + half*(nonmin_pi(l,:)**2 + nonmin_xi(l,:)**2/(A(l,:)*psi4(l,:))) &
+         + nonmin_fp(l,:)*(nonmin_pi(l,:)*(KTA(l,:) + third*trK(l,:)) &
+         + (D1_nonmin_xi(l,:) - nonmin_xi(l,:)*(half*D1_A(l,:)/A(l,:) + two*D1_phi(l,:)))/(A(l,:)*psi4(l,:)) &
+         - nonmin_rhs(l,:)) + nonmin_fpp(l,:)*nonmin_pi(l,:)**2 &
+         - nonmin_V(l,:)
 
-     SBB(l,i) = SBB(l,i) + half*(nonmin_pi(l,i)**2 - nonmin_xi(l,i)**2*(1.d0 + two*nonmin_fpp(l,i))/(A(l,i)*psi4(l,i))) &
-         + nonmin_fp(l,i)*(nonmin_pi(l,i)*(KTB(l,i) + third*trK(l,i)) &
-         + nonmin_xi(l,i)*(half*D1_B(l,i)/B(l,i) + two*D1_phi(l,i) + 1.d0/r(l,i))/(A(l,i)*psi4(l,i)) &
-         - nonmin_rhs(l,i)) + nonmin_fpp(l,i)*nonmin_pi(l,i)**2 &
-         - nonmin_V(l,i)
+     SBB(l,:) = SBB(l,:) + half*(nonmin_pi(l,:)**2 - nonmin_xi(l,:)**2*(1.d0 + two*nonmin_fpp(l,:))/(A(l,:)*psi4(l,:))) &
+         + nonmin_fp(l,:)*(nonmin_pi(l,:)*(KTB(l,:) + third*trK(l,:)) &
+         + nonmin_xi(l,:)*(half*D1_B(l,:)/B(l,:) + two*D1_phi(l,:) + 1.d0/r(l,:))/(A(l,:)*psi4(l,:)) &
+         - nonmin_rhs(l,:)) + nonmin_fpp(l,:)*nonmin_pi(l,:)**2 &
+         - nonmin_V(l,:)
 
 !    SLL = (SAA - SBB)/r**2.
 
      if (.not.nolambda) then
-        SLL(l,i) = SLL(l,i) + nonmin_xi(l,i)**2*(1.d0 + nonmin_fpp(l,i))/(A(l,i)*psi4(l,i))/r(l,i)**2 &
-            + nonmin_fp(l,i)*(nonmin_pi(l,i)*Klambda(l,i) + (DD_nonmin_xir(l,i)/r(l,i) &
-            - nonmin_xi(l,i)/r(l,i)**2*(half*(D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i)) + 4.d0*D1_phi(l,i)))/(A(l,i)*psi4(l,i)))
+        SLL(l,:) = SLL(l,:) + nonmin_xi(l,:)**2*(1.d0 + nonmin_fpp(l,:))/(A(l,:)*psi4(l,:))/r(l,:)**2 &
+            + nonmin_fp(l,:)*(nonmin_pi(l,:)*Klambda(l,:) + (DD_nonmin_xir(l,:)/r(l,:) &
+            - nonmin_xi(l,:)/r(l,:)**2*(half*(D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:)) + 4.d0*D1_phi(l,:)))/(A(l,:)*psi4(l,:)))
      end if
-
-     end do
-     !$OMP END PARALLEL DO
 
   end if
 
