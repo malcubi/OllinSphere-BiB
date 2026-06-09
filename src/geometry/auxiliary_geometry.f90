@@ -491,10 +491,8 @@
 
 ! Delta in terms of its definition.
 
-  do i=1-ghost,Nrmax
-     DeltaAB(l,i) = (half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) &
-                  - two*r(l,i)*lambda(l,i))/A(l,i)
-  end do
+  DeltaAB(l,:) = (half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) &
+               - two*r(l,:)*lambda(l,:))/A(l,:)
 
 ! If we don't want to evolve the BSSN variable Delta, then
 ! here we calculate it in terms of derivatives of the metric.
@@ -508,12 +506,10 @@
   diffvar => Deltar
   D1_Deltar(l,:) = diff1(l,-1)
 
-  do i=1-ghost,Nrmax
-     D1_DeltaAB(l,i) = - D1_A(l,i)/A(l,i)*DeltaAB(l,i) + one/A(l,i) &
-                     *(half*(D2_A(l,i)/A(l,i) - (D1_A(l,i)/A(l,i))**2) &
-                     - (D2_B(l,i)/B(l,i) - (D1_B(l,i)/B(l,i))**2) &
-                     - two*(lambda(l,i) + r(l,i)*D1_lambda(l,i)))
-  end do
+  D1_DeltaAB(l,:) = - D1_A(l,:)/A(l,:)*DeltaAB(l,:) + one/A(l,:) &
+                  *(half*(D2_A(l,:)/A(l,:) - (D1_A(l,:)/A(l,:))**2) &
+                  - (D2_B(l,:)/B(l,:) - (D1_B(l,:)/B(l,:))**2) &
+                  - two*(lambda(l,:) + r(l,:)*D1_lambda(l,:)))
 
 ! DD_Deltar = d ( Deltar / r )
 !              r
@@ -644,31 +640,27 @@
 ! ***   RICCI TENSOR   ***
 ! ************************
 
-  do i=1-ghost,Nrmax
+! Mixed radial component of physical Ricci tensor R^r_r, found with MAPLE.
 
-!    Mixed radial component of physical Ricci tensor R^r_r, found with MAPLE.
+  RICA(l,:) = - one/(A(l,:)*psi4(l,:))*(half*D2_A(l,:)/A(l,:) - A(l,:)*D1_Deltar(l,:) &
+            - 0.75d0*(D1_A(l,:)/A(l,:))**2 + half*(D1_B(l,:)/B(l,:))**2 - half*Deltar(l,:)*D1_A(l,:) &
+            + D1_A(l,:)/r(l,:)/B(l,:) + two*lambda(l,:)*(one + r(l,:)*D1_B(l,:)/B(l,:)) &
+            + two*(two*D2_phi(l,:) - D1_phi(l,:)*(D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) - two/r(l,:))))
 
-     RICA(l,i) = - one/(A(l,i)*psi4(l,i))*(half*D2_A(l,i)/A(l,i) - A(l,i)*D1_Deltar(l,i) &
-               - 0.75d0*(D1_A(l,i)/A(l,i))**2 + half*(D1_B(l,i)/B(l,i))**2 - half*Deltar(l,i)*D1_A(l,i) &
-               + D1_A(l,i)/r(l,i)/B(l,i) + two*lambda(l,i)*(one + r(l,i)*D1_B(l,i)/B(l,i)) &
-               + two*(two*D2_phi(l,i) - D1_phi(l,i)*(D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) - two/r(l,i))))
+! Scalar curvature (trace of Ricci), found with MAPLE.
 
-!    Scalar curvature (trace of Ricci), found with MAPLE.
+  RSCAL(l,:) = - one/(A(l,:)*psi4(l,:))*(half*D2_A(l,:)/A(l,:) + D2_B(l,:)/B(l,:) &
+             - A(l,:)*D1_Deltar(l,:) - (D1_A(l,:)/A(l,:))**2 + half*(D1_B(l,:)/B(l,:))**2 &
+             + two/r(l,:)/B(l,:)*(3.d0 - A(l,:)/B(l,:))*D1_B(l,:) + 4.d0*lambda(l,:))
 
-     RSCAL(l,i) = - one/(A(l,i)*psi4(l,i))*(half*D2_A(l,i)/A(l,i) + D2_B(l,i)/B(l,i) &
-                - A(l,i)*D1_Deltar(l,i) - (D1_A(l,i)/A(l,i))**2 + half*(D1_B(l,i)/B(l,i))**2 &
-                + two/r(l,i)/B(l,i)*(3.d0 - A(l,i)/B(l,i))*D1_B(l,i) + 4.d0*lambda(l,i))
+  RSCAL(l,:) = RSCAL(l,:) - 8.d0/(A(l,:)*psi4(l,:))*(D2_phi(l,:) + D1_phi(l,:)**2 &
+             - D1_phi(l,:)*(half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) - two/r(l,:)))
 
-     RSCAL(l,i) = RSCAL(l,i) - 8.d0/(A(l,i)*psi4(l,i))*(D2_phi(l,i) + D1_phi(l,i)**2 &
-                - D1_phi(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) - two/r(l,i)))
+! The term below is equivalent to the second term above, I keep it here
+! for testing.
 
-!    The term below is equivalent to the second term above, I keep it here
-!    for testing.
-
-!    RSCAL(l,i) = RSCAL(l,i) - 8.d0/(A(l,i)*psi(l,i)**5)*(D2_psi(l,i) &
-!               - D1_psi(l,i)*(half*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i) - two/r(l,i)))
-
-  end do
+! RSCAL(l,:) = RSCAL(l,:) - 8.d0/(A(l,:)*psi(l,:)**5)*(D2_psi(l,:) &
+!            - D1_psi(l,:)*(half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) - two/r(l,:)))
 
 
 ! ***************

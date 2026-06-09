@@ -269,17 +269,13 @@
 
 !    sKTA(l,:) = sKTA(l,:) + alpha(l,:)*(RICA(l,:) - third*RSCAL(l,:))
 
-     !$OMP PARALLEL DO SCHEDULE(GUIDED)
-     do i=1-ghost,Nr
-        sKTA(l,i) = sKTA(l,i) - alpha(l,i)/(A(l,i)*psi4(l,i)) &
-             *(third*(D2_A(l,i)/A(l,i) - D2_B(l,i)/B(l,i) - 2.d0*A(l,i)*D1_Deltar(l,i) &
-             - 2.d0*(D1_A(l,i)/A(l,i))**2 + (D1_B(l,i)/B(l,i))**2) &
-             + half*D1_A(l,i)*D1_B(l,i)/A(l,i)/B(l,i) &
-             + (D1_A(l,i)/A(l,i) - 4.d0*third*A(l,i)*D1_B(l,i)/B(l,i)**2)/r(l,i) &
-             + two*third*lambda(l,i) + 4.d0*third*(r(l,i)*psi2(l,i)*DD_phir(l,i) &
-             - half*D1_phi(l,i)*(D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i))))
-     end do
-     !$OMP END PARALLEL DO
+     sKTA(l,:) = sKTA(l,:) - alpha(l,:)/(A(l,:)*psi4(l,:)) &
+               *(third*(D2_A(l,:)/A(l,:) - D2_B(l,:)/B(l,:) - 2.d0*A(l,:)*D1_Deltar(l,:) &
+               - 2.d0*(D1_A(l,:)/A(l,:))**2 + (D1_B(l,:)/B(l,:))**2) &
+               + half*D1_A(l,:)*D1_B(l,:)/A(l,:)/B(l,:) &
+               + (D1_A(l,:)/A(l,:) - 4.d0*third*A(l,:)*D1_B(l,:)/B(l,:)**2)/r(l,:) &
+               + two*third*lambda(l,:) + 4.d0*third*(r(l,:)*psi2(l,:)*DD_phir(l,:) &
+               - half*D1_phi(l,:)*(D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:))))
 
 !    Quadratic terms.
 
@@ -365,13 +361,9 @@
 !                             r
 
      if (shift/="none") then
-        !$OMP PARALLEL DO SCHEDULE(GUIDED)
-        do i=1-ghost,Nr
-           sDeltar(l,i) = sDeltar(l,i) + beta(l,i)*DA_Deltar(l,i) - Deltar(l,i)*D1_beta(l,i) &
-                + D2_beta(l,i)/A(l,i) + two/B(l,i)*DD_beta(l,i) &
-                + sigma*third*(D1_DIV_beta(l,i)/A(l,i) + two*Deltar(l,i)*DIV_beta(l,i))
-        end do
-        !$OMP END PARALLEL DO
+        sDeltar(l,:) = sDeltar(l,:) + beta(l,:)*DA_Deltar(l,:) - Deltar(l,:)*D1_beta(l,:) &
+                     + D2_beta(l,:)/A(l,:) + two/B(l,:)*DD_beta(l,:) &
+                     + sigma*third*(D1_DIV_beta(l,:)/A(l,:) + two*Deltar(l,:)*DIV_beta(l,:))
      end if
 
 !    Matter terms.  The matter contributions only appear
@@ -544,35 +536,29 @@
 
 !       Sources for Klambda2.  They are separated by type of contribution.
 
-        !$OMP PARALLEL DO SCHEDULE(GUIDED)
-        do i=1-ghost,Nr
+!       I) Terms coming from derivatives of lapse and conformal factor:
 
-!          I) Terms coming from derivatives of lapse and conformal factor:
+        sKlambda2(l,:) = - one/r(l,:)/A(l,:)/psi(l,:)**lambdapower*(DD_alphar(l,:) &
+                       + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
+                       - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:)) &
+                       *(D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:))/r(l,:)/psi4(l,:))
 
-           sKlambda2(l,i) = - one/r(l,i)/A(l,i)/psi(l,i)**lambdapower*(DD_alphar(l,i) &
-                       + (two*alpha(l,i)/psi2(l,i))*DD_phir(l,i) &
-                       - (half*D1_alpha(l,i) + alpha(l,i)*D1_phi(l,i)) &
-                       *(D1_A(l,i)/A(l,i) + D1_B(l,i)/B(l,i))/r(l,i)/psi4(l,i))
+!       II) Terms coming from the conformal Ricci tensor:
 
-!          II) Terms coming from the conformal Ricci tensor:
+        sKlambda2(l,:) = sKlambda2(l,:) + alpha(l,:)/r(l,:)/exp((4.d0+lambdapower)*phi(l,:))*DD_Deltar(l,:) &
+                       + alpha(l,:)/A(l,:)**2/psi4(l,:)*(B(l,:) &
+                       *(half*lambdapower*lambda2(l,:)*D2_phi(l,:) + 0.5d0*D2_lambda2(l,:) &
+                       + lambdapower*D1_lambda2(l,:)*D1_phi(l,:) + half*lambdapower**2*lambda2(l,:)*D1_phi(l,:)**2) &
+                       + (A(l,:) + 2.d0*B(l,:))/r(l,:)*(lambdapower*lambda2(l,:)*D1_phi(l,:) + D1_lambda2(l,:)) &
+                       + D1_A(l,:)/r(l,:)**2/psi(l,:)**lambdapower*(0.75d0*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:)) &
+                       - 2.d0*A(l,:)/B(l,:)/r(l,:)*lambda2(l,:)*D1_B(l,:)) &
+                       - alpha(l,:)*B(l,:)/A(l,:)/psi4(l,:)*Deltar(l,:) &
+                       *(half*lambdapower*lambda2(l,:)*D1_phi(l,:) + half*D1_lambda2(l,:) + lambda2(l,:)/r(l,:)) &
+                       + exp((lambdapower-4.d0)*phi(l,:))*alpha(l,:)*B(l,:)*(lambda2(l,:)/A(l,:))**2
 
-           sKlambda2(l,i) = sKlambda2(l,i) + alpha(l,i)/r(l,i)/exp((4.d0+lambdapower)*phi(l,i))*DD_Deltar(l,i) &
-                       + alpha(l,i)/A(l,i)**2/psi4(l,i)*(B(l,i) &
-                       *(half*lambdapower*lambda2(l,i)*D2_phi(l,i) + 0.5d0*D2_lambda2(l,i) &
-                       + lambdapower*D1_lambda2(l,i)*D1_phi(l,i) + half*lambdapower**2*lambda2(l,i)*D1_phi(l,i)**2) &
-                       + (A(l,i) + 2.d0*B(l,i))/r(l,i)*(lambdapower*lambda2(l,i)*D1_phi(l,i) + D1_lambda2(l,i)) &
-                       + D1_A(l,i)/r(l,i)**2/psi(l,i)**lambdapower*(0.75d0*D1_A(l,i)/A(l,i) - D1_B(l,i)/B(l,i)) &
-                       - 2.d0*A(l,i)/B(l,i)/r(l,i)*lambda2(l,i)*D1_B(l,i)) &
-                       - alpha(l,i)*B(l,i)/A(l,i)/psi4(l,i)*Deltar(l,i) &
-                       *(half*lambdapower*lambda2(l,i)*D1_phi(l,i) + half*D1_lambda2(l,i) + lambda2(l,i)/r(l,i)) &
-                       + exp((lambdapower-4.d0)*phi(l,i))*alpha(l,i)*B(l,i)*(lambda2(l,i)/A(l,i))**2
+!       II) Quadratic terms:
 
-!          II) Quadratic terms:
-
-           sKlambda2(l,i) = sKlambda2(l,i) + (1.d0 + lambdapower/6.d0)*alpha(l,i)*trK(l,i)*Klambda2(l,i)
-
-        end do
-        !$OMP END PARALLEL DO
+        sKlambda2(l,:) = sKlambda2(l,:) + (1.d0 + lambdapower/6.d0)*alpha(l,:)*trK(l,:)*Klambda2(l,:)
 
 !       IV) Shift terms.
 
