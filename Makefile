@@ -1,6 +1,4 @@
 
-#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/Makefile,v 1.28 2024/02/27 18:29:03 malcubi Exp $
-
 ################################################
 ###   MAKEFILE FOR PROGRAM OLLINSPHERE-BIB   ###
 ################################################
@@ -127,7 +125,7 @@ else
 # -fopenmp             Use OpenMP calls for optimization.
 
 ifeq ($(FC),gfortran)
-FLAGS := -O3 -ffree-form -Jobjs -funroll-loops -fopenmp #-fallow-argument-mismatch
+FLAGS := -O3 -march=native -ffree-form -Jobjs -funroll-loops #-fopenmp -fallow-argument-mismatch
 else
 
 # Compiler and compilation flags for the f95 compiler.
