@@ -195,7 +195,8 @@
   integer unit1,unit2
   integer status(MPI_STATUS_SIZE)
 
-  real(8) tiny,aux
+  real(8) :: tiny = 1.d-40
+  real(8) :: aux
   real(8), dimension (1-ghost:Nrmax) :: var
  
   character(len=5)  filen
@@ -231,11 +232,9 @@
   end if
 
 
-! *************************************
-! ***   LOOP OVER ALL GRID LEVELS   ***
-! *************************************
-
-  tiny = 1.d-40
+! *****************************
+! ***   SAVE MERGED DATA?   ***
+! *****************************
 
 ! Do we save merged data?
 
@@ -271,7 +270,10 @@
 
   end if
 
-! Loop over all grid levels.
+
+! *************************************
+! ***   LOOP OVER ALL GRID LEVELS   ***
+! *************************************
 
   if (ll<0) then
      lmin = 0
@@ -281,17 +283,44 @@
      lmax = ll
   end if
 
+! Loop over grid levels.
+
   do l=lmin,lmax
 
-!    Processor 0 does output.
+!    File name extension.
 
-     if (rank==0) then
+     if ((size>1).and.(outparallel=="fileperproc")) then
+
+        if (l<10) then
+           if (size<10) then
+              write(filen,'(i1,a,i1)') l,'p',rank
+           else
+              write(filen,'(i1,a,i2)') l,'p',rank
+           end if
+        else
+           if (size<10) then
+              write(filen,'(i2,a,i1)') l,'p',rank
+           else
+              write(filen,'(i2,a,i2)') l,'p',rank
+           end if
+        end if
+
+     else
 
         if (l<10) then
            write(filen,'(i1)') l
         else
            write(filen,'(i2)') l
         end if
+
+     end if
+
+
+!    ********************************
+!    ***   SINGLE PROCESSOR RUN   ***
+!    ********************************
+
+     if (size==1) then
 
 !       Define output unit 1 (for different grid levels).
 
@@ -315,19 +344,15 @@
            write(unit1,"(A8,ES18.10)") '#Time = ',t(l)
         end if
 
-!       Save data from processor 0.
+!       Save data.
 
-        if (size==1) then
-           imax = Nrl(0)
-        else
-           imax = Nrl(0) - ghost
-        end if
+        imax = Nrl(0)
 
         do i=1-ghost,imax
            write(unit1,form) r(l,i),savevar(l,i)+tiny
         end do
 
-!       Save data from processor 0 to merged file.
+!       Save data to merged file.
 
         if ((savemerged).and.(ll<0)) then
 
@@ -343,44 +368,6 @@
 
         end if
 
-!       Iterate over other processors.
-
-        do p=1,size-1
-
-!          Receive and save data from other processors.
-
-           call MPI_RECV(var,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-
-           if (p==size-1) then
-              imax = Nrl(p)
-           else
-              imax = Nrl(p) - ghost
-           end if
-
-           aux = dr(l)*(Nmin(p)-Nmin(0))
-
-           do i=1,imax
-              write(unit1,form) r(l,i)+aux,var(i)+tiny ! + 0.01*p
-           end do
-
-!          Save data from processor p to merged file.
-
-           if ((savemerged).and.(ll<0)) then
-
-              if ((l==Nl-1).or.(rleft(p,l)>rright(size-1,l+1))) then
-                 imin = 1
-              else
-                 imin = int((rright(size-1,l+1)-rleft(p,l))/dr(l))
-              end if
-
-              do i=imin,imax
-                 write(unit2,form) r(l,i)+aux,var(i)+tiny ! + 0.01*p
-              end do
-
-           end if
-
-        end do
-
 !       Leave two blank spaces before next time.
 !       The reason to leave two spaces is that 'gnuplot' asks
 !       for two spaces to distinguish different records.
@@ -394,13 +381,178 @@
            close(unit1)
         end if
 
-!    Other processors send data to processor 0.
+
+!    **************************************
+!    ***   PARALLEL RUN - SINGLE FILE   ***
+!    **************************************
+
+!    Processor 0 does output.
+
+     else if (outparallel=="singlefile") then
+
+        if (rank==0) then
+
+!          Define output unit 1 (for different grid levels).
+
+           unit1 = 11000 + l + Nl*(nvar-1)
+
+!          Open file.
+
+           if (filestatus=='replace') then
+              open(unit1,file=trim(outdir)//'/'//varname//trim(filen)//'.rl',form='formatted', &
+              status='replace')
+           else if (closefiles) then
+              open(unit1,file=trim(outdir)//'/'//varname//trim(filen)//'.rl',form='formatted', &
+              status='old',position='append')
+           end if
+
+!          Write current time.
+
+           if (commenttype=='xgraph') then
+              write(unit1,"(A8,ES18.10)") '"Time = ',t(l)
+           else
+              write(unit1,"(A8,ES18.10)") '#Time = ',t(l)
+           end if
+
+!          Save data from processor 0.
+
+           imax = Nrl(0) - ghost
+
+           do i=1-ghost,imax
+              write(unit1,form) r(l,i),savevar(l,i)+tiny
+           end do
+
+!          Save data from processor 0 to merged file.
+
+           if ((savemerged).and.(ll<0)) then
+
+              if (l==Nl-1) then
+                 imin = 1-ghost
+              else
+                 imin = int((rright(size-1,l+1)-rleft(0,l))/dr(l))
+              end if
+
+              do i=imin,imax
+                 write(unit2,"(2ES18.10)") r(l,i),savevar(l,i)+tiny
+              end do
+
+           end if
+
+!          Iterate over other processors.
+
+           do p=1,size-1
+
+!             Receive and save data from other processors.
+
+              call MPI_RECV(var,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+
+              if (p==size-1) then
+                 imax = Nrl(p)
+              else
+                 imax = Nrl(p) - ghost
+              end if
+
+              aux = dr(l)*(Nmin(p)-Nmin(0))
+
+              do i=1,imax
+                 write(unit1,form) r(l,i)+aux,var(i)+tiny ! + 0.01*p
+              end do
+
+!             Save data from processor p to merged file.
+
+              if ((savemerged).and.(ll<0)) then
+
+                 if ((l==Nl-1).or.(rleft(p,l)>rright(size-1,l+1))) then
+                    imin = 1
+                 else
+                    imin = int((rright(size-1,l+1)-rleft(p,l))/dr(l))
+                 end if
+
+                 do i=imin,imax
+                    write(unit2,form) r(l,i)+aux,var(i)+tiny ! + 0.01*p
+                 end do
+
+               end if
+
+           end do
+
+!          Leave two blank spaces before next time.
+!          The reason to leave two spaces is that 'gnuplot' asks
+!          for two spaces to distinguish different records.
+
+           write(unit1,*)
+           write(unit1,*)
+
+!          Close files.
+
+           if ((closefiles).or.(step==Nt)) then
+              close(unit1)
+           end if
+
+!       Other processors send data to processor 0.
+
+        else
+
+           call MPI_SEND(savevar(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+
+        end if
+
+
+!    ********************************************
+!    ***   PARALLEL RUN - ONE FILE PER PROC   ***
+!    ********************************************
 
      else
 
-        call MPI_SEND(savevar(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+!       Open file.
+
+        unit1 = rank+1
+
+        if (filestatus=='replace') then
+           open(unit1,file=trim(outdir)//'/'//varname//trim(filen)//'.rl',form='formatted', &
+           status='replace')
+        else if (closefiles) then
+           open(unit1,file=trim(outdir)//'/'//varname//trim(filen)//'.rl',form='formatted', &
+           status='old',position='append')
+        end if
+
+!       Write current time.
+
+        if (commenttype=='xgraph') then
+           write(unit1,"(A8,ES18.10)") '"Time = ',t(l)
+        else
+           write(unit1,"(A8,ES18.10)") '#Time = ',t(l)
+        end if
+
+!       Save data.
+
+        if (rank==size-1) then
+           imax = Nrl(rank)
+        else
+           imax = Nrl(rank) - ghost
+        end if
+
+        do i=1-ghost,imax
+           write(unit1,form) r(l,i),savevar(l,i)+tiny
+        end do
+
+!       Leave two blank spaces before next time.
+!       The reason to leave two spaces is that 'gnuplot' asks
+!       for two spaces to distinguish different records.
+
+        write(unit1,*)
+        write(unit1,*)
+
+!       Close file
+
+        close(unit1)
 
      end if
+
+
+! *************************************
+! ***   END LOOP OVER GRID LEVELS   ***
+! *************************************
 
   end do
 

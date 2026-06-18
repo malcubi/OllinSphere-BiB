@@ -20,6 +20,7 @@
   implicit none
 
   logical firstcall
+  logical outpar
 
   integer i,j,l
   integer nvars
@@ -166,6 +167,16 @@
 ! ***   SAVE DATA   ***
 ! *********************
 
+! At the moment checkpoint is always done
+! on processor 0. I might change that later.
+
+  outpar = .false.
+
+  if (outparallel=="fileperproc") then
+     outpar = .true.
+     outparallel = "singlefile"
+  end if
+
 ! For a checkpoint we always replace the old files.
 
   filestatus = 'replace'
@@ -245,6 +256,13 @@
      end do
 
   end do
+
+! For parallel output return the variable
+! "outparallel" to its original value.
+
+  if (outpar) then
+     outparallel="fileperproc"
+  end if
 
 
 ! ***************

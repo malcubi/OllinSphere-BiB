@@ -140,7 +140,9 @@
 ! nvars0D:       Number of variables with 0D output (should not be set in parameter file).
 ! nvars1D:       Number of variables with 1D output (should not be set in parameter file).
 !
+! outparallel:   Type of parallel output (singlefile,fileperproc).
 ! commenttype:   Type of comment lines on files (xgraph,gnuplot).
+!
 ! norm_rmin:     Minimum value of r for calculating norms.
 ! output_r1:     Point for 0D output.
 
@@ -163,7 +165,8 @@
   character(1000) :: outvars1D = "alpha"      ! multiple
   character(1000) :: checkvars = "r"          ! multiple
 
-  character(1000) :: commenttype = "gnuplot"  ! range = (xgraph,gnuplot)
+  character(1000) :: outparallel = "singlefile" ! range = (singlefile,fileperproc)
+  character(1000) :: commenttype = "gnuplot"    ! range = (xgraph,gnuplot)
 
 
 ! **********************
@@ -933,7 +936,6 @@
   real(8) :: mp5_eps   = 1e-6                   ! A small tolerance used in monotonicity test
   logical :: mp5_scale_eps = .false.            ! .false. if epsilon is abolute ; 
                                                 ! .true. if it is relative to the local variables
-
 ! TOV initial data:
 !
 ! TOV_rho0:          Central density of the star.
