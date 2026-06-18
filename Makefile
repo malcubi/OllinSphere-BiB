@@ -125,7 +125,7 @@ else
 # -fopenmp             Use OpenMP calls for optimization.
 
 ifeq ($(FC),gfortran)
-FLAGS := -O3 -march=native -ffree-form -Jobjs -funroll-loops #-fopenmp -fallow-argument-mismatch
+FLAGS := -Ofast -march=native -ffree-form -Jobjs -funroll-loops #-fopenmp -fallow-argument-mismatch
 else
 
 # Compiler and compilation flags for the f95 compiler.
