@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/main.f90,v 1.21 2022/07/12 23:58:01 malcubi Exp $
 
 ! ********************************
 ! ***   PROGRAM  OLLINSPHERE   ***
