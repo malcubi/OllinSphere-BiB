@@ -40,9 +40,9 @@
      call die
   end if
 
-! Por the coarsest grid we aply dissipation as far as possibile,
-! but for finer grids we stop further away since otherwise
-! we mess up with the interpolation from the coarse grid.
+! For the coarsest grid we apply dissipation as far as possible,
+! but for finer grids we stop further away since otherwise we
+! can mess up the interpolation from the coarse grid.
 
   if (l==0) then
      imax = Nr - ghost
