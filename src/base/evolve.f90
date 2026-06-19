@@ -56,8 +56,10 @@
 
 ! Find grid point positions.
 
+  r = 0.d0
+
   do l=0,Nl-1
-     do i=1-ghost,Nrmax
+     do i=1-ghost,Nr
         r(l,i) = (dble(Nmin(rank) + i) - half)*dr(l)
      end do
   end do
