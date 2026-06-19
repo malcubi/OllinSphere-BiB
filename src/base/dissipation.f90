@@ -47,7 +47,7 @@
   if (l==0) then
      imax = Nr - ghost
   else
-     imax = Nt - 2*ghost
+     imax = Nr - 2*ghost
   end if
 
 
