@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/dissipation.f90,v 1.11 2022/07/25 23:47:28 malcubi Exp $
 
   subroutine dissipation(l,sym,diss)
 
@@ -51,7 +50,7 @@
 !    Interior points:  Second order evolution
 !    requires fourth order dissipation.
 
-     do i=1,Nr-2*ghost
+     do i=1,Nr-ghost
         sourcevar(l,i) = sourcevar(l,i) - diss*idt*(6.d0*dissipvar(l,i) &
                        - 4.d0*(dissipvar(l,i+1) + dissipvar(l,i-1)) &
                        +      (dissipvar(l,i+2) + dissipvar(l,i-2)))/6.d0
@@ -67,7 +66,7 @@
 !    Interior points:  Fourth order evolution
 !    requires sixth order dissipation.
 
-     do i=1,Nr-2*ghost
+     do i=1,Nr-ghost
         sourcevar(l,i) = sourcevar(l,i) - diss*idt*(20.d0*dissipvar(l,i) &
                        - 15.d0*(dissipvar(l,i+1) + dissipvar(l,i-1)) &
                        +  6.d0*(dissipvar(l,i+2) + dissipvar(l,i-2)) &
@@ -84,7 +83,7 @@
 !    Interior points:  Sixth order evolution
 !    requires eighth order dissipation.
 
-     do i=1,Nr-2*ghost
+     do i=1,Nr-ghost
         sourcevar(l,i) = sourcevar(l,i) - diss*idt*(70.d0*dissipvar(l,i) &
                        - 56.d0*(dissipvar(l,i+1) + dissipvar(l,i-1)) &
                        + 28.d0*(dissipvar(l,i+2) + dissipvar(l,i-2)) &
@@ -102,7 +101,7 @@
 !    Interior points:  Eighth order evolution
 !    requires tenth order dissipation.
 
-     do i=1,Nr-2*ghost
+     do i=1,Nr-ghost
         sourcevar(l,i) = sourcevar(l,i) - diss*idt*(252.d0*dissipvar(l,i) &
                        - 210.d0*(dissipvar(l,i+1) + dissipvar(l,i-1)) &
                        + 120.d0*(dissipvar(l,i+2) + dissipvar(l,i-2)) &
@@ -130,3 +129,5 @@
 ! ***************
 
   end subroutine dissipation
+
+
