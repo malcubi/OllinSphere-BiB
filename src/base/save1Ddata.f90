@@ -346,9 +346,7 @@
 
 !       Save data.
 
-        imax = Nrl(0)
-
-        do i=1-ghost,imax
+        do i=1-ghost,Nr
            write(unit1,form) r(l,i),savevar(l,i)+tiny
         end do
 
@@ -416,7 +414,7 @@
 
 !          Save data from processor 0.
 
-           imax = Nrl(0) - ghost
+           imax = Nr - ghost
 
            do i=1-ghost,imax
               write(unit1,form) r(l,i),savevar(l,i)+tiny
@@ -452,10 +450,9 @@
                  imax = Nrl(p) - ghost
               end if
 
-              aux = dr(l)*(Nmin(p)-Nmin(0))
-
               do i=1,imax
-                 write(unit1,form) r(l,i)+aux,var(i)+tiny ! + 0.01*p
+                 aux = (dble(Nmin(p) + i) - 0.5d0)*dr(l)
+                 write(unit1,form) aux,var(i)+tiny ! + 0.01*p
               end do
 
 !             Save data from processor p to merged file.
@@ -493,7 +490,8 @@
 
         else
 
-           call MPI_SEND(savevar(l,:),Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
+           var(:) = savevar(l,:)
+           call MPI_SEND(var,Naux,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
 
         end if
 
