@@ -54,9 +54,9 @@
 ! sources of the geometric variables.
 
   if (bssnflavor=='eulerian') then
-     sigma = 0.0
+     sigma = 0.d0
   else if (bssnflavor=='lagrangian') then
-     sigma = 1.0
+     sigma = 1.d0
   end if
 
 
@@ -250,8 +250,8 @@
 ! in equation (102). The last term of that equation in the paper
 ! has 16*pi instead of the correct coefficient (16/3)*pi.
 
-  if (.true.) then
-  !if (.not.noKTA) then
+  !if (.true.) then
+  if (.not.noKTA) then
 
 !    Terms coming from second derivatives of the lapse.
 !    The expression used below is equivalent to the one commented out,
