@@ -67,8 +67,7 @@
 
 ! Only the processor at the physical boundary applies boundary conditions.
 
-  if ((rank==size-1).and.(l==0)) then
-
+  if ((l==0).and.(rank==size-1)) then
 
 !    ***********************
 !    ***   EIGENSPEEDS   ***
@@ -222,9 +221,9 @@
      end if
 
 
-!    ************************************
-!    ***   BOUNDARY FOR DELTA/DTBETA  ***
-!    ************************************
+!    *************************************
+!    ***   BOUNDARY FOR DELTA/DTBETA   ***
+!    *************************************
 
 !    Radiative boundary for dtbeta.
 !
