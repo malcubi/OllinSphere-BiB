@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/sources_lapse.f90,v 1.35 2023/03/13 17:47:51 malcubi Exp $
 
   subroutine sources_lapse(l,dtw)
 
