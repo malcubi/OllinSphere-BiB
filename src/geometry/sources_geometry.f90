@@ -10,7 +10,6 @@
 
 ! Include modules.
 
-  use procinfo
   use param
   use arrays
 
@@ -330,15 +329,12 @@
 !             + 6 KTA d phi  +  r ( d B / B + 2/r ) Klambda  - 8 pi JA)
 !                      r             r
 
-!    Terms coming from definition of Deltar.
+!    Terms coming from definition of Deltar and the momentum constraints.
 
-     sDeltar(l,:) = alpha(l,:)*(two*KTA(l,:)*Deltar(l,:) - 4.0d0*r(l,:)*Klambda(l,:)/B(l,:)) &
-             - two/A(l,:)*(KTA(l,:)*D1_alpha(l,:) + alpha(l,:)*D1_KTA(l,:))
-
-!    Terms coming from adding the momentum constraint.
-
-     sDeltar(l,:) = sDeltar(l,:) + eta*alpha(l,:)/A(l,:)*(D1_KTA(l,:) - two*third*D1_trK(l,:) &
-             + 6.d0*KTA(l,:)*D1_phi(l,:) + r(l,:)*(r(l,:)*D1_B(l,:)/B(l,:) + two)*Klambda(l,:))
+     sDeltar(l,:) = 2.d0*alpha(l,:)*(KTA(l,:)*Deltar(l,:) - 2.d0*r(l,:)*Klambda(l,:)/B(l,:)) &
+                  - (2.d0*KTA(l,:)*D1_alpha(l,:) + (2.d0-eta)*alpha(l,:)*D1_KTA(l,:))/A(l,:) &
+                  + (eta*alpha(l,:)/A(l,:))*(-2.d0*third*D1_trK(l,:) &
+                  + 6.d0*KTA(l,:)*D1_phi(l,:) + r(l,:)*(r(l,:)*D1_B(l,:)/B(l,:) + 2.d0)*Klambda(l,:))
 
 !    Terms for Z4c formulation. This term seems to cause an instability,
 !    so I commented it out. Not sure why this is, or what "theoretical"
@@ -431,13 +427,13 @@
 !                -  N/6 sigma lambda2 DIV_beta
 
         slambda2(l,:) = two*alpha(l,:)*A(l,:)/B(l,:)*Klambda2(l,:) &
-                      + (lambdapower/6.d0)*alpha(l,:)*lambda2(l,:)*trK(l,:)
+                      + (dble(lambdapower)/6.d0)*alpha(l,:)*lambda2(l,:)*trK(l,:)
 
         if (shift/="none") then
            slambda2(l,:) = slambda2(l,:) + beta(l,:)*DA_lambda2(l,:) &
                          + two/r(l,:)*(beta(l,:)*lambda2(l,:) &
                          - (A(l,:)/B(l,:)/psi(l,:)**lambdapower)*DD_beta(l,:)) &
-                         - lambdapower/6.d0*sigma*lambda2(l,:)*DIV_beta(l,:)
+                         - dble(lambdapower)/6.d0*sigma*lambda2(l,:)*DIV_beta(l,:)
         end if
 
      end if
@@ -471,8 +467,8 @@
 !                                   r                   r         r         r
 
         sKlambda(l,:) = - one/r(l,:)/A(l,:)*(DD_alphar(l,:) + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
-              - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:))*(D1_A(l,:)/A(l,:) &
-              + D1_B(l,:)/B(l,:))/r(l,:)/psi4(l,:))
+                      - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:))*(D1_A(l,:)/A(l,:) &
+                      + D1_B(l,:)/B(l,:))/r(l,:)/psi4(l,:))
 
 !       II) Terms coming from the conformal Ricci tensor. These terms are
 !       quite complicated since one needs to regularize them and rewrite
@@ -492,10 +488,10 @@
 !                                                  r
 
         sKlambda(l,:) = sKlambda(l,:) + alpha(l,:)/A(l,:)/psi4(l,:) &
-              *(0.5d0*B(l,:)/A(l,:)*D2_lambda(l,:) + A(l,:)*DD_Deltar(l,:)/r(l,:) &
-              + D1_lambda(l,:)/r(l,:)*(1.d0 + two*B(l,:)/A(l,:) - 0.5d0*r(l,:)*B(l,:)*Deltar(l,:)) &
-              + D1_A(l,:)/(A(l,:)*r(l,:)**2)*(0.75d0*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:)) &
-              - lambda(l,:)/r(l,:)*(B(l,:)*Deltar(l,:) + two*D1_B(l,:)/B(l,:)) + B(l,:)*lambda(l,:)**2/A(l,:))
+                      *(0.5d0*B(l,:)/A(l,:)*D2_lambda(l,:) + A(l,:)*DD_Deltar(l,:)/r(l,:) &
+                      + D1_lambda(l,:)/r(l,:)*(1.d0 + two*B(l,:)/A(l,:) - 0.5d0*r(l,:)*B(l,:)*Deltar(l,:)) &
+                      + D1_A(l,:)/(A(l,:)*r(l,:)**2)*(0.75d0*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:)) &
+                      - lambda(l,:)/r(l,:)*(B(l,:)*Deltar(l,:) + two*D1_B(l,:)/B(l,:)) + B(l,:)*lambda(l,:)**2/A(l,:))
 
 !       III) Quadratic terms:  sKlambda = sKlambda + alpha trK Klambda
 
@@ -545,27 +541,27 @@
 
 !       II) Terms coming from the conformal Ricci tensor:
 
-        sKlambda2(l,:) = sKlambda2(l,:) + alpha(l,:)/r(l,:)/exp((4.d0+lambdapower)*phi(l,:))*DD_Deltar(l,:) &
+        sKlambda2(l,:) = sKlambda2(l,:) + alpha(l,:)/r(l,:)/exp((4.d0+dble(lambdapower))*phi(l,:))*DD_Deltar(l,:) &
                        + alpha(l,:)/A(l,:)**2/psi4(l,:)*(B(l,:) &
-                       *(half*lambdapower*lambda2(l,:)*D2_phi(l,:) + 0.5d0*D2_lambda2(l,:) &
-                       + lambdapower*D1_lambda2(l,:)*D1_phi(l,:) + half*lambdapower**2*lambda2(l,:)*D1_phi(l,:)**2) &
-                       + (A(l,:) + 2.d0*B(l,:))/r(l,:)*(lambdapower*lambda2(l,:)*D1_phi(l,:) + D1_lambda2(l,:)) &
+                       *(half*dble(lambdapower)*lambda2(l,:)*D2_phi(l,:) + 0.5d0*D2_lambda2(l,:) &
+                       + dble(lambdapower)*D1_lambda2(l,:)*D1_phi(l,:) + half*dble(lambdapower)**2*lambda2(l,:)*D1_phi(l,:)**2) &
+                       + (A(l,:) + 2.d0*B(l,:))/r(l,:)*(dble(lambdapower)*lambda2(l,:)*D1_phi(l,:) + D1_lambda2(l,:)) &
                        + D1_A(l,:)/r(l,:)**2/psi(l,:)**lambdapower*(0.75d0*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:)) &
                        - 2.d0*A(l,:)/B(l,:)/r(l,:)*lambda2(l,:)*D1_B(l,:)) &
                        - alpha(l,:)*B(l,:)/A(l,:)/psi4(l,:)*Deltar(l,:) &
-                       *(half*lambdapower*lambda2(l,:)*D1_phi(l,:) + half*D1_lambda2(l,:) + lambda2(l,:)/r(l,:)) &
-                       + exp((lambdapower-4.d0)*phi(l,:))*alpha(l,:)*B(l,:)*(lambda2(l,:)/A(l,:))**2
+                       *(half*dble(lambdapower)*lambda2(l,:)*D1_phi(l,:) + half*D1_lambda2(l,:) + lambda2(l,:)/r(l,:)) &
+                       + exp((dble(lambdapower)-4.d0)*phi(l,:))*alpha(l,:)*B(l,:)*(lambda2(l,:)/A(l,:))**2
 
 !       II) Quadratic terms:
 
-        sKlambda2(l,:) = sKlambda2(l,:) + (1.d0 + lambdapower/6.d0)*alpha(l,:)*trK(l,:)*Klambda2(l,:)
+        sKlambda2(l,:) = sKlambda2(l,:) + (1.d0 + dble(lambdapower)/6.d0)*alpha(l,:)*trK(l,:)*Klambda2(l,:)
 
 !       IV) Shift terms.
 
         if (shift/="none") then
            sKlambda2(l,:) = sKlambda2(l,:) + beta(l,:)*(DA_Klambda2(l,:) &
                           + 2.d0*Klambda2(l,:)/r(l,:)) &
-                          - lambdapower/6.d0*sigma*Klambda2(l,:)*DIV_beta(l,:)
+                          - dble(lambdapower)/6.d0*sigma*Klambda2(l,:)*DIV_beta(l,:)
         end if
 
 !       V) Matter terms:
