@@ -280,7 +280,7 @@
 !       (processors that don't own that point will just return 0).
 !       The MPI_ALLREDUCE call above makes all processors end up
 !       with the same boundary value (aux2), but this doesn't matter
-!       as we later only calculate bpundary values for the processor
+!       as we later only calculate boundary values for the processor
 !       with rank=size-1.
 
         if (tp==tl) then
@@ -320,9 +320,9 @@
      end if
 
 
-!    *************************************************************
-!    ***   UPDATE AUXILIARY VARIABLES FOR MATTER AND GEOMETRY  ***
-!    *************************************************************
+!    **************************************************************
+!    ***   UPDATE AUXILIARY VARIABLES FOR MATTER AND GEOMETRY   ***
+!    **************************************************************
 
 !    Auxiliary quantities for matter and geometry.
 
