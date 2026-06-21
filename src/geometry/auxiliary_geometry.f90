@@ -11,7 +11,6 @@
   use arrays
   use derivatives
   use derivadvect
-  use procinfo
 
 ! Extra variables.
 
@@ -71,16 +70,16 @@
 
   diffvar => psi
 
-  if (dorigin=="onesided") then
-     D1_psi(l,:) = diff1(l,+1,.true.)
-     D2_psi(l,:) = diff2(l,+1,.true.)
-  else
-     D1_psi(l,:) = diff1(l,+1)
-     D2_psi(l,:) = diff2(l,+1)
-  end if
+  !if (dorigin=="onesided") then
+  !   D1_psi(l,:) = diff1(l,+1,.true.)
+  !   D2_psi(l,:) = diff2(l,+1,.true.)
+  !else
+  !   D1_psi(l,:) = diff1(l,+1)
+  !   D2_psi(l,:) = diff2(l,+1)
+  !end if
 
-  !D1_psi(l,:) = psi(l,:)*D1_phi(l,:)
-  !D2_psi(l,:) = psi(l,:)*(D1_phi(l,:)**2 + D2_phi(l,:))
+  D1_psi(l,:) = psi(l,:)*D1_phi(l,:)
+  D2_psi(l,:) = psi(l,:)*(D1_phi(l,:)**2 + D2_phi(l,:))
 
 !                            2
 ! DD_phir = d ( d phi / r psi  )
@@ -241,13 +240,6 @@
         end if
 
      else
-
-        if (rank==0) then
-           print *
-           print *, 'Slicings of type "cosmo" must have cosmic_run=.true.'
-           print *, 'Aborting! (subroutine auxiliary_geometry.f90)'
-           print *
-        end if
 
         call die
 
