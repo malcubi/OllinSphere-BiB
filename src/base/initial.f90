@@ -98,6 +98,10 @@
 
   end if
 
+! Metric determinant.
+
+  AB2 = A*B**2
+
 ! Extrinsic curvature.
 
   trK = zero
@@ -1260,10 +1264,13 @@
   D1_Klambda = - two*Klambda/r + (D1_KTA - D1_KTB)/r**2
 
   if (regular2) then
-     lambda2  =  lambda/exp(lambdapower*phi)
-     Klambda2 = Klambda/exp(lambdapower*phi)
-     D1_lambda2  =  D1_lambda/exp(lambdapower*phi) - lambdapower*lambda2*D1_phi
-     D1_Klambda2 = D1_Klambda/exp(lambdapower*phi) - lambdapower*Klambda2*D1_phi
+
+     lambda2  =  lambda/exp(dble(lambdapower)*phi)
+     Klambda2 = Klambda/exp(dble(lambdapower)*phi)
+
+     D1_lambda2  =  D1_lambda/exp(dble(lambdapower)*phi) - dble(lambdapower)*lambda2*D1_phi
+     D1_Klambda2 = D1_Klambda/exp(dble(lambdapower)*phi) - dble(lambdapower)*Klambda2*D1_phi
+
   end if
 
 
