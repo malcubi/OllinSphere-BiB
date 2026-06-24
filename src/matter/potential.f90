@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/potential.f90,v 1.20 2023/03/02 18:43:10 malcubi Exp $
 
   subroutine potential(l)
 

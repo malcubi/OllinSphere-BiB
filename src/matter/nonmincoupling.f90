@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/nonmincoupling.f90,v 1.2 2021/05/07 00:18:11 malcubi Exp $
 
   subroutine nonmincoupling
 

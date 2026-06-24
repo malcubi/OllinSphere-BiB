@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/sources_matter.f90,v 1.19 2023/08/17 20:19:23 malcubi Exp $
 
   subroutine sources_matter(l)
 

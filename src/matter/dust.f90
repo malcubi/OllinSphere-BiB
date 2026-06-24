@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/dust.f90,v 1.7 2025/09/24 17:26:49 malcubi Exp $
 
   subroutine sources_dust(l)
 

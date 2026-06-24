@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/procaintegral.f90,v 1.4 2025/11/14 18:28:16 malcubi Exp $
 
   subroutine procaintegral
 
