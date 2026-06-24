@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/difeq.f90,v 1.4 2024/04/16 20:38:46 malcubi Exp $
 
   subroutine difeq(kk,kk1,kk2,jsf,is1,isf,indexv,ss,rr,yy,ll)
 

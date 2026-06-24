@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/die.f90,v 1.3 2021/11/04 18:44:20 malcubi Exp $
 
   subroutine die
 

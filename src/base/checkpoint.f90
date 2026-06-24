@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/checkpoint.f90,v 1.21 2024/04/16 20:33:32 malcubi Exp $
 
   subroutine checkpointsave
 

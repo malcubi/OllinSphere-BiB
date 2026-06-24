@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/functions.f90,v 1.8 2022/05/10 16:41:39 malcubi Exp $
 
 ! ************************************
 ! ***   VARIOUS USEFUL FUNCTIONS   ***

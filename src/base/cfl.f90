@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/cfl.f90,v 1.15 2023/03/09 23:29:22 malcubi Exp $
 
   subroutine cfl(step)
 
