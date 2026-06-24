@@ -793,7 +793,7 @@
 
 !    Output transformed frequency.
 
-     omega_new = omega_new + cproca_q*Ffac
+     omega_new = omega_new - dirac_q*Ffac
 
      if (rank==0) then
         write(*,'(A,ES23.16)') ' Omega (gauge transformed) = ', omega_new
@@ -806,10 +806,10 @@
 !    ***********************************
 
 !    Here we add a gaussian perturbation to the solution for
-!    the real part of proca_F, or if we prefer to imaginary
-!    part of proca_G.  Remember that in order to guarantee that
-!    the momentum density is zero we must have proca_F purely
-!    real and proca_G purely imaginary (we could probably
+!    the real part of dirac_F, or if we prefer to imaginary
+!    part of dirac_G.  Remember that in order to guarantee that
+!    the momentum density is zero we must have dirac_F purely
+!    real and dirac_G purely imaginary (we could probably
 !    consider more general perturbations, but at the moment we
 !    only allow these ones).  The amplitudes of the perturbations
 !    are rescaled with the maximum of dirac_FR and dirac_GI.
