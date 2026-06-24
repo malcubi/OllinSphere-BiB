@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/rtransform.f90,v 1.20 2025/09/24 17:17:42 malcubi Exp $
 
   subroutine rtransform
 

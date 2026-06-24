@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/radialfunctions.f90,v 1.6 2021/09/03 17:17:19 malcubi Exp $
 
   module radialfunctions
 
