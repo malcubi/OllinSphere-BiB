@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/idata_trumpetBH.f90,v 1.23 2022/07/12 23:58:58 malcubi Exp $
 
   subroutine idata_trumpetBH
 

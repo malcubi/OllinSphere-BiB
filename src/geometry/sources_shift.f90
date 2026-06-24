@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/sources_shift.f90,v 1.38 2026/02/10 20:05:44 malcubi Exp $
 
   subroutine sources_shift(l)
 

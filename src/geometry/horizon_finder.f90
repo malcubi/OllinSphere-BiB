@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/horizon_finder.f90,v 1.21 2023/05/17 22:55:19 malcubi Exp $
 
   subroutine horizon_finder
 
