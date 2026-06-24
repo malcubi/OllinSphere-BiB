@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-#$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/prl/assign.pl,v 1.2 2018/08/31 16:16:19 malcubi Exp $
-
 print "CREATING FILE FOR PARAMETER ASSIGNMENT ...\n\n";
 
 # Open outfile assign.f90
