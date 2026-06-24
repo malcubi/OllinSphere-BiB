@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/matter/idata_dustshell.f90,v 1.6 2025/03/04 19:37:51 malcubi Exp $
 
   subroutine idata_dustshell
 
