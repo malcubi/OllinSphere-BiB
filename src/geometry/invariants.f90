@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/invariants.f90,v 1.1 2019/08/27 17:15:46 malcubi Exp $
 
   subroutine invariants
 

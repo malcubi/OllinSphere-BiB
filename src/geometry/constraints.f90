@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/constraints.f90,v 1.13 2022/08/03 19:39:17 malcubi Exp $
 
   subroutine constraints
 

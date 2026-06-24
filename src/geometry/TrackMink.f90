@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/TrackMink.f90,v 1.2 2025/11/14 18:49:39 malcubi Exp $
 
   subroutine trackmink(l)
 

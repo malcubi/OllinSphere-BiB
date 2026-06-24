@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/geometry/constraintbound.f90,v 1.32 2023/10/04 19:42:33 malcubi Exp $
 
   subroutine constraintbound(l)
 
