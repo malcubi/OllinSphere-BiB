@@ -16,7 +16,8 @@
 !
 ! where R is the areal radius of the 2-sphere at a given (t,r),
 ! and eps^AB is the Levi-Civita tensor on the 2-sphere.
-! Using K^A, we can define the vector S^mu
+!
+! Using K^A, we can define the vector S^mu:
 !
 ! S^mu  =  T^{mu nu} K_nu
 !
