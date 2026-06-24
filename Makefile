@@ -223,7 +223,7 @@ OBJS := $(notdir $(FILES))
 # since they might very well not exist.
 
 OBJS += assign.o arrays.o accumulate.o allocatearrays.o grabarray.o \
-        saveold.o simpleboundary.o symmetries.o syncall.o update.o
+        saveold.o simpleboundary.o symmetries.o syncgeo.o syncmatt.o update.o
 
 OBJS := $(filter-out $(MODS),$(sort $(OBJS)))
 
@@ -286,7 +286,7 @@ perlscripts : .perl
          src/auto/accumulate.f90 src/auto/allocatearrays.f90 \
          src/auto/grabarray.f90 src/auto/saveold.f90 \
          src/auto/simpleboundary.f90 src/auto/symmetries.f90 \
-         src/auto/syncall.f90 src/auto/update.f90 \
+         src/auto/syncgeo.f90 src/auto/syncmatt.f90 src/auto/update.f90 \
          src/auto/boundinterp.inc src/auto/restrict_copy.inc \
          src/auto/restrict_send.inc src/auto/restrict_recv.inc 
 	@ /bin/rm -f src/auto/*.f90
