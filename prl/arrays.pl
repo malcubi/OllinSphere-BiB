@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-
+!
 # This perl script creates the subroutines:
 #
 # arrays.f90
@@ -9,7 +9,8 @@
 # saveold.f90
 # simpleboundary.f90
 # symmetries.f90
-# syncall.f90
+# syncmatt.f90
+# syncgeo.f90
 # update.f90
 #
 # Plus the include files:
@@ -30,7 +31,8 @@ open(FILE_GRABARRAY,">src/auto/grabarray.f90") or die "Can't open grabarrays.f90
 open(FILE_SAVEOLD,">src/auto/saveold.f90") or die "Can't open saveold.f90: $!";
 open(FILE_SIMPLEBOUNDARY,">src/auto/simpleboundary.f90") or die "Can't open simpleboundary.f90: $!";
 open(FILE_SYMMETRIES,">src/auto/symmetries.f90") or die "Can't open symmetries.f90: $!";
-open(FILE_SYNCALL,">src/auto/syncall.f90") or die "Can't open syncall.f90: $!";
+open(FILE_SYNCMATT,">src/auto/syncmatt.f90") or die "Can't open syncmatt.f90: $!";
+open(FILE_SYNCGEO,">src/auto/syncgeo.f90") or die "Can't open syncgeo.f90: $!";
 open(FILE_UPDATE,">src/auto/update.f90") or die "Can't open update.f90: $!";
 
 open(FILE_BOUNDINTERP,">src/auto/boundinterp.inc") or die "Can't open boundinterp.inc: $!";
@@ -124,16 +126,26 @@ print FILE_SYMMETRIES "  logical contains\n\n";
 print FILE_SYMMETRIES "  integer i,l\n\n";
 print FILE_SYMMETRIES "  do i=1,ghost\n\n";
 
-# Write beginning of file syncall.f90
+# Write beginning of file syncmatt.f90
 
-print FILE_SYNCALL "! Automatically generated file.  Do not edit!\n\n";
-print FILE_SYNCALL "  subroutine syncall(l)\n\n";
-print FILE_SYNCALL "  use param\n";
-print FILE_SYNCALL "  use arrays\n";
-print FILE_SYNCALL "  use procinfo\n\n";
-print FILE_SYNCALL "  implicit none\n\n";
-print FILE_SYNCALL "  logical contains\n\n";
-print FILE_SYNCALL "  integer l\n\n";
+print FILE_SYNCMATT "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYNCMATT "  subroutine syncmatt(l)\n\n";
+print FILE_SYNCMATT "  use param\n";
+print FILE_SYNCMATT "  use arrays\n";
+print FILE_SYNCMATT "  use procinfo\n\n";
+print FILE_SYNCMATT "  implicit none\n\n";
+print FILE_SYNCMATT "  logical contains\n\n";
+print FILE_SYNCMATT "  integer l\n\n";
+
+# Write beginning of file syncgeo.f90
+
+print FILE_SYNCGEO "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYNCGEO "  subroutine syncgeo(l)\n\n";
+print FILE_SYNCGEO "  use param\n";
+print FILE_SYNCGEO "  use arrays\n";
+print FILE_SYNCGEO "  use procinfo\n\n";
+print FILE_SYNCGEO "  implicit none\n\n";
+print FILE_SYNCGEO "  integer l\n\n";
 
 # Write beginning of file update.f90
 
@@ -606,20 +618,43 @@ while ($line=<INFILE>) {
 
       }
 
-#     Write to FILE_SYNCALL code to synchronize across processors.
+#     Write to FILE_SYNCGEO code to synchronize across processors.
 
       if ($zerod eq "false") {
 
          if ($intent =~ /EVOLVE/i) {
-            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
+            if ($storage !~ /^CONDITIONAL/i && $shift ne "shift") {
+	        print FILE_SYNCGEO  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	        print FILE_SYNCGEO  "  call sync\n\n";
+            } elsif ($storage =~ /shift/i && $shift ne "shift") {
+                $shift = "shift";
+                print FILE_SYNCGEO  "  if (shift/=\"none\") then\n";
+	        print FILE_SYNCGEO  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	        print FILE_SYNCGEO  "     call sync\n";
+            } elsif ($storage =~ /shift/i) {
+	        print FILE_SYNCGEO  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	        print FILE_SYNCGEO  "     call sync\n";
+            } elsif ($shift eq "shift") {
+                $shift = " ";
+                print FILE_SYNCGEO  "  end if\n\n";
+	        print FILE_SYNCGEO  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	        print FILE_SYNCGEO  "  call sync\n\n";
+            }
+         }
+
+      }
+
+#     Write to FILE_SYNCMATT code to synchronize across processors.
+
+      if ($zerod eq "false") {
+
+         if ($intent =~ /EVOLVE/i) {
+            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i && $storage !~ /shift/i) {
                 $cond = $1;
-                print FILE_SYNCALL  "  if (",$cond,") then\n";
-	        print FILE_SYNCALL  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
-	        print FILE_SYNCALL  "     call sync\n";
-                print FILE_SYNCALL  "  end if\n\n";
-            } else {
-	        print FILE_SYNCALL  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
-	        print FILE_SYNCALL  "  call sync\n\n";
+                print FILE_SYNCMATT  "  if (",$cond,") then\n";
+	        print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	        print FILE_SYNCMATT  "     call sync\n";
+                print FILE_SYNCMATT  "  end if\n\n";
             }
          }
 
@@ -864,9 +899,13 @@ print FILE_SIMPLEBOUNDARY "  end subroutine simpleboundary\n\n";
 print FILE_SYMMETRIES  "  end do\n\n";
 print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
 
-# Write ending of file syncall.f90.
+# Write ending of file syncmatt.f90.
 
-print FILE_SYNCALL  "  end subroutine syncall\n\n";
+print FILE_SYNCMATT  "  end subroutine syncmatt\n\n";
+
+# Write ending of file syncgeo.f90.
+
+print FILE_SYNCGEO  "  end subroutine syncgeo\n\n";
 
 # Write ending of file update.f90.
 
@@ -881,7 +920,8 @@ close(FILE_GRABARRAY);
 close(FILE_SAVEOLD);
 close(FILE_SIMPLEBOUNDARY);
 close(FILE_SYMMETRIES);
-close(FILE_SYNCALL);
+close(FILE_SYNCMATT);
+close(FILE_SYNCGEO);
 close(FILE_UPDATE);
 
 close(FILE_BOUNDINTERP);
