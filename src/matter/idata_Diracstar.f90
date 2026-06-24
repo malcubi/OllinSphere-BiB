@@ -104,7 +104,7 @@
 ! slicing condition above is linear in alpha so we can always
 ! just rescale the lapse at the end, but in order not to affect
 ! the solution we must also rescale the final value of the frequency
-! omega and both procaF and maxwellF by the same factor.
+! omega and maxwellF by the same factor.
 
 
 ! NOTE FOR PARALLEL RUNS:  The initial data is not really
@@ -665,13 +665,8 @@
 !    ***   DIRAC STAR PERTURBATION   ***
 !    ***********************************
 
-!    Here we add a gaussian perturbation to the solution for the
-!    real part of proca_F, or if we prefer to the real or imaginary
-!    parts of proca_G.  Remember that in order to guarantee that
-!    the momentum density is zero we must have proca_F purely
-!    real and proca_G  purely imaginary (we could probably
-!    consider more general perturbations, but at the moment we
-!    only allow these ones).  The amplitudes of the perturbations
+!    Here we add a gaussian perturbation to the solution for
+!    dirac_FR or dirac_GI. The amplitudes of the perturbations
 !    are rescaled with the maximum of dirac_FR and dirac_GI.
 !
 !    We use the same parameters to control the form of the gaussian
