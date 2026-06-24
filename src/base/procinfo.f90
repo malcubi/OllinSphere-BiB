@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/procinfo.f90,v 1.5 2018/09/04 15:57:23 malcubi Exp $
 
 ! *********************************
 ! ***   PROCESSOR INFORMATION   ***

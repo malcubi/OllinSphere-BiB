@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/read1Ddata.f90,v 1.4 2021/02/18 20:31:10 malcubi Exp $
 
   subroutine read1Ddata(varname,outdir)
 

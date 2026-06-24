@@ -1,4 +1,3 @@
-!$Header: /usr/local/ollincvs/Codes/OllinSphere-BiB/src/base/parse.f90,v 1.4 2022/04/05 17:40:19 malcubi Exp $
 
 ! ****************************
 ! ***   PARAMETER PARSER   ***
