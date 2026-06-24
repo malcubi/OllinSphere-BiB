@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-!
+#
 # This perl script creates the subroutines:
 #
 # arrays.f90
@@ -31,8 +31,8 @@ open(FILE_GRABARRAY,">src/auto/grabarray.f90") or die "Can't open grabarrays.f90
 open(FILE_SAVEOLD,">src/auto/saveold.f90") or die "Can't open saveold.f90: $!";
 open(FILE_SIMPLEBOUNDARY,">src/auto/simpleboundary.f90") or die "Can't open simpleboundary.f90: $!";
 open(FILE_SYMMETRIES,">src/auto/symmetries.f90") or die "Can't open symmetries.f90: $!";
-open(FILE_SYNCMATT,">src/auto/syncmatt.f90") or die "Can't open syncmatt.f90: $!";
 open(FILE_SYNCGEO,">src/auto/syncgeo.f90") or die "Can't open syncgeo.f90: $!";
+open(FILE_SYNCMATT,">src/auto/syncmatt.f90") or die "Can't open syncmatt.f90: $!";
 open(FILE_UPDATE,">src/auto/update.f90") or die "Can't open update.f90: $!";
 
 open(FILE_BOUNDINTERP,">src/auto/boundinterp.inc") or die "Can't open boundinterp.inc: $!";
@@ -187,6 +187,14 @@ open(INFILE,"src/base/arrays.config") or die "Can't open arrays.config: $!";
 my $line = " ";
 my $nline = 0;
 
+my $shift = " ";
+
+my $updateold = " ";
+my $updatecond = " ";
+
+my $syncold = " ";
+my $synccond = " ";
+
 while ($line=<INFILE>) {
 
    $nline = $nline+1;
@@ -220,6 +228,8 @@ while ($line=<INFILE>) {
           } else {
              die "arrays.pl: Bad syntax for COMPLEX array assignment in line ",$nline," of file arrays.config\n\n";
           }
+      } else {
+         $var = " ";
       }
 
 #     Check if we have an array that lives on phase space.
@@ -650,11 +660,28 @@ while ($line=<INFILE>) {
 
          if ($intent =~ /EVOLVE/i) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i && $storage !~ /shift/i) {
-                $cond = $1;
-                print FILE_SYNCMATT  "  if (",$cond,") then\n";
-	        print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
-	        print FILE_SYNCMATT  "     call sync\n";
-                print FILE_SYNCMATT  "  end if\n\n";
+               $cond = $1;
+               if ($cond ne $syncold && $synccond ne "true") {
+                  $synccond = "true";
+                  $syncold = $cond;
+                  print FILE_SYNCMATT  "  if (",$cond,") then\n";
+	          print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	          print FILE_SYNCMATT  "     call sync\n";
+               } elsif ($cond ne $syncold && $synccond eq "true") {
+                  $syncold = $cond;
+                  print FILE_SYNCMATT  "  end if\n\n";
+                  print FILE_SYNCMATT  "  if (",$cond,") then\n";
+	          print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+	          print FILE_SYNCMATT  "     call sync\n";
+               } else {
+	          print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+                  print FILE_SYNCMATT  "     call sync\n";
+               }
+            } elsif ($synccond eq "true") {
+               $synccond = " ";
+               print FILE_SYNCMATT  "  end if\n\n";
+	       print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+               print FILE_SYNCMATT  "     call sync\n";
             }
          }
 
@@ -667,9 +694,23 @@ while ($line=<INFILE>) {
          if ($intent =~ /EVOLVE/i) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
                $cond = $1;
-               print FILE_UPDATE  "  if (",$cond,") then\n";
-               print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
+               if ($cond ne $updateold && $updatecond ne "true") {
+                  $updatecond = "true";
+                  $updateold = $cond;
+                  print FILE_UPDATE  "  if (",$cond,") then\n";
+                  print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
+               } elsif ($cond ne $updateold && $updatecond eq "true") {
+                  $updateold = $cond;
+                  print FILE_UPDATE  "  end if\n\n";
+                  print FILE_UPDATE  "  if (",$cond,") then\n";
+                  print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
+               } else {
+                  print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
+               }
+            } elsif ($updatecond eq "true") {
+               $updatecond = " ";
                print FILE_UPDATE  "  end if\n\n";
+               print FILE_UPDATE  "  ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n\n";
             } else {
                print FILE_UPDATE  "  ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n\n";
             }
@@ -678,17 +719,31 @@ while ($line=<INFILE>) {
       } elsif ($zerod eq "true") {
 
         if ($intent =~ /EVOLVE/i) {
-            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
-               $cond = $1;
-               print FILE_UPDATE  "  if (",$cond,") then\n";
-               print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
-               print FILE_UPDATE  "  end if\n\n";
-            } else {
-               print FILE_UPDATE  "  ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n\n";
-            }
+           if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
+              $cond = $1;
+              if ($cond ne $updateold && $updatecond ne "true") {
+                 $updatecond = "true";
+                 $updateold = $cond;
+                 print FILE_UPDATE  "  if (",$cond,") then\n";
+                 print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
+              } elsif ($cond ne $updateold && $updatecond eq "true") {
+                 $updateold = $cond;
+                 print FILE_UPDATE  "  end if\n\n";
+                 print FILE_UPDATE  "  if (",$cond,") then\n";
+                 print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
+              } else {
+                 print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
+              }
+           } elsif ($updatecond eq "true") {
+              $updatecond = " ";
+              print FILE_UPDATE  "  end if\n\n";
+              print FILE_UPDATE  "  ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n\n";
+           } else {
+              print FILE_UPDATE  "  ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n\n";
+           }
         }
 
-      }
+      } 
 
 #     Write to FILE_BOUNDINTERP code to interpolate variables at boundaries.
 
@@ -901,6 +956,10 @@ print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
 
 # Write ending of file syncmatt.f90.
 
+if ($synccond eq "true") {
+   print FILE_SYNCMATT  "  end if\n\n";
+}
+
 print FILE_SYNCMATT  "  end subroutine syncmatt\n\n";
 
 # Write ending of file syncgeo.f90.
@@ -908,6 +967,10 @@ print FILE_SYNCMATT  "  end subroutine syncmatt\n\n";
 print FILE_SYNCGEO  "  end subroutine syncgeo\n\n";
 
 # Write ending of file update.f90.
+
+if ($updatecond eq "true") {
+   print FILE_UPDATE  "  end if\n\n";
+}
 
 print FILE_UPDATE "  end subroutine update\n\n";
 
@@ -920,8 +983,8 @@ close(FILE_GRABARRAY);
 close(FILE_SAVEOLD);
 close(FILE_SIMPLEBOUNDARY);
 close(FILE_SYMMETRIES);
-close(FILE_SYNCMATT);
 close(FILE_SYNCGEO);
+close(FILE_SYNCMATT);
 close(FILE_UPDATE);
 
 close(FILE_BOUNDINTERP);
