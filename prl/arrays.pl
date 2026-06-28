@@ -44,6 +44,7 @@ open(FILE_RESTRICTCOSMO,">src/auto/restrict_cosmo.inc") or die "Can't open restr
 # Write beginning of file arrays.f90
 
 print FILE_ARRAYS "! Automatically generated file.  Do not edit!\n\n";
+print FILE_ARRAYS "! This routine declares the different arrays.\n\n";
 print FILE_ARRAYS "  module arrays\n\n";
 print FILE_ARRAYS "  integer, allocatable, dimension(:) :: s\n";
 print FILE_ARRAYS "  real(8), allocatable, dimension(:) :: t\n";
@@ -58,6 +59,7 @@ print FILE_ARRAYS "  character(50), allocatable, dimension(:) :: outvars1Darray\
 # Write beginning of file accumulate.f90
 
 print FILE_ACCUMULATE "! Automatically generated file.  Do not edit!\n\n";
+print FILE_ACCUMULATE "! This routine adds to accumulator arrays for the Runge-Kutta time integration.\n\n";
 print FILE_ACCUMULATE "  subroutine accumulate(l,k,niter,w)\n\n";
 print FILE_ACCUMULATE "  use param\n";
 print FILE_ACCUMULATE "  use arrays\n\n";
@@ -69,6 +71,7 @@ print FILE_ACCUMULATE "  real(8) w\n\n";
 # Write beginning of file allocatearrays.f90
 
 print FILE_ALLOCATEARRAYS "! Automatically generated file.  Do not edit!\n\n";
+print FILE_ALLOCATEARRAYS "! This routine allocates memory for the different arrays.\n\n";
 print FILE_ALLOCATEARRAYS "  subroutine allocatearrays(status)\n\n";
 print FILE_ALLOCATEARRAYS "  use param\n";
 print FILE_ALLOCATEARRAYS "  use arrays\n";
@@ -86,6 +89,7 @@ print FILE_ALLOCATEARRAYS "  end if\n\n";
 # Write beginning of file grabarray.f90
 
 print FILE_GRABARRAY "! Automatically generated file.  Do not edit!\n\n";
+print FILE_GRABARRAY "! This routine selects an array for output.\n\n";
 print FILE_GRABARRAY "  subroutine grabarray(varname)\n\n";
 print FILE_GRABARRAY "  use param\n";
 print FILE_GRABARRAY "  use arrays\n";
@@ -98,6 +102,8 @@ print FILE_GRABARRAY "  exists = .false.\n\n";
 # Write beginning of file saveold.f90
 
 print FILE_SAVEOLD "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SAVEOLD "! This routine saves the values of the arrays on the previous time step,\n";
+print FILE_SAVEOLD "! and also boundary values for fine grids.\n\n";
 print FILE_SAVEOLD "  subroutine saveold(l)\n\n";
 print FILE_SAVEOLD "  use param\n";
 print FILE_SAVEOLD "  use arrays\n\n";
@@ -108,6 +114,7 @@ print FILE_SAVEOLD "  integer l,i\n\n";
 # Write beginning of file simpleboundary.f90
 
 print FILE_SIMPLEBOUNDARY "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SIMPLEBOUNDARY "! This routine applies simple boundary conditions.\n\n";
 print FILE_SIMPLEBOUNDARY "  subroutine simpleboundary(l)\n\n";
 print FILE_SIMPLEBOUNDARY "  use param\n";
 print FILE_SIMPLEBOUNDARY "  use arrays\n\n";
@@ -118,18 +125,18 @@ print FILE_SIMPLEBOUNDARY "  integer l\n\n";
 # Write beginning of file symmetries.f90
 
 print FILE_SYMMETRIES "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYMMETRIES "! This routine aplies symmetry conditions at the origin.\n\n";
 print FILE_SYMMETRIES "  subroutine symmetries(l)\n\n";
 print FILE_SYMMETRIES "  use param\n";
 print FILE_SYMMETRIES "  use arrays\n\n";
 print FILE_SYMMETRIES "  implicit none\n\n";
 print FILE_SYMMETRIES "  logical contains\n\n";
 print FILE_SYMMETRIES "  integer i,j,l\n\n";
-print FILE_SYMMETRIES "  do i=1,ghost\n\n";
-print FILE_SYMMETRIES "     j=1-i\n\n";
 
 # Write beginning of file syncgeo.f90
 
 print FILE_SYNCGEO "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYNCGEO "! This routine synchronizes the geometric variables.\n\n";
 print FILE_SYNCGEO "  subroutine syncgeo(l)\n\n";
 print FILE_SYNCGEO "  use param\n";
 print FILE_SYNCGEO "  use arrays\n";
@@ -140,6 +147,7 @@ print FILE_SYNCGEO "  integer l\n\n";
 # Write beginning of file syncmatt.f90
 
 print FILE_SYNCMATT "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYNCMATT "! This routine synchronizes the matter variables.\n\n";
 print FILE_SYNCMATT "  subroutine syncmatt(l)\n\n";
 print FILE_SYNCMATT "  use param\n";
 print FILE_SYNCMATT "  use arrays\n";
@@ -151,6 +159,7 @@ print FILE_SYNCMATT "  integer l\n\n";
 # Write beginning of file update.f90
 
 print FILE_UPDATE "! Automatically generated file.  Do not edit!\n\n";
+print FILE_UPDATE "! This routine updates the evolving variables.\n\n";
 print FILE_UPDATE "  subroutine update(l,dtw)\n\n";
 print FILE_UPDATE "  use param\n";
 print FILE_UPDATE "  use arrays\n\n";
@@ -162,10 +171,12 @@ print FILE_UPDATE "  real(8) dtw \n\n";
 # Write beginning of file boundinterp.inc
 
 print FILE_BOUNDINTERP "! Automatically generated file.  Do not edit!\n\n";
+print FILE_BOUNDINTERP "! This routine interpolate variables at boundaries for fine grids.\n\n";
 
 # Write beginning of file restrict_copy.inc
 
 print FILE_RESTRICTCOPY "! Automatically generated file.  Do not edit!\n\n";
+print FILE_RESTRICTCOPY "! This routine restricts data from fine to coarse grid.\n\n";
 
 # Write beginning of file restrict_send.inc
 
@@ -768,7 +779,9 @@ while ($line=<INFILE>) {
                   $symcond = "true";
                   $symold = $cond;
 
-                  print FILE_SYMMETRIES  "     if (",$cond,") then\n";
+                  print FILE_SYMMETRIES  "  if (",$cond,") then\n";
+                  print FILE_SYMMETRIES  "     do i=1,ghost\n";
+                  print FILE_SYMMETRIES  "        j=1-i\n";
 
                   if ($sym == "+1") {
                      print FILE_SYMMETRIES  "        ",$var,"(l,j) = + ",$var,"(l,i)\n";
@@ -782,8 +795,11 @@ while ($line=<INFILE>) {
 
                   $symold = $cond;
 
-                  print FILE_SYMMETRIES  "     end if\n\n";
-                  print FILE_SYMMETRIES  "     if (",$cond,") then\n";
+                  print FILE_SYMMETRIES  "     end do\n";
+                  print FILE_SYMMETRIES  "  end if\n\n";
+                  print FILE_SYMMETRIES  "  if (",$cond,") then\n";
+                  print FILE_SYMMETRIES  "     do i=1,ghost\n";
+                  print FILE_SYMMETRIES  "        j=1-i\n";
 
                   if ($sym == "+1") {
                      print FILE_SYMMETRIES  "        ",$var,"(l,j) = + ",$var,"(l,i)\n";
@@ -809,7 +825,11 @@ while ($line=<INFILE>) {
 
                $symcond = " ";
 
-               print FILE_SYMMETRIES  "     end if\n\n";
+               print FILE_SYMMETRIES  "     end do\n";
+               print FILE_SYMMETRIES  "  end if\n\n";
+
+               print FILE_SYMMETRIES  "  do i=1,ghost\n";
+               print FILE_SYMMETRIES  "     j=1-i\n";
 
                if ($sym == "+1") {
                   print FILE_SYMMETRIES  "     ",$var,"(l,j) = + ",$var,"(l,i)\n";
@@ -819,15 +839,23 @@ while ($line=<INFILE>) {
                   print FILE_SYMMETRIES  "     ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
                }
 
+               print FILE_SYMMETRIES  "  end do\n\n";
+
             } else {
 
+               print FILE_SYMMETRIES  "  do i=1,ghost\n";
+               print FILE_SYMMETRIES  "     j=1-i\n";
+
                if ($sym == "+1") {
-	          print FILE_SYMMETRIES  "     ",$var,"(l,j) = + ",$var,"(l,i)\n\n";
+	          print FILE_SYMMETRIES  "     ",$var,"(l,j) = + ",$var,"(l,i)\n";
                } elsif ($sym == "-1") {
-                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = - ",$var,"(l,i)\n\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = - ",$var,"(l,i)\n";
                } else {
-                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
                }
+
+               print FILE_SYMMETRIES  "  end do\n\n";
+
             }
 
          }
@@ -1166,12 +1194,12 @@ while ($line=<INFILE>) {
 
             } elsif ($var eq "alpha") {
 
-               print FILE_RESTRICTSEND  "  !if (slicing/='maximal') then\n";
+               print FILE_RESTRICTRECV  "  !if (slicing/='maximal') then\n";
                print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
                print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
                print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
                print FILE_RESTRICTRECV  "     end do\n\n";
-               print FILE_RESTRICTSEND  "  !end if\n\n";
+               print FILE_RESTRICTRECV  "  !end if\n\n";
 
             } else {
 
@@ -1245,10 +1273,10 @@ print FILE_SIMPLEBOUNDARY "  end subroutine simpleboundary\n\n";
 # Write ending of file symmetries.f90.
 
 if ($symcond eq "true") {
-   print FILE_SYMMETRIES  "     end if\n\n";
+   print FILE_SYMMETRIES  "     end do\n";
+   print FILE_SYMMETRIES  "  end if\n\n";
 }
 
-print FILE_SYMMETRIES  "  end do\n\n";
 print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
 
 # Write ending of file syncgeo.f90.
