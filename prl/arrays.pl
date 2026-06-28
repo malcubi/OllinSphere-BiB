@@ -9,8 +9,8 @@
 # saveold.f90
 # simpleboundary.f90
 # symmetries.f90
-# syncmatt.f90
 # syncgeo.f90
+# syncmatt.f90
 # update.f90
 #
 # Plus the include files:
@@ -126,6 +126,16 @@ print FILE_SYMMETRIES "  logical contains\n\n";
 print FILE_SYMMETRIES "  integer i,l\n\n";
 print FILE_SYMMETRIES "  do i=1,ghost\n\n";
 
+# Write beginning of file syncgeo.f90
+
+print FILE_SYNCGEO "! Automatically generated file.  Do not edit!\n\n";
+print FILE_SYNCGEO "  subroutine syncgeo(l)\n\n";
+print FILE_SYNCGEO "  use param\n";
+print FILE_SYNCGEO "  use arrays\n";
+print FILE_SYNCGEO "  use procinfo\n\n";
+print FILE_SYNCGEO "  implicit none\n\n";
+print FILE_SYNCGEO "  integer l\n\n";
+
 # Write beginning of file syncmatt.f90
 
 print FILE_SYNCMATT "! Automatically generated file.  Do not edit!\n\n";
@@ -136,16 +146,6 @@ print FILE_SYNCMATT "  use procinfo\n\n";
 print FILE_SYNCMATT "  implicit none\n\n";
 print FILE_SYNCMATT "  logical contains\n\n";
 print FILE_SYNCMATT "  integer l\n\n";
-
-# Write beginning of file syncgeo.f90
-
-print FILE_SYNCGEO "! Automatically generated file.  Do not edit!\n\n";
-print FILE_SYNCGEO "  subroutine syncgeo(l)\n\n";
-print FILE_SYNCGEO "  use param\n";
-print FILE_SYNCGEO "  use arrays\n";
-print FILE_SYNCGEO "  use procinfo\n\n";
-print FILE_SYNCGEO "  implicit none\n\n";
-print FILE_SYNCGEO "  integer l\n\n";
 
 # Write beginning of file update.f90
 
@@ -954,6 +954,10 @@ print FILE_SIMPLEBOUNDARY "  end subroutine simpleboundary\n\n";
 print FILE_SYMMETRIES  "  end do\n\n";
 print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
 
+# Write ending of file syncgeo.f90.
+
+print FILE_SYNCGEO  "  end subroutine syncgeo\n\n";
+
 # Write ending of file syncmatt.f90.
 
 if ($synccond eq "true") {
@@ -961,10 +965,6 @@ if ($synccond eq "true") {
 }
 
 print FILE_SYNCMATT  "  end subroutine syncmatt\n\n";
-
-# Write ending of file syncgeo.f90.
-
-print FILE_SYNCGEO  "  end subroutine syncgeo\n\n";
 
 # Write ending of file update.f90.
 
