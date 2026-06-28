@@ -123,8 +123,9 @@ print FILE_SYMMETRIES "  use param\n";
 print FILE_SYMMETRIES "  use arrays\n\n";
 print FILE_SYMMETRIES "  implicit none\n\n";
 print FILE_SYMMETRIES "  logical contains\n\n";
-print FILE_SYMMETRIES "  integer i,l\n\n";
+print FILE_SYMMETRIES "  integer i,j,l\n\n";
 print FILE_SYMMETRIES "  do i=1,ghost\n\n";
+print FILE_SYMMETRIES "     j=1-i\n\n";
 
 # Write beginning of file syncgeo.f90
 
@@ -194,6 +195,9 @@ my $saveecond = " ";
 
 my $updateold = " ";
 my $updatecond = " ";
+
+my $symold = " ";
+my $symcond = " ";
 
 my $syncold = " ";
 my $synccond = " ";
@@ -616,6 +620,7 @@ while ($line=<INFILE>) {
 
                   $savecond = "true";
                   $saveold = $cond;
+
                   print FILE_SAVEOLD  "  if (",$cond,") then\n\n";
                   print FILE_SAVEOLD  "     ",$var,"_p(l,:) = ",$var,"(l,:)\n";
                   print FILE_SAVEOLD  "     do i=0,ghost-1\n";
@@ -757,25 +762,71 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
 
                $cond = $1;
-               print FILE_SYMMETRIES  "     if (",$cond,") then\n";
+
+               if ($cond ne $symold && $symcond ne "true") {
+
+                  $symcond = "true";
+                  $symold = $cond;
+
+                  print FILE_SYMMETRIES  "     if (",$cond,") then\n";
+
+                  if ($sym == "+1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = + ",$var,"(l,i)\n";
+                  } elsif ($sym == "-1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = - ",$var,"(l,i)\n";
+                  } else {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
+                  }
+
+               } elsif ($cond ne $symold && $symcond eq "true") {
+
+                  $symold = $cond;
+
+                  print FILE_SYMMETRIES  "     end if\n\n";
+                  print FILE_SYMMETRIES  "     if (",$cond,") then\n";
+
+                  if ($sym == "+1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = + ",$var,"(l,i)\n";
+                  } elsif ($sym == "-1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = - ",$var,"(l,i)\n";
+                  } else {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
+                  }
+
+               } else {
+
+                  if ($sym == "+1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = + ",$var,"(l,i)\n";
+                  } elsif ($sym == "-1") {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = - ",$var,"(l,i)\n";
+                  } else {
+                     print FILE_SYMMETRIES  "        ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
+                  }
+
+               }
+
+            } elsif ($symcond eq "true") {
+
+               $symcond = " ";
+
+               print FILE_SYMMETRIES  "     end if\n\n";
 
                if ($sym == "+1") {
-                  print FILE_SYMMETRIES  "        ",$var,"(l,1-i) = + ",$var,"(l,i)\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = + ",$var,"(l,i)\n";
                } elsif ($sym == "-1") {
-                  print FILE_SYMMETRIES  "        ",$var,"(l,1-i) = - ",$var,"(l,i)\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = - ",$var,"(l,i)\n";
                } else {
-                  print FILE_SYMMETRIES  "        ",$var,"(l,1-i) = ",$sym,"*",$var,"(l,i)\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n";
                }
-               print FILE_SYMMETRIES  "     end if\n\n";
 
             } else {
 
                if ($sym == "+1") {
-	          print FILE_SYMMETRIES  "     ",$var,"(l,1-i) = + ",$var,"(l,i)\n\n";
+	          print FILE_SYMMETRIES  "     ",$var,"(l,j) = + ",$var,"(l,i)\n\n";
                } elsif ($sym == "-1") {
-                  print FILE_SYMMETRIES  "     ",$var,"(l,1-i) = - ",$var,"(l,i)\n\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = - ",$var,"(l,i)\n\n";
                } else {
-                  print FILE_SYMMETRIES  "     ",$var,"(l,1-i) = ",$sym,"*",$var,"(l,i)\n\n";
+                  print FILE_SYMMETRIES  "     ",$var,"(l,j) = ",$sym,"*",$var,"(l,i)\n\n";
                }
             }
 
@@ -1192,6 +1243,10 @@ print FILE_SAVEOLD "  end subroutine saveold\n\n";
 print FILE_SIMPLEBOUNDARY "  end subroutine simpleboundary\n\n";
 
 # Write ending of file symmetries.f90.
+
+if ($symcond eq "true") {
+   print FILE_SYMMETRIES  "     end if\n\n";
+}
 
 print FILE_SYMMETRIES  "  end do\n\n";
 print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
