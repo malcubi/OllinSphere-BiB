@@ -176,7 +176,7 @@ print FILE_BOUNDINTERP "! This routine interpolate variables at boundaries for f
 # Write beginning of file restrict_copy.inc
 
 print FILE_RESTRICTCOPY "! Automatically generated file.  Do not edit!\n\n";
-print FILE_RESTRICTCOPY "! This routine restricts data from fine to coarse grid.\n\n";
+print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grid.\n\n";
 
 # Write beginning of file restrict_send.inc
 
@@ -1198,7 +1198,7 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
                print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
                print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
-               print FILE_RESTRICTRECV  "     end do\n\n";
+               print FILE_RESTRICTRECV  "     end do\n";
                print FILE_RESTRICTRECV  "  !end if\n\n";
 
             } else {
