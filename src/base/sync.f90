@@ -21,14 +21,12 @@
 
   real(8) :: wsend(ghost),wrecv(ghost)
 
+
+! *************************************
+! ***   EXCHANGE LEFT GHOST ZONES   ***
+! *************************************
+
   left  = rank-1
-  right = rank+1
-
-
-! *************************************
-! ***   Exchange left ghost zones   ***
-! *************************************
-
 
   if (left >= 0) then
 
@@ -45,8 +43,10 @@
 
 
 ! **************************************
-! ***   Exchange right ghost zones   ***
+! ***   EXCHANGE RIGHT GHOST ZONES   ***
 ! **************************************
+
+  right = rank+1
 
   if (right < size) then
 
