@@ -3,9 +3,9 @@
 # This perl script creates the subroutines:
 #
 # arrays.f90
-# accumulate.f90
 # allocatearrays.f90
 # grabarray.f90
+# accumulate.f90
 # saveold.f90
 # simpleboundary.f90
 # symmetries.f90
@@ -25,9 +25,9 @@ print "CREATING FILES FOR DEALING WITH ARRAYS ...\n\n";
 # Open outfiles.
 
 open(FILE_ARRAYS,">src/auto/arrays.f90") or die "Can't open arrays.f90: $!";
-open(FILE_ACCUMULATE,">src/auto/accumulate.f90") or die "Can't open accumulate.f90: $!";
 open(FILE_ALLOCATEARRAYS,">src/auto/allocatearrays.f90") or die "Can't open allocatearrays.f90: $!";
 open(FILE_GRABARRAY,">src/auto/grabarray.f90") or die "Can't open grabarrays.f90: $!";
+open(FILE_ACCUMULATE,">src/auto/accumulate.f90") or die "Can't open accumulate.f90: $!";
 open(FILE_SAVEOLD,">src/auto/saveold.f90") or die "Can't open saveold.f90: $!";
 open(FILE_SIMPLEBOUNDARY,">src/auto/simpleboundary.f90") or die "Can't open simpleboundary.f90: $!";
 open(FILE_SYMMETRIES,">src/auto/symmetries.f90") or die "Can't open symmetries.f90: $!";
@@ -55,18 +55,6 @@ print FILE_ARRAYS "  real(8), allocatable, dimension(:) :: dt\n\n";
 print FILE_ARRAYS "  real(8), dimension (:,:,:), pointer :: grabvar_bound\n\n";
 print FILE_ARRAYS "  character(50), allocatable, dimension(:) :: outvars0Darray\n";
 print FILE_ARRAYS "  character(50), allocatable, dimension(:) :: outvars1Darray\n";
-
-# Write beginning of file accumulate.f90
-
-print FILE_ACCUMULATE "! Automatically generated file.  Do not edit!\n\n";
-print FILE_ACCUMULATE "! This routine adds to accumulator arrays for the Runge-Kutta time integration.\n\n";
-print FILE_ACCUMULATE "  subroutine accumulate(l,k,niter,w)\n\n";
-print FILE_ACCUMULATE "  use param\n";
-print FILE_ACCUMULATE "  use arrays\n\n";
-print FILE_ACCUMULATE "  implicit none\n\n";
-print FILE_ACCUMULATE "  logical contains\n\n";
-print FILE_ACCUMULATE "  integer l,k,niter\n\n";
-print FILE_ACCUMULATE "  real(8) w\n\n";
 
 # Write beginning of file allocatearrays.f90
 
@@ -99,6 +87,21 @@ print FILE_GRABARRAY "  logical exists\n";
 print FILE_GRABARRAY "  character(len=*) varname\n\n";
 print FILE_GRABARRAY "  exists = .false.\n\n";
 
+# Write beginning of file accumulate.f90
+
+print FILE_ACCUMULATE "! Automatically generated file.  Do not edit!\n\n";
+print FILE_ACCUMULATE "! This routine adds to accumulator arrays for the Runge-Kutta time integration.\n\n";
+print FILE_ACCUMULATE "  subroutine accumulate(l,k,niter,w)\n\n";
+print FILE_ACCUMULATE "  use param\n";
+print FILE_ACCUMULATE "  use arrays\n\n";
+print FILE_ACCUMULATE "  implicit none\n\n";
+print FILE_ACCUMULATE "  logical contains\n";
+print FILE_ACCUMULATE "  logical first,last\n\n";
+print FILE_ACCUMULATE "  integer l,k,niter\n\n";
+print FILE_ACCUMULATE "  real(8) w\n\n";
+print FILE_ACCUMULATE "  first = (k==1)\n";
+print FILE_ACCUMULATE "  last  = (k==niter)\n\n";
+
 # Write beginning of file saveold.f90
 
 print FILE_SAVEOLD "! Automatically generated file.  Do not edit!\n\n";
@@ -125,7 +128,7 @@ print FILE_SIMPLEBOUNDARY "  integer l\n\n";
 # Write beginning of file symmetries.f90
 
 print FILE_SYMMETRIES "! Automatically generated file.  Do not edit!\n\n";
-print FILE_SYMMETRIES "! This routine aplies symmetry conditions at the origin.\n\n";
+print FILE_SYMMETRIES "! This routine applies symmetry conditions at the origin.\n\n";
 print FILE_SYMMETRIES "  subroutine symmetries(l)\n\n";
 print FILE_SYMMETRIES "  use param\n";
 print FILE_SYMMETRIES "  use arrays\n\n";
@@ -171,12 +174,12 @@ print FILE_UPDATE "  real(8) dtw \n\n";
 # Write beginning of file boundinterp.inc
 
 print FILE_BOUNDINTERP "! Automatically generated file.  Do not edit!\n\n";
-print FILE_BOUNDINTERP "! This routine interpolate variables at boundaries for fine grids.\n\n";
+print FILE_BOUNDINTERP "! This routine interpolates variables at boundaries for fine grids.\n\n";
 
 # Write beginning of file restrict_copy.inc
 
 print FILE_RESTRICTCOPY "! Automatically generated file.  Do not edit!\n\n";
-print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grid.\n\n";
+print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grids.\n\n";
 
 # Write beginning of file restrict_send.inc
 
@@ -206,6 +209,9 @@ my $saveecond = " ";
 
 my $updateold = " ";
 my $updatecond = " ";
+
+my $accumold = " ";
+my $accumcond = " ";
 
 my $symold = " ";
 my $symcond = " ";
@@ -366,71 +372,6 @@ while ($line=<INFILE>) {
             }
          }
 
-      }
-
-#     Write to FILE_ACCUMULATE code to save old variables.
-
-      if ($zerod eq "false") {
-
-         if ($intent =~ /EVOLVE/i) {
-
-            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
-
-               $cond = $1;
-               print FILE_ACCUMULATE  "  if (",$cond,") then\n";
-               print FILE_ACCUMULATE  "     if (k==1) then\n";
-               print FILE_ACCUMULATE  "        ",$var,"_a(l,:) = w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "     else if (k<niter) then\n";
-               print FILE_ACCUMULATE  "        ",$var,"_a(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "     else\n";
-               print FILE_ACCUMULATE  "        s",$var,"(l,:)  = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "     end if\n";
-               print FILE_ACCUMULATE  "  end if\n\n";
-
-            } else {
-
-               print FILE_ACCUMULATE  "  if (k==1) then\n";
-               print FILE_ACCUMULATE  "     ",$var,"_a(l,:) = w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "  else if (k<niter) then\n";
-               print FILE_ACCUMULATE  "     ",$var,"_a(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "  else\n";
-               print FILE_ACCUMULATE  "     s",$var,"(l,:)  = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
-               print FILE_ACCUMULATE  "  end if\n\n";
-
-            }
-         }
-
-
-      } elsif ($zerod eq "true") {
-
-         if ($intent =~ /EVOLVE/i) {
-
-            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
-
-               $cond = $1;
-               print FILE_ACCUMULATE  "  if (",$cond,") then\n";
-               print FILE_ACCUMULATE  "     if (k==1) then\n";
-               print FILE_ACCUMULATE  "        ",$var,"_a(l) = w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "     else if (k<niter) then\n";
-               print FILE_ACCUMULATE  "        ",$var,"_a(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "     else\n";
-               print FILE_ACCUMULATE  "        s",$var,"(l)  = ",$var,"_a(l) + w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "     end if\n";
-               print FILE_ACCUMULATE  "  end if\n\n";
-
-            } else {
-
-               print FILE_ACCUMULATE  "  if (k==1) then\n";
-               print FILE_ACCUMULATE  "     ",$var,"_a(l) = w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "  else if (k<niter) then\n";
-               print FILE_ACCUMULATE  "     ",$var,"_a(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "  else\n";
-               print FILE_ACCUMULATE  "     s",$var,"(l)  = ",$var,"_a(l) + w*s",$var,"(l)\n";
-               print FILE_ACCUMULATE  "  end if\n\n";
-
-            }
-
-         }
       }
 
 #     Write to FILE_ALLOCATEARRAYS code to allocate memory.
@@ -617,6 +558,144 @@ while ($line=<INFILE>) {
 
       }
 
+#     Write to FILE_ACCUMULATE code to accumulator arrays for Runge-Kutta.
+
+      if ($zerod eq "false") {
+
+         if ($intent =~ /EVOLVE/i) {
+
+            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
+
+               $cond = $1;
+
+               if ($cond ne $accumold && $accumcond ne "true") {
+
+                  $accumcond = "true";
+                  $accumold = $cond;
+
+                  print FILE_ACCUMULATE  "! Condition: ",$cond,"\n\n";
+                  print FILE_ACCUMULATE  "  if (",$cond,") then\n\n";
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "        ",$var,"_a(l,:) = merge(w*s",$var,"(l,:),",$var,"_a(l,:) + w*s",$var,"(l,:),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "        s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+
+               } elsif ($cond ne $accumold && $accumcond eq "true") {
+
+                  $accumold = $cond;
+
+                  print FILE_ACCUMULATE  "  end if\n\n";
+                  print FILE_ACCUMULATE  "! Condition: ",$cond,"\n\n";
+                  print FILE_ACCUMULATE  "  if (",$cond,") then\n\n";
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "        ",$var,"_a(l,:) = merge(w*s",$var,"(l,:),",$var,"_a(l,:) + w*s",$var,"(l,:),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "        s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+               } else {
+
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "        ",$var,"_a(l,:) = merge(w*s",$var,"(l,:),",$var,"_a(l,:) + w*s",$var,"(l,:),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "        s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+
+               }
+
+            } elsif ($accumcond eq "true") {
+
+               $accumcond = " ";
+
+               print FILE_ACCUMULATE  "  end if\n\n";
+               print FILE_ACCUMULATE  "  if (.not.last) then\n";
+               print FILE_ACCUMULATE  "     ",$var,"_a(l,:) = merge(w*s",$var,"(l,:),",$var,"_a(l,:) + w*s",$var,"(l,:),first)\n";
+               print FILE_ACCUMULATE  "  else\n";
+               print FILE_ACCUMULATE  "     s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
+               print FILE_ACCUMULATE  "  end if\n\n";
+
+            } else {
+
+               print FILE_ACCUMULATE  "  if (.not.last) then\n";
+               print FILE_ACCUMULATE  "     ",$var,"_a(l,:) = merge(w*s",$var,"(l,:),",$var,"_a(l,:) + w*s",$var,"(l,:),first)\n";
+               print FILE_ACCUMULATE  "  else\n";
+               print FILE_ACCUMULATE  "     s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
+               print FILE_ACCUMULATE  "  end if\n\n";
+
+            }
+         }
+
+      } elsif ($zerod eq "true") {
+
+         if ($intent =~ /EVOLVE/i) {
+
+            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
+
+               $cond = $1;
+
+              if ($cond ne $accumold && $accumcond ne "true") {
+
+                 $accumcond = "true";
+                 $accumold = $cond;
+
+                  print FILE_ACCUMULATE  "! Condition: ",$cond,"\n\n";
+                  print FILE_ACCUMULATE  "  if (",$cond,") then\n\n";
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "         ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "         s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+               } elsif ($cond ne $accumold && $accumcond eq "true") {
+
+                  $accumold = $cond;
+
+                  print FILE_ACCUMULATE  "  end if\n\n";
+                  print FILE_ACCUMULATE  "! Condition: ",$cond,"\n\n";
+                  print FILE_ACCUMULATE  "  if (",$cond,") then\n\n";
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "         ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "        s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+               } else {
+
+                  print FILE_ACCUMULATE  "     if (.not.last) then\n";
+                  print FILE_ACCUMULATE  "         ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+                  print FILE_ACCUMULATE  "     else\n";
+                  print FILE_ACCUMULATE  "        s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
+                  print FILE_ACCUMULATE  "     end if\n\n";
+
+               }
+
+            } elsif ($accumcond eq "true") {
+
+               $accumcond = " ";
+
+               print FILE_ACCUMULATE  "  end if\n\n";
+               print FILE_ACCUMULATE  "  if (.not.last) then\n";
+               print FILE_ACCUMULATE  "      ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+               print FILE_ACCUMULATE  "  else\n";
+               print FILE_ACCUMULATE  "     s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
+               print FILE_ACCUMULATE  " end if\n\n";
+
+            } else {
+
+               print FILE_ACCUMULATE  "  if (.not.last) then\n";
+               print FILE_ACCUMULATE  "      ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+               print FILE_ACCUMULATE  "  else\n";
+               print FILE_ACCUMULATE  "     s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
+               print FILE_ACCUMULATE  "  end if\n\n";
+
+            }
+
+         }
+      }
+
 #     Write to FILE_SAVEOLD code to save old variables.
 
       if ($zerod eq "false") {
@@ -632,6 +711,7 @@ while ($line=<INFILE>) {
                   $savecond = "true";
                   $saveold = $cond;
 
+                  print FILE_SAVEOLD  "! Condition: ",$cond,"\n\n";
                   print FILE_SAVEOLD  "  if (",$cond,") then\n\n";
                   print FILE_SAVEOLD  "     ",$var,"_p(l,:) = ",$var,"(l,:)\n";
                   print FILE_SAVEOLD  "     do i=0,ghost-1\n";
@@ -643,7 +723,9 @@ while ($line=<INFILE>) {
                } elsif ($cond ne $saveold && $savecond eq "true") {
 
                   $saveold = $cond;
+
                   print FILE_SAVEOLD  "  end if\n\n";
+                  print FILE_SAVEOLD  "! Condition: ",$cond,"\n\n";
                   print FILE_SAVEOLD  "  if (",$cond,") then\n\n";
                   print FILE_SAVEOLD  "     ",$var,"_p(l,:) = ",$var,"(l,:)\n";
                   print FILE_SAVEOLD  "     do i=0,ghost-1\n";
@@ -666,6 +748,7 @@ while ($line=<INFILE>) {
             } elsif ($savecond eq "true") {
 
                $savecond = " ";
+
                print FILE_SAVEOLD  "  end if\n\n";
                print FILE_SAVEOLD  "  ",$var,"_p(l,:) = ",$var,"(l,:)\n";
                print FILE_SAVEOLD  "  do i=0,ghost-1\n";
@@ -699,13 +782,17 @@ while ($line=<INFILE>) {
 
                   $savecond = "true";
                   $saveold = $cond;
+
+                  print FILE_SAVEOLD  "! Condition: ",$cond,"\n\n";
                   print FILE_SAVEOLD  "  if (",$cond,") then\n";
                   print FILE_SAVEOLD  "     ",$var,"_p(l) = ",$var,"(l)\n";
 
                } elsif ($cond ne $saveold && $savecond eq "true") {
 
                   $saveold = $cond;
+
                   print FILE_SAVEOLD  "  end if\n\n";
+                  print FILE_SAVEOLD  "! Condition: ",$cond,"\n\n";
                   print FILE_SAVEOLD  "  if (",$cond,") then\n";
                   print FILE_SAVEOLD  "     ",$var,"_p(l) = ",$var,"(l)\n";
 
@@ -718,6 +805,7 @@ while ($line=<INFILE>) {
             } elsif ($savecond eq "true") {
 
                $savecond = " ";
+
                print FILE_SAVEOLD  "  end if\n\n";
                print FILE_SAVEOLD  "  ",$var,"_p(l) = ",$var,"(l)\n\n";
 
@@ -779,6 +867,7 @@ while ($line=<INFILE>) {
                   $symcond = "true";
                   $symold = $cond;
 
+                  print FILE_SYMMETRIES  "! Condition: ",$cond,"\n\n";
                   print FILE_SYMMETRIES  "  if (",$cond,") then\n";
                   print FILE_SYMMETRIES  "     do i=1,ghost\n";
                   print FILE_SYMMETRIES  "        j=1-i\n";
@@ -797,6 +886,7 @@ while ($line=<INFILE>) {
 
                   print FILE_SYMMETRIES  "     end do\n";
                   print FILE_SYMMETRIES  "  end if\n\n";
+                  print FILE_SYMMETRIES  "! Condition: ",$cond,"\n\n";
                   print FILE_SYMMETRIES  "  if (",$cond,") then\n";
                   print FILE_SYMMETRIES  "     do i=1,ghost\n";
                   print FILE_SYMMETRIES  "        j=1-i\n";
@@ -876,6 +966,7 @@ while ($line=<INFILE>) {
             } elsif ($storage =~ /shift/i && $shift ne "shift") {
 
                $shift = "shift";
+
                print FILE_SYNCGEO  "  if (shift/=\"none\") then\n";
 	       print FILE_SYNCGEO  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	       print FILE_SYNCGEO  "     call sync\n";
@@ -888,6 +979,7 @@ while ($line=<INFILE>) {
             } elsif ($shift eq "shift") {
 
                $shift = " ";
+
                print FILE_SYNCGEO  "  end if\n\n";
 	       print FILE_SYNCGEO  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	       print FILE_SYNCGEO  "  call sync\n\n";
@@ -912,6 +1004,8 @@ while ($line=<INFILE>) {
 
                   $synccond = "true";
                   $syncold = $cond;
+
+                  print FILE_SYNCMATT  "! Condition: ",$cond,"\n\n";
                   print FILE_SYNCMATT  "  if (",$cond,") then\n";
 	          print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	          print FILE_SYNCMATT  "     call sync\n";
@@ -919,7 +1013,9 @@ while ($line=<INFILE>) {
                } elsif ($cond ne $syncold && $synccond eq "true") {
 
                   $syncold = $cond;
+
                   print FILE_SYNCMATT  "  end if\n\n";
+                  print FILE_SYNCMATT  "! Condition: ",$cond,"\n\n";
                   print FILE_SYNCMATT  "  if (",$cond,") then\n";
 	          print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
 	          print FILE_SYNCMATT  "     call sync\n";
@@ -934,9 +1030,10 @@ while ($line=<INFILE>) {
             } elsif ($synccond eq "true") {
 
                $synccond = " ";
+
                print FILE_SYNCMATT  "  end if\n\n";
-	       print FILE_SYNCMATT  "     syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
-               print FILE_SYNCMATT  "     call sync\n";
+	       print FILE_SYNCMATT  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
+               print FILE_SYNCMATT  "  call sync\n";
 
             }
 
@@ -958,13 +1055,17 @@ while ($line=<INFILE>) {
 
                   $updatecond = "true";
                   $updateold = $cond;
+
+                  print FILE_UPDATE  "! Condition: ",$cond,"\n\n";
                   print FILE_UPDATE  "  if (",$cond,") then\n";
                   print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
 
                } elsif ($cond ne $updateold && $updatecond eq "true") {
 
                   $updateold = $cond;
+
                   print FILE_UPDATE  "  end if\n\n";
+                  print FILE_UPDATE  "! Condition: ",$cond,"\n\n";
                   print FILE_UPDATE  "  if (",$cond,") then\n";
                   print FILE_UPDATE  "     ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n";
 
@@ -977,6 +1078,7 @@ while ($line=<INFILE>) {
             } elsif ($updatecond eq "true") {
 
                $updatecond = " ";
+
                print FILE_UPDATE  "  end if\n\n";
                print FILE_UPDATE  "  ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n\n";
 
@@ -1000,13 +1102,17 @@ while ($line=<INFILE>) {
 
                  $updatecond = "true";
                  $updateold = $cond;
+
+                 print FILE_UPDATE  "! Condition: ",$cond,"\n\n";
                  print FILE_UPDATE  "  if (",$cond,") then\n";
                  print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
 
               } elsif ($cond ne $updateold && $updatecond eq "true") {
 
                  $updateold = $cond;
+
                  print FILE_UPDATE  "  end if\n\n";
+                 print FILE_UPDATE  "! Condition: ",$cond,"\n\n";
                  print FILE_UPDATE  "  if (",$cond,") then\n";
                  print FILE_UPDATE  "     ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n";
 
@@ -1019,6 +1125,7 @@ while ($line=<INFILE>) {
            } elsif ($updatecond eq "true") {
 
               $updatecond = " ";
+
               print FILE_UPDATE  "  end if\n\n";
               print FILE_UPDATE  "  ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n\n";
 
@@ -1237,10 +1344,6 @@ close(INFILE);
 
 print FILE_ARRAYS "\n  end module arrays\n\n";
 
-# Write ending of file accumulate.f90.
-
-print FILE_ACCUMULATE "  end subroutine accumulate\n\n";
-
 # Write ending of file allocatearrays.f90
 
 print FILE_ALLOCATEARRAYS "  end subroutine allocatearrays\n\n";
@@ -1257,6 +1360,14 @@ print FILE_GRABARRAY "     end if\n";
 print FILE_GRABARRAY "     call die\n";
 print FILE_GRABARRAY "  end if\n\n";
 print FILE_GRABARRAY "  end subroutine grabarray\n\n";
+
+# Write ending of file accumulate.f90.
+
+if ($accumcond eq "true") {
+   print FILE_ACCUMULATE "  end if\n\n";
+}
+
+print FILE_ACCUMULATE "  end subroutine accumulate\n\n";
 
 # Write ending of file saveold.f90.
 
