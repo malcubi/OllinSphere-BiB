@@ -1003,7 +1003,7 @@ while ($line=<INFILE>) {
                if ($cond ne $syncold && $synccond ne "true") {
 
                   $synccond = "true";
-                  $syncold = $cond;
+                  $syncold  = $cond;
 
                   print FILE_SYNCMATT  "! Condition: ",$cond,"\n\n";
                   print FILE_SYNCMATT  "  if (",$cond,") then\n";
@@ -1030,10 +1030,9 @@ while ($line=<INFILE>) {
             } elsif ($synccond eq "true") {
 
                $synccond = " ";
+               $syncold  = " ";
 
                print FILE_SYNCMATT  "  end if\n\n";
-	       print FILE_SYNCMATT  "  syncvar(1-ghost:Nrmax) => ",$var,"(l,:)\n";
-               print FILE_SYNCMATT  "  call sync\n";
 
             }
 
