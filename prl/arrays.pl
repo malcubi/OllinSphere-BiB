@@ -657,7 +657,7 @@ while ($line=<INFILE>) {
                   print FILE_ACCUMULATE  "! Condition: ",$cond,"\n\n";
                   print FILE_ACCUMULATE  "  if (",$cond,") then\n\n";
                   print FILE_ACCUMULATE  "     if (.not.last) then\n";
-                  print FILE_ACCUMULATE  "         ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+                  print FILE_ACCUMULATE  "        ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
                   print FILE_ACCUMULATE  "     else\n";
                   print FILE_ACCUMULATE  "        s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
                   print FILE_ACCUMULATE  "     end if\n\n";
@@ -665,7 +665,7 @@ while ($line=<INFILE>) {
                } else {
 
                   print FILE_ACCUMULATE  "     if (.not.last) then\n";
-                  print FILE_ACCUMULATE  "         ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+                  print FILE_ACCUMULATE  "        ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
                   print FILE_ACCUMULATE  "     else\n";
                   print FILE_ACCUMULATE  "        s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
                   print FILE_ACCUMULATE  "     end if\n\n";
@@ -678,7 +678,7 @@ while ($line=<INFILE>) {
 
                print FILE_ACCUMULATE  "  end if\n\n";
                print FILE_ACCUMULATE  "  if (.not.last) then\n";
-               print FILE_ACCUMULATE  "      ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+               print FILE_ACCUMULATE  "     ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
                print FILE_ACCUMULATE  "  else\n";
                print FILE_ACCUMULATE  "     s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
                print FILE_ACCUMULATE  " end if\n\n";
@@ -686,7 +686,7 @@ while ($line=<INFILE>) {
             } else {
 
                print FILE_ACCUMULATE  "  if (.not.last) then\n";
-               print FILE_ACCUMULATE  "      ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
+               print FILE_ACCUMULATE  "     ",$var,"_a(l) = merge(w*s",$var,"(l),",$var,"_a(l) + w*s",$var,"(l),first)\n";
                print FILE_ACCUMULATE  "  else\n";
                print FILE_ACCUMULATE  "     s",$var,"(l) = ",$var,"_a(l) + w*s",$var,"(l)\n";
                print FILE_ACCUMULATE  "  end if\n\n";
