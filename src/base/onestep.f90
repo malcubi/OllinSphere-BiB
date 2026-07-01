@@ -17,6 +17,10 @@
   implicit none
 
   logical contains
+  logical firstcall
+  logical icn,rk4
+  logical maximal,matter
+  logical dynamic
 
   integer i,imax           ! Grid point counter.
   integer l                ! Refinement level counter.
@@ -31,6 +35,28 @@
   real(8) interp           ! Interpolation function.
   real(8) aux1,aux2,aux3
 
+  data firstcall / .true. /
+
+  save firstcall,icn,rk4,maximal,matter,dynamic
+
+
+! *************************
+! ***   LOGICAL FLAGS   ***
+! *************************
+
+  if (firstcall) then
+
+      firstcall = .false.
+
+      icn = (integrator=="icn")
+      rk4 = (integrator=="rk4")
+
+      maximal = (slicing=="maximal")
+      matter  = (mattertype/="vacuum")
+      dynamic = (spacetime=="dynamic")
+
+  end if
+
 
 ! ******************************
 ! ***   SAVE OLD TIME STEP   ***
@@ -43,9 +69,9 @@
 ! ***   FIND NUMBER OF INTERNAL ITERATIONS   ***
 ! **********************************************
 
-  if (integrator=="icn") then
+  if (icn) then
      niter = icniter
-  else if (integrator=="rk4") then
+  else
      niter = 4
   end if
 
@@ -63,7 +89,7 @@
 !    Find out weights for each iteration for the
 !    different time integration schemes.
 
-     if (integrator=="icn") then
+     if (icn) then
 
 !       In normal ICN, all iterations except the last one
 !       jump only half a time step.
@@ -76,7 +102,7 @@
 
 !    Fourth order Runge-Kutta.
 
-     else if (integrator=="rk4") then
+     else
 
 !       In fourth order Runge-Kutta the first two iterations
 !       jump half a time step and the last two a full time step.
@@ -84,19 +110,20 @@
 !       results contribute to final answer: 1/6 for first and
 !       last intermediate results and 1/3 for the two middle ones.
 
-        if (k==1) then
-           dtw = 0.5d0*dt(l)
-           weight = 1.d0/6.d0
-        else if (k==2) then
-           dtw = 0.5d0*dt(l)
-           weight = 1.d0/3.d0
-        else if (k==3) then
-           dtw = dt(l)
-           weight = 1.d0/3.d0
-        else
-           dtw = dt(l)
-           weight = 1.d0/6.d0
-        end if
+        select case(k)
+           case(1)
+              dtw = 0.5d0*dt(l)
+              weight = 1.d0/6.d0
+           case(2)
+              dtw = 0.5d0*dt(l)
+              weight = 1.d0/3.d0
+           case(3) 
+              dtw = dt(l)
+              weight = 1.d0/3.d0
+           case(4)
+              dtw = dt(l)
+              weight = 1.d0/6.d0
+        end select
 
      end if
 
@@ -105,7 +132,7 @@
 !    ***   SOURCES FOR SPACETIME   ***
 !    *********************************
 
-     if (spacetime=="dynamic") then
+     if (dynamic) then
 
 !       Sources for geometry.
 
@@ -133,7 +160,7 @@
 !    ***   SOURCES FOR MATTER   ***
 !    ******************************
 
-     if (mattertype/="vacuum") then
+     if (matter) then
         call sources_matter(l)
      end if
 
@@ -148,17 +175,15 @@
 
      if ((l==0).and.(rank==size-1)) then
 
-!       Static and flat boundaries.  The routine "simpleboundary" applies
-!       either static or flat boundaries to the sources of all those arrays
-!       that are not declared with the attribute NOBOUND.
-!
-!       These type of boundary conditions are really just for testing,
-!       but "flat" boundaries can in fact be useful for cosmological
-!       spacetimes, as long they are are sufficiently far away.
+!       Constraint preserving boundary conditions. In this case we first
+!       apply the standard radiative boundaries for (trK,Deltar), and
+!       after that we apply the constraint preserving boundary conditions
+!       for (KTA,Klambda).
 
-        if ((boundtype=="static").or.(boundtype=="flat")) then
+        if (boundtype=="constraint") then
 
-           call simpleboundary(l)
+           call radiative_geometry(l)
+           call constraintbound(l)
 
 !       Radiative boundaries for geometry. The routine "radiative_geometry"
 !       applies outgoing wave boundary conditions to the geometric
@@ -171,15 +196,17 @@
 
            call radiative_geometry(l)
 
-!       Constraint preserving boundary conditions. In this case we first
-!       apply the standard radiative boundaries for (trK,Deltar), and
-!       after that we apply the constraint preserving boundary conditions
-!       for (KTA,Klambda).
+!       Static and flat boundaries.  The routine "simpleboundary" applies
+!       either static or flat boundaries to the sources of all those arrays
+!       that are not declared with the attribute NOBOUND.
+!
+!       These type of boundary conditions are really just for testing,
+!       but "flat" boundaries can in fact be useful for cosmological
+!       spacetimes, as long they are are sufficiently far away.
 
-        else if (boundtype=="constraint") then
+        else if ((boundtype=="static").or.(boundtype=="flat")) then
 
-           call radiative_geometry(l)
-           call constraintbound(l)
+           call simpleboundary(l)
 
         end if
 
@@ -203,7 +230,7 @@
 !       weight, but stores the result back into the source arrays so
 !       that the last update will work correctly.
 
-     if (integrator=="rk4") then
+     if (rk4) then
         call accumulate(l,k,niter,weight)
      end if
 
@@ -336,7 +363,7 @@
 !    If we are using maximal slicing, we must now
 !    solve for the lapse on the current grid level.
 
-     if (slicing=="maximal") then
+     if (maximal) then
         call alphamaximal(l,l,maximalbound,1.d0)
      end if
 
@@ -450,18 +477,22 @@
 ! This is really intended only for testing, and is done when the
 ! corresponding parameter Noutput is equal to 0.
 
-  if (Noutput0D==0) then
-     do i=1,nvars0D
-        call grabarray(trim(outvars0Darray(i)))
-        call save0Dvariable(directory,trim(outvars0Darray(i)),i,s(l),t(l),'old',l)
-     end do
-  end if
+  if (Noutput0D*Noutput1D==0) then
 
-  if (Noutput1D==0) then
-     do i=1,nvars1D
-        call grabarray(trim(outvars1Darray(i)))
-        call save1Dvariable(directory,trim(outvars1Darray(i)),i,s(l),'old',l)
-     end do
+     if (Noutput0D==0) then
+        do i=1,nvars0D
+           call grabarray(trim(outvars0Darray(i)))
+           call save0Dvariable(directory,trim(outvars0Darray(i)),i,s(l),t(l),'old',l)
+        end do
+     end if
+
+     if (Noutput1D==0) then
+        do i=1,nvars1D
+           call grabarray(trim(outvars1Darray(i)))
+           call save1Dvariable(directory,trim(outvars1Darray(i)),i,s(l),'old',l)
+        end do
+     end if
+
   end if
 
 
