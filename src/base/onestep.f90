@@ -89,20 +89,9 @@
 !    Find out weights for each iteration for the
 !    different time integration schemes.
 
-     if (icn) then
-
-!       In normal ICN, all iterations except the last one
-!       jump only half a time step.
-
-        if (k<niter) then
-           dtw = 0.5d0*dt(l)
-        else
-           dtw = dt(l)
-        end if
-
 !    Fourth order Runge-Kutta.
 
-     else
+     if (rk4) then
 
 !       In fourth order Runge-Kutta the first two iterations
 !       jump half a time step and the last two a full time step.
@@ -124,6 +113,19 @@
               dtw = dt(l)
               weight = 1.d0/6.d0
         end select
+
+!    Iterative Crank-Nicholson (ICN).
+
+     else if (icn) then
+
+!       In normal ICN, all iterations except the last one
+!       jump only half a time step.
+
+        if (k<niter) then
+           dtw = 0.5d0*dt(l)
+        else
+           dtw = dt(l)
+        end if
 
      end if
 
