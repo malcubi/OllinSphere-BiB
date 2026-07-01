@@ -209,29 +209,24 @@
 
 !    Energy density.
 
-    !$OMP SIMD
      rho(l,:) = rho(l,:) + half*(scalar_pi(l,:)**2 + scalar_xi(l,:)**2/(A(l,:)*psi4(l,:))) &
               + scalar_V(l,:)
 
 !    Momentum density (index down).
 
-    !$OMP SIMD
      JA(l,:) = JA(l,:) - scalar_pi(l,:)*scalar_xi(l,:)
 
 !    Stress tensor.
 
-    !$OMP SIMD
      SAA(l,:) = SAA(l,:) + half*(scalar_pi(l,:)**2 + scalar_xi(l,:)**2/(A(l,:)*psi4(l,:))) &
               - scalar_V(l,:)
 
-    !$OMP SIMD
      SBB(l,:) = SBB(l,:) + half*(scalar_pi(l,:)**2 - scalar_xi(l,:)**2/(A(l,:)*psi4(l,:))) &
               - scalar_V(l,:)
 
 !    SLL = (SAA - SBB)/r**2.
 
      if (.not.nolambda) then
-    !$OMP SIMD
         SLL(l,:) = SLL(l,:) + scalar_xi(l,:)**2/(A(l,:)*psi4(l,:))/r(l,:)**2
      end if
 
@@ -351,7 +346,6 @@
 
 !    Energy density.
 
-    !$OMP SIMD
      complex_rhotot(l,:) = half*(complex_gpiR(l,:)**2 + complex_gxiR(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + half*(complex_gpiI(l,:)**2 + complex_gxiI(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + complex_V(l,:)
@@ -364,12 +358,10 @@
 
 !    Stress tensor.
 
-    !$OMP SIMD
      SAA(l,:) = SAA(l,:) + half*(complex_gpiR(l,:)**2 + complex_gxiR(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + half*(complex_gpiI(l,:)**2 + complex_gxiI(l,:)**2/(A(l,:)*psi4(l,:))) &
                          - complex_V(l,:)
 
-    !$OMP SIMD
      SBB(l,:) = SBB(l,:) + half*(complex_gpiR(l,:)**2 - complex_gxiR(l,:)**2/(A(l,:)*psi4(l,:))) &
                          + half*(complex_gpiI(l,:)**2 - complex_gxiI(l,:)**2/(A(l,:)*psi4(l,:))) &
                          - complex_V(l,:)
@@ -638,7 +630,6 @@
 
 !    Energy density.
 
-    !$OMP SIMD
      rho(l,:) = rho(l,:) + (0.125d0/smallpi) &
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               + cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
@@ -646,19 +637,16 @@
 
 !    Radial momentum density (index down).
 
-    !$OMP SIMD
      JA(l,:) = JA(l,:) + (0.25d0/smallpi)*cproca_mass**2 &
              *(cprocaPhi_R(l,:)*cprocaA_R(l,:) + cprocaPhi_I(l,:)*cprocaA_I(l,:))
 
 !    Stress tensor.
 
-    !$OMP SIMD
      SAA(l,:) = SAA(l,:) - (0.125d0/smallpi) &
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               - cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
               + (cprocaPhi_R(l,:)**2 + cprocaPhi_I(l,:)**2)))
 
-    !$OMP SIMD
      SBB(l,:) = SBB(l,:) + (0.125d0/smallpi) &
               *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
               - cproca_mass**2*((cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)) &
@@ -667,7 +655,6 @@
 !    SLL = (SAA - SBB)/r**2.
 
      if (.not.nolambda) then
-       !$OMP SIMD
         SLL(l,:) = SLL(l,:) - (0.25d0/smallpi) &
                  *(A(l,:)*psi4(l,:)*(cprocaE_R(l,:)**2 + cprocaE_I(l,:)**2) &
                  - cproca_mass**2*(cprocaA_R(l,:)**2 + cprocaA_I(l,:)**2)/(A(l,:)*psi4(l,:)))/r(l,:)**2

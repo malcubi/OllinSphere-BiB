@@ -83,7 +83,6 @@
 
 !    Terms coming from Christoffel symbols.
 
-    !$OMP SIMD
      sscalar_pi(l,:) = sscalar_pi(l,:) + (alpha(l,:)*scalar_xi(l,:)*(2.d0/r(l,:) &
                   - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:)) &
                   + scalar_xi(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
@@ -96,7 +95,6 @@
 
 !    Terms coming from Christoffel symbols.
 
-    !$OMP SIMD
      sscalar_pi(l,:) = sscalar_pi(l,:) + (alpha(l,:)*D1_scalar_phi(l,:)*(2.d0/r(l,:) &
                      - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:)) &
                      + D1_scalar_phi(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
