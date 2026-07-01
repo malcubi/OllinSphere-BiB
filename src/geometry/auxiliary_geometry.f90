@@ -349,7 +349,6 @@
 !    DIV_beta(l,:) = D1_beta(l,:) + beta(l,:)*(half*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:)) &
 !                  + two*beta(l,:)/r(l,:)
 
-    !$OMP SIMD
      DIV_beta(l,:) = D1_beta(l,:) + half*beta(l,:)*D1_AB2(l,:)/AB2(l,:) &
                    + two*beta(l,:)/r(l,:)
 
@@ -366,7 +365,6 @@
 !                     + beta(l,:)*(half/A(l,:)*(D2_A(l,:) - D1_A(l,:)**2/A(l,:)) &
 !                     + one/B(l,:)*(D2_B(l,:) - D1_B(l,:)**2/B(l,:))) + two*DD_beta(l,:)
 
-    !$OMP SIMD
      D1_DIV_beta(l,:) = D2_beta(l,:) + half*D1_beta(l,:)*D1_AB2(l,:)/AB2(l,:) &
                       + half*beta(l,:)*(D2_AB2(l,:)/AB2(l,:) - (D1_AB2(l,:)/AB2(l,:))**2) &
                       + two*DD_beta(l,:)
@@ -485,7 +483,6 @@
 
 ! Delta in terms of its definition.
 
- !$OMP SIMD
   DeltaAB(l,:) = (half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) &
                - two*r(l,:)*lambda(l,:))/A(l,:)
 
@@ -501,7 +498,6 @@
   diffvar => Deltar
   D1_Deltar(l,:) = diff1(l,-1)
 
- !$OMP SIMD
   D1_DeltaAB(l,:) = - D1_A(l,:)/A(l,:)*DeltaAB(l,:) + one/A(l,:) &
                   *(half*(D2_A(l,:)/A(l,:) - (D1_A(l,:)/A(l,:))**2) &
                   - (D2_B(l,:)/B(l,:) - (D1_B(l,:)/B(l,:))**2) &
@@ -622,13 +618,11 @@
 ! Second covariant derivative of lapse with
 ! one index up and one down: D^r D_r alpha.
 
- !$OMP SIMD
   Dcov2_alpha(l,:) = one/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
                    - D1_alpha(l,:)*(half*D1_A(l,:)/A(l,:) + two*D1_phi(l,:)))
 
 ! Laplacian of lapse.
 
- !$OMP SIMD
   Lapla_alpha(l,:) = one/(A(l,:)*psi4(l,:))*(D2_alpha(l,:) &
                    - D1_alpha(l,:)*(half*D1_A(l,:)/A(l,:) - D1_B(l,:)/B(l,:) &
                    - two*D1_phi(l,:) - two/r(l,:)))
@@ -640,7 +634,6 @@
 
 ! Mixed radial component of physical Ricci tensor R^r_r, found with MAPLE.
 
- !$OMP SIMD
   RICA(l,:) = - one/(A(l,:)*psi4(l,:))*(half*D2_A(l,:)/A(l,:) - A(l,:)*D1_Deltar(l,:) &
             - 0.75d0*(D1_A(l,:)/A(l,:))**2 + half*(D1_B(l,:)/B(l,:))**2 - half*Deltar(l,:)*D1_A(l,:) &
             + D1_A(l,:)/r(l,:)/B(l,:) + two*lambda(l,:)*(one + r(l,:)*D1_B(l,:)/B(l,:)) &
@@ -648,7 +641,6 @@
 
 ! Scalar curvature (trace of Ricci), found with MAPLE.
 
- !$OMP SIMD
   RSCAL(l,:) = - one/(A(l,:)*psi4(l,:))*(half*D2_A(l,:)/A(l,:) + D2_B(l,:)/B(l,:) &
              - A(l,:)*D1_Deltar(l,:) - (D1_A(l,:)/A(l,:))**2 + half*(D1_B(l,:)/B(l,:))**2 &
              + two/r(l,:)/B(l,:)*(3.d0 - A(l,:)/B(l,:))*D1_B(l,:) + 4.d0*lambda(l,:)) &

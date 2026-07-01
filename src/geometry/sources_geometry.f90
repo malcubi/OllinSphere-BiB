@@ -285,7 +285,6 @@
 
 !    sKTA(l,:) = - Dcov2_alpha(l,:) + third*Lapla_alpha(l,:)
 
-    !$OMP SIMD
      sKTA(l,:) = - 2.d0*third/A(l,:)*(r(l,:)*DD_alphar(l,:) &
                - half*D1_alpha(l,:)/psi4(l,:)*(D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:)))
 
@@ -296,7 +295,6 @@
 
 !    sKTA(l,:) = sKTA(l,:) + alpha(l,:)*(RICA(l,:) - third*RSCAL(l,:))
 
-    !$OMP SIMD
      sKTA(l,:) = sKTA(l,:) - alpha(l,:)/(A(l,:)*psi4(l,:)) &
                *(third*(D2_A(l,:)/A(l,:) - D2_B(l,:)/B(l,:) - 2.d0*A(l,:)*D1_Deltar(l,:) &
                - 2.d0*(D1_A(l,:)/A(l,:))**2 + (D1_B(l,:)/B(l,:))**2) &
@@ -360,7 +358,6 @@
 
 !    Terms coming from definition of Deltar and the momentum constraints.
 
-     !$OMP SIMD
      sDeltar(l,:) = 2.d0*alpha(l,:)*(KTA(l,:)*Deltar(l,:) - 2.d0*r(l,:)*Klambda(l,:)/B(l,:)) &
                   - (2.d0*KTA(l,:)*D1_alpha(l,:) + (2.d0-eta)*alpha(l,:)*D1_KTA(l,:))/A(l,:) &
                   + (eta*alpha(l,:)/A(l,:))*(-2.d0*third*D1_trK(l,:) &
@@ -387,7 +384,6 @@
 !                             r
 
      if (shiftactive) then
-        !$OMP SIMD
         sDeltar(l,:) = sDeltar(l,:) + beta(l,:)*DA_Deltar(l,:) - Deltar(l,:)*D1_beta(l,:) &
                      + D2_beta(l,:)/A(l,:) + two/B(l,:)*DD_beta(l,:) &
                      + sigma*third*(D1_DIV_beta(l,:)/A(l,:) + two*Deltar(l,:)*DIV_beta(l,:))
@@ -437,11 +433,9 @@
 !                +  beta d lambda  +  2/r ( beta lambda - (A/B) d (beta/r) )
 !                         r                                      r
 
-       !$OMP SIMD
         slambda(l,:) = two*alpha(l,:)*A(l,:)/B(l,:)*Klambda(l,:)
 
         if (shiftactive) then
-           !$OMP SIMD
            slambda(l,:) = slambda(l,:) + beta(l,:)*DA_lambda(l,:) &
                         + two/r(l,:)*(beta(l,:)*lambda(l,:) &
                         - (A(l,:)/B(l,:))*DD_beta(l,:))
@@ -459,12 +453,10 @@
 !
 !                -  N/6 sigma lambda2 DIV_beta
 
-       !$OMP SIMD
         slambda2(l,:) = two*alpha(l,:)*A(l,:)/B(l,:)*Klambda2(l,:) &
                       + (dble(lambdapower)/6.d0)*alpha(l,:)*lambda2(l,:)*trK(l,:)
 
         if (shiftactive) then
-           !$OMP SIMD
            slambda2(l,:) = slambda2(l,:) + beta(l,:)*DA_lambda2(l,:) &
                          + two/r(l,:)*(beta(l,:)*lambda2(l,:) &
                          - (A(l,:)/B(l,:)/psi(l,:)**lambdapower)*DD_beta(l,:)) &
@@ -501,7 +493,6 @@
 !                 - (1 / r psi ) ( d alpha / 2 + alpha d phi ) ( d A / A + d B / B ) ]
 !                                   r                   r         r         r
 
-        !$OMP SIMD
         sKlambda(l,:) = - one/r(l,:)/A(l,:)*(DD_alphar(l,:) + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
                       - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:))*(D1_A(l,:)/A(l,:) &
                       + D1_B(l,:)/B(l,:))/r(l,:)/psi4(l,:))
@@ -523,7 +514,6 @@
 !                 -  lambda / r  ( B Deltar  +  2 d B / B ) + (B/A) lambda  ]
 !                                                  r
 
-       !$OMP SIMD
         sKlambda(l,:) = sKlambda(l,:) + alpha(l,:)/A(l,:)/psi4(l,:) &
                       *(0.5d0*B(l,:)/A(l,:)*D2_lambda(l,:) + A(l,:)*DD_Deltar(l,:)/r(l,:) &
                       + D1_lambda(l,:)/r(l,:)*(1.d0 + two*B(l,:)/A(l,:) - 0.5d0*r(l,:)*B(l,:)*Deltar(l,:)) &
@@ -571,7 +561,6 @@
 
 !       I) Terms coming from derivatives of lapse and conformal factor:
 
-       !$OMP SIMD
         sKlambda2(l,:) = - one/r(l,:)/A(l,:)/psi(l,:)**lambdapower*(DD_alphar(l,:) &
                        + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
                        - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:)) &
@@ -579,7 +568,6 @@
 
 !       II) Terms coming from the conformal Ricci tensor:
 
-       !$OMP SIMD
         sKlambda2(l,:) = sKlambda2(l,:) + alpha(l,:)/r(l,:)/exp((4.d0+dble(lambdapower))*phi(l,:))*DD_Deltar(l,:) &
                        + alpha(l,:)/A(l,:)**2/psi4(l,:)*(B(l,:) &
                        *(half*dble(lambdapower)*lambda2(l,:)*D2_phi(l,:) + 0.5d0*D2_lambda2(l,:) &
@@ -593,13 +581,11 @@
 
 !       II) Quadratic terms:
 
-       !$OMP SIMD
         sKlambda2(l,:) = sKlambda2(l,:) + (1.d0 + dble(lambdapower)/6.d0)*alpha(l,:)*trK(l,:)*Klambda2(l,:)
 
 !       IV) Shift terms.
 
         if (shiftactive) then
-          !$OMP SIMD
            sKlambda2(l,:) = sKlambda2(l,:) + beta(l,:)*(DA_Klambda2(l,:) &
                           + 2.d0*Klambda2(l,:)/r(l,:)) &
                           - dble(lambdapower)/6.d0*sigma*Klambda2(l,:)*DIV_beta(l,:)
