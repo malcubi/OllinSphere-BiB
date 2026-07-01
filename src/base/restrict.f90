@@ -76,8 +76,8 @@
 
   if (rank==0) then
 
-!    Processor 0 only copies data to itself,
-!    so there is no need to use MPI.
+!    Processor 0 only copies data to itself, so there is no
+!    need to use MPI.
 !
 !    Since here I don't how many variables are evolving,
 !    I generate the necessary code automatically at compile
