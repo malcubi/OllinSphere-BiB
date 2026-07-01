@@ -56,10 +56,11 @@
 
 ! Arrays for band diagonal matrix inversion.
 
-  integer, dimension (0:Nrtotal) :: indx
-  real(8), dimension (0:Nrtotal,-2:2) :: M     ! Matrix elements defining the system.
-  real(8), dimension (0:Nrtotal,-2:2) :: ML    ! Lower diagonal matrix returned from bandec.
-  real(8), dimension (0:Nrtotal) :: S0         ! Source vector.
+  integer, allocatable :: indx(:)
+
+  real(8), allocatable :: M(:,:)     ! Matrix elements defining the system.
+  real(8), allocatable :: ML(:,:)    ! Lower diagonal matrix returned from bandec.
+  real(8), allocatable :: S0(:)      ! Source vector.
 
 
 ! ************************
@@ -81,6 +82,14 @@
      print *
      call die
   end if
+
+
+! ***************************
+! ***   ALLOCATE ARRAYS   ***
+! ***************************
+
+  allocate(M(0:Nrtotal,-2:2),ML(0:Nrtotal,-2:2))
+  allocate(indx(0:Nrtotal),S0(0:Nrtotal))
 
 
 ! *********************************
@@ -343,6 +352,13 @@
      end do
 
   end do
+
+
+! *****************************
+! ***   DEALLOCATE ARRAYS   ***
+! *****************************
+
+  deallocate(indx,M,Ml,S0)
 
 
 ! ***************
