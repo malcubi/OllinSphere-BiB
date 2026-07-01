@@ -111,7 +111,7 @@
 ! again the whole system. Doing this we should recover the same
 ! frequency (up to truncation error).
 !
-! PERTURBATIONS:  For the moment this rountine does not solve
+! PERTURBATIONS:  For the moment this routine does not solve
 ! for perturbed initial data.
 !
 ! ANGULAR MOMENTUM:  This routine does not yet allow for the
