@@ -914,6 +914,7 @@ while ($line=<INFILE>) {
             } elsif ($symcond eq "true") {
 
                $symcond = " ";
+               $symold  = " ";
 
                print FILE_SYMMETRIES  "     end do\n";
                print FILE_SYMMETRIES  "  end if\n\n";
