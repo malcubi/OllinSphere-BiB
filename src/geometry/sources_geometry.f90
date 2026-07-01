@@ -18,6 +18,8 @@
   implicit none
 
   logical contains
+  logical firstcall
+  logical shiftactive,matter,nonmin,z4c
 
   integer i,l
 
@@ -25,6 +27,12 @@
   real(8) zero,sixth,third
   real(8) half,one,two,smallpi
   real(8) aux,r0,interp
+
+  data firstcall / .true. /
+
+  save firstcall
+  save shiftactive,matter,nonmin,z4c
+  save sigma
 
 
 ! *******************
@@ -52,10 +60,28 @@
 ! that change the form of the shift terms in the
 ! sources of the geometric variables.
 
-  if (bssnflavor=='eulerian') then
-     sigma = 0.d0
-  else if (bssnflavor=='lagrangian') then
-     sigma = 1.d0
+  if (firstcall) then
+     if (bssnflavor=='eulerian') then
+        sigma = 0.d0
+     else if (bssnflavor=='lagrangian') then
+        sigma = 1.d0
+     end if
+  end if
+
+
+! *************************
+! ***   LOGICAL FLAGS   ***
+! *************************
+
+  if (firstcall) then
+
+      firstcall = .false.
+
+      shiftactive = (shift/="none")
+      matter = (mattertype/="vacuum")
+      z4c = (formulation=="z4c")
+      nonmin = contains(mattertype,"nonmin")
+
   end if
 
 
@@ -88,11 +114,11 @@
 
   sphi(l,:) = - sixth*alpha(l,:)*trK(l,:)
 
-  if (formulation=="z4c") then
+  if (z4c) then
      sphi(l,:) = sphi(l,:) - two*sixth*alpha(l,:)*z4theta(l,:)
   end if
 
-  if (shift/="none") then
+  if (shiftactive) then
      sphi(l,:) = sphi(l,:) + beta(l,:)*DA_phi(l,:) + sigma*sixth*DIV_beta(l,:)
   end if
 
@@ -108,11 +134,11 @@
 
      schi(l,:) = dble(chipower)*sixth*alpha(l,:)*chi(l,:)*trK(l,:)
 
-     if (formulation=="z4c") then
+     if (z4c) then
         schi(l,:) = schi(l,:) + two*dble(chipower)*sixth*alpha(l,:)*chi(l,:)*z4theta(l,:)
      end if
 
-     if (shift/="none") then
+     if (shiftactive) then
         schi(l,:) = schi(l,:) + beta(l,:)*DA_chi(l,:) &
                   - sigma*dble(chipower)*sixth*chi(l,:)*DIV_beta(l,:)
      end if
@@ -137,7 +163,7 @@
 
 ! Shift terms.
 
-  if (shift/="none") then
+  if (shiftactive) then
      sA(l,:) = sA(l,:) + beta(l,:)*DA_A(l,:) + two*A(l,:)*D1_beta(l,:) &
              - two*third*sigma*A(l,:)*DIV_beta(l,:)
      sB(l,:) = sB(l,:) + beta(l,:)*DA_B(l,:) + two*beta(l,:)*B(l,:)/r(l,:) &
@@ -191,23 +217,23 @@
 
 !    Damping term for Z4c.
 
-     if (formulation=="z4c") then
+     if (z4c) then
         strK(l,:) = strK(l,:) + alpha(l,:)*kappa1*(one - kappa2)*z4theta(l,:)
      end if
 
 !    Shift terms.
 
-     if (shift/="none") then
+     if (shiftactive) then
         strK(l,:) = strK(l,:) + beta(l,:)*DA_trK(l,:)
      end if
 
 !    Matter terms.
 
-     if (mattertype/="vacuum") then
-        if (contains(mattertype,"nonmin")) then
-           strK(l,:) = strK(l,:) + 0.5d0/nonmin_f(l,:)*alpha(l,:)*(rho(l,:) + trS(l,:))
-        else
+     if (matter) then
+        if (.not.nonmin) then
            strK(l,:) = strK(l,:) + 4.d0*smallpi*alpha(l,:)*(rho(l,:) + trS(l,:))
+        else
+           strK(l,:) = strK(l,:) + 0.5d0/nonmin_f(l,:)*alpha(l,:)*(rho(l,:) + trS(l,:))
         end if
      end if
 
@@ -258,6 +284,8 @@
 !    compacted the terms using: DD_alphar = d_r (d_r alpha / r psi4)
 
 !    sKTA(l,:) = - Dcov2_alpha(l,:) + third*Lapla_alpha(l,:)
+
+    !$OMP SIMD
      sKTA(l,:) = - 2.d0*third/A(l,:)*(r(l,:)*DD_alphar(l,:) &
                - half*D1_alpha(l,:)/psi4(l,:)*(D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:)))
 
@@ -268,6 +296,7 @@
 
 !    sKTA(l,:) = sKTA(l,:) + alpha(l,:)*(RICA(l,:) - third*RSCAL(l,:))
 
+    !$OMP SIMD
      sKTA(l,:) = sKTA(l,:) - alpha(l,:)/(A(l,:)*psi4(l,:)) &
                *(third*(D2_A(l,:)/A(l,:) - D2_B(l,:)/B(l,:) - 2.d0*A(l,:)*D1_Deltar(l,:) &
                - 2.d0*(D1_A(l,:)/A(l,:))**2 + (D1_B(l,:)/B(l,:))**2) &
@@ -282,17 +311,17 @@
 
 !    Shift terms.
 
-     if (shift/="none") then
+     if (shiftactive) then
         sKTA(l,:) = sKTA(l,:) + beta(l,:)*DA_KTA(l,:)
      end if
 
 !    Matter terms.
 
-     if (mattertype/="vacuum") then
-        if (contains(mattertype,"nonmin")) then
-           sKTA(l,:) = sKTA(l,:) - 2.d0*third/nonmin_f(l,:)*alpha(l,:)*(SAA(l,:) - SBB(l,:))
-        else
+     if (matter) then
+        if (.not.nonmin) then
            sKTA(l,:) = sKTA(l,:) - 16.d0*third*smallpi*alpha(l,:)*(SAA(l,:) - SBB(l,:))
+        else
+           sKTA(l,:) = sKTA(l,:) - 2.d0*third/nonmin_f(l,:)*alpha(l,:)*(SAA(l,:) - SBB(l,:))
         end if
      end if
 
@@ -331,6 +360,7 @@
 
 !    Terms coming from definition of Deltar and the momentum constraints.
 
+     !$OMP SIMD
      sDeltar(l,:) = 2.d0*alpha(l,:)*(KTA(l,:)*Deltar(l,:) - 2.d0*r(l,:)*Klambda(l,:)/B(l,:)) &
                   - (2.d0*KTA(l,:)*D1_alpha(l,:) + (2.d0-eta)*alpha(l,:)*D1_KTA(l,:))/A(l,:) &
                   + (eta*alpha(l,:)/A(l,:))*(-2.d0*third*D1_trK(l,:) &
@@ -340,7 +370,7 @@
 !    so I commented it out. Not sure why this is, or what "theoretical"
 !    consequences this might have.
 
-     !if (formulation=="z4c") then
+     !if (z4c) then
         !sDeltar(l,:) = sDeltar(l,:) - third*eta*alpha(l,:)*D1_z4theta(l,:) &
         !             - two*alpha(l,:)*kappa1*(Deltar(l,:) - DeltaAB(l,:))
      !end if
@@ -356,7 +386,8 @@
 !             +  (sigma/3) [ d (div(beta)) / A  +  2 Deltar div(beta) ]
 !                             r
 
-     if (shift/="none") then
+     if (shiftactive) then
+        !$OMP SIMD
         sDeltar(l,:) = sDeltar(l,:) + beta(l,:)*DA_Deltar(l,:) - Deltar(l,:)*D1_beta(l,:) &
                      + D2_beta(l,:)/A(l,:) + two/B(l,:)*DD_beta(l,:) &
                      + sigma*third*(D1_DIV_beta(l,:)/A(l,:) + two*Deltar(l,:)*DIV_beta(l,:))
@@ -365,11 +396,11 @@
 !    Matter terms.  The matter contributions only appear
 !    if we have added a multiple of the momentum constraint.
 
-     if (mattertype/="vacuum") then
-        if (contains(mattertype,"nonmin")) then
-           sDeltar(l,:) = sDeltar(l,:) - eta/nonmin_f(l,:)*alpha(l,:)/A(l,:)*JA(l,:)
-        else
+     if (matter) then
+        if (.not.nonmin) then
            sDeltar(l,:) = sDeltar(l,:) - 8.d0*smallpi*eta*alpha(l,:)/A(l,:)*JA(l,:)
+        else
+           sDeltar(l,:) = sDeltar(l,:) - eta/nonmin_f(l,:)*alpha(l,:)/A(l,:)*JA(l,:)
         end if
      end if
 
@@ -406,9 +437,11 @@
 !                +  beta d lambda  +  2/r ( beta lambda - (A/B) d (beta/r) )
 !                         r                                      r
 
+       !$OMP SIMD
         slambda(l,:) = two*alpha(l,:)*A(l,:)/B(l,:)*Klambda(l,:)
 
-        if (shift/="none") then
+        if (shiftactive) then
+           !$OMP SIMD
            slambda(l,:) = slambda(l,:) + beta(l,:)*DA_lambda(l,:) &
                         + two/r(l,:)*(beta(l,:)*lambda(l,:) &
                         - (A(l,:)/B(l,:))*DD_beta(l,:))
@@ -426,10 +459,12 @@
 !
 !                -  N/6 sigma lambda2 DIV_beta
 
+       !$OMP SIMD
         slambda2(l,:) = two*alpha(l,:)*A(l,:)/B(l,:)*Klambda2(l,:) &
                       + (dble(lambdapower)/6.d0)*alpha(l,:)*lambda2(l,:)*trK(l,:)
 
-        if (shift/="none") then
+        if (shiftactive) then
+           !$OMP SIMD
            slambda2(l,:) = slambda2(l,:) + beta(l,:)*DA_lambda2(l,:) &
                          + two/r(l,:)*(beta(l,:)*lambda2(l,:) &
                          - (A(l,:)/B(l,:)/psi(l,:)**lambdapower)*DD_beta(l,:)) &
@@ -466,6 +501,7 @@
 !                 - (1 / r psi ) ( d alpha / 2 + alpha d phi ) ( d A / A + d B / B ) ]
 !                                   r                   r         r         r
 
+        !$OMP SIMD
         sKlambda(l,:) = - one/r(l,:)/A(l,:)*(DD_alphar(l,:) + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
                       - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:))*(D1_A(l,:)/A(l,:) &
                       + D1_B(l,:)/B(l,:))/r(l,:)/psi4(l,:))
@@ -487,6 +523,7 @@
 !                 -  lambda / r  ( B Deltar  +  2 d B / B ) + (B/A) lambda  ]
 !                                                  r
 
+       !$OMP SIMD
         sKlambda(l,:) = sKlambda(l,:) + alpha(l,:)/A(l,:)/psi4(l,:) &
                       *(0.5d0*B(l,:)/A(l,:)*D2_lambda(l,:) + A(l,:)*DD_Deltar(l,:)/r(l,:) &
                       + D1_lambda(l,:)/r(l,:)*(1.d0 + two*B(l,:)/A(l,:) - 0.5d0*r(l,:)*B(l,:)*Deltar(l,:)) &
@@ -505,18 +542,18 @@
 !                 =  sKlambda  +  (3/2) beta / r  ( d KTA )
 !                                                    r
 
-        if (shift/="none") then
+        if (shiftactive) then
 !          sKlambda(l,:) = sKlambda(l,:) + beta(l,:)*(DA_Klambda(l,:) + two*Klambda(l,:)/r(l,:))
            sKlambda(l,:) = sKlambda(l,:) + 1.5d0*beta(l,:)*DA_KTA(l,:)/r(l,:)**2
         end if
 
 !       V) Matter terms:  sKlambda = sKlambda - 8 pi alpha SLL
 
-        if (mattertype/="vacuum") then
-           if (contains(mattertype,"nonmin")) then
-              sKlambda(l,:) = sKlambda(l,:) - alpha(l,:)/nonmin_f(l,:)*SLL(l,:)
-           else
+        if (matter) then
+           if (.not.nonmin) then
               sKlambda(l,:) = sKlambda(l,:) - 8.d0*smallpi*alpha(l,:)*SLL(l,:)
+           else
+              sKlambda(l,:) = sKlambda(l,:) - alpha(l,:)/nonmin_f(l,:)*SLL(l,:)
            end if
         end if
 
@@ -534,6 +571,7 @@
 
 !       I) Terms coming from derivatives of lapse and conformal factor:
 
+       !$OMP SIMD
         sKlambda2(l,:) = - one/r(l,:)/A(l,:)/psi(l,:)**lambdapower*(DD_alphar(l,:) &
                        + (two*alpha(l,:)/psi2(l,:))*DD_phir(l,:) &
                        - (half*D1_alpha(l,:) + alpha(l,:)*D1_phi(l,:)) &
@@ -541,6 +579,7 @@
 
 !       II) Terms coming from the conformal Ricci tensor:
 
+       !$OMP SIMD
         sKlambda2(l,:) = sKlambda2(l,:) + alpha(l,:)/r(l,:)/exp((4.d0+dble(lambdapower))*phi(l,:))*DD_Deltar(l,:) &
                        + alpha(l,:)/A(l,:)**2/psi4(l,:)*(B(l,:) &
                        *(half*dble(lambdapower)*lambda2(l,:)*D2_phi(l,:) + 0.5d0*D2_lambda2(l,:) &
@@ -554,11 +593,13 @@
 
 !       II) Quadratic terms:
 
+       !$OMP SIMD
         sKlambda2(l,:) = sKlambda2(l,:) + (1.d0 + dble(lambdapower)/6.d0)*alpha(l,:)*trK(l,:)*Klambda2(l,:)
 
 !       IV) Shift terms.
 
-        if (shift/="none") then
+        if (shiftactive) then
+          !$OMP SIMD
            sKlambda2(l,:) = sKlambda2(l,:) + beta(l,:)*(DA_Klambda2(l,:) &
                           + 2.d0*Klambda2(l,:)/r(l,:)) &
                           - dble(lambdapower)/6.d0*sigma*Klambda2(l,:)*DIV_beta(l,:)
@@ -566,11 +607,11 @@
 
 !       V) Matter terms:
 
-        if (mattertype/="vacuum") then
-           if (contains(mattertype,"nonmin")) then
-              sKlambda2(l,:) = sKlambda2(l,:) - alpha(l,:)/nonmin_f(l,:)/psi(l,:)**lambdapower*SLL(l,:)
-           else
+        if (matter) then
+           if (.not.nonmin) then
               sKlambda2(l,:) = sKlambda2(l,:) - 8.d0*smallpi*alpha(l,:)/psi(l,:)**lambdapower*SLL(l,:)
+           else
+              sKlambda2(l,:) = sKlambda2(l,:) - alpha(l,:)/nonmin_f(l,:)/psi(l,:)**lambdapower*SLL(l,:)
            end if
         end if
 
@@ -594,15 +635,15 @@
 ! Sources for z4theta. The source is essentially
 ! the Hamiltonian constraint.
 
-  if (formulation=="z4c") then
+  if (z4c) then
 
 !    Hamiltonian constraint term.
 
      sz4theta(l,:) = half*alpha(l,:)*(RSCAL(l,:) - (KTA(l,:)**2 + two*KTB(l,:)**2) &
                    + two*third*trK(l,:)**2)
 
-     if (mattertype/="vacuum") then
-        if (contains(mattertype,"nonmin")) then
+     if (matter) then
+        if (nonmin) then
            sz4theta(l,:) = sz4theta(l,:) - alpha(l,:)/nonmin_f(l,:)*rho(l,:)
         else
            sz4theta(l,:) = sz4theta(l,:) - 8.d0*smallpi*alpha(l,:)*rho(l,:)
@@ -611,7 +652,7 @@
 
 !    Shift terms.
 
-     if (shift/="none") then
+     if (shiftactive) then
         sz4theta(l,:) = sz4theta(l,:) + beta(l,:)*DA_z4theta(l,:)
      end if
 
