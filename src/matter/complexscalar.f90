@@ -116,9 +116,11 @@
 
 !    Terms coming from Christoffel symbols.
 
+    !$OMP SIMD
      scomplex_piR(l,:) = scomplex_piR(l,:) + (alpha(l,:)*complex_xiR(l,:)*(2.d0/r(l,:) &
                        - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
                        + complex_xiR(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
+    !$OMP SIMD
      scomplex_piI(l,:) = scomplex_piI(l,:) + (alpha(l,:)*complex_xiI(l,:)*(2.d0/r(l,:) &
                        - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
                        + complex_xiI(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
@@ -132,9 +134,11 @@
 
 !    Terms coming from Christoffel symbols.
 
+    !$OMP SIMD
      scomplex_piR(l,:) = scomplex_piR(l,:) + (alpha(l,:)*D1_complex_phiR(l,:)*(2.d0/r(l,:) &
                        - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
                        + D1_complex_phiR(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
+    !$OMP SIMD
      scomplex_piI(l,:) = scomplex_piI(l,:) + (alpha(l,:)*D1_complex_phiI(l,:)*(2.d0/r(l,:) &
                        - 0.5d0*D1_A(l,:)/A(l,:) + D1_B(l,:)/B(l,:) + 2.d0*D1_phi(l,:))  &
                        + D1_complex_phiI(l,:)*D1_alpha(l,:))/(A(l,:)*psi4(l,:))
