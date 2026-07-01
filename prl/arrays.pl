@@ -581,7 +581,6 @@ while ($line=<INFILE>) {
                   print FILE_ACCUMULATE  "        s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
                   print FILE_ACCUMULATE  "     end if\n\n";
 
-
                } elsif ($cond ne $accumold && $accumcond eq "true") {
 
                   $accumold = $cond;
@@ -603,12 +602,12 @@ while ($line=<INFILE>) {
                   print FILE_ACCUMULATE  "        s",$var,"(l,:) = ",$var,"_a(l,:) + w*s",$var,"(l,:)\n";
                   print FILE_ACCUMULATE  "     end if\n\n";
 
-
                }
 
             } elsif ($accumcond eq "true") {
 
                $accumcond = " ";
+               $accumold  = " ";
 
                print FILE_ACCUMULATE  "  end if\n\n";
                print FILE_ACCUMULATE  "  if (.not.last) then\n";
@@ -675,6 +674,7 @@ while ($line=<INFILE>) {
             } elsif ($accumcond eq "true") {
 
                $accumcond = " ";
+               $accumold  = " ";
 
                print FILE_ACCUMULATE  "  end if\n\n";
                print FILE_ACCUMULATE  "  if (.not.last) then\n";
@@ -748,6 +748,7 @@ while ($line=<INFILE>) {
             } elsif ($savecond eq "true") {
 
                $savecond = " ";
+               $saveold  = " ";
 
                print FILE_SAVEOLD  "  end if\n\n";
                print FILE_SAVEOLD  "  ",$var,"_p(l,:) = ",$var,"(l,:)\n";
@@ -805,6 +806,7 @@ while ($line=<INFILE>) {
             } elsif ($savecond eq "true") {
 
                $savecond = " ";
+               $saveold  = " ";
 
                print FILE_SAVEOLD  "  end if\n\n";
                print FILE_SAVEOLD  "  ",$var,"_p(l) = ",$var,"(l)\n\n";
@@ -1078,6 +1080,7 @@ while ($line=<INFILE>) {
             } elsif ($updatecond eq "true") {
 
                $updatecond = " ";
+               $updateold  = " ";
 
                print FILE_UPDATE  "  end if\n\n";
                print FILE_UPDATE  "  ",$var,"(l,:) = ",$var,"_p(l,:) + dtw*s",$var,"(l,:)\n\n";
@@ -1125,6 +1128,7 @@ while ($line=<INFILE>) {
            } elsif ($updatecond eq "true") {
 
               $updatecond = " ";
+              $updateold  = " ";
 
               print FILE_UPDATE  "  end if\n\n";
               print FILE_UPDATE  "  ",$var,"(l) = ",$var,"_p(l) + dtw*s",$var,"(l)\n\n";
