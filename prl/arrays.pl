@@ -179,7 +179,8 @@ print FILE_BOUNDINTERP "! This routine interpolates variables at boundaries for 
 # Write beginning of file restrict_copy.inc
 
 print FILE_RESTRICTCOPY "! Automatically generated file.  Do not edit!\n\n";
-print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grids.\n\n";
+print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grids on\n";
+print FILE_RESTRICTCOPY "! single processor runs, or for proc 0 on parallel runs.\n\n";
 
 # Write beginning of file restrict_send.inc
 
@@ -204,20 +205,26 @@ my $nline = 0;
 
 my $shift = " ";
 
-my $saveold = " ";
-my $saveecond = " ";
+my $saveold  = " ";
+my $savecond = " ";
 
-my $updateold = " ";
+my $updateold  = " ";
 my $updatecond = " ";
 
-my $accumold = " ";
+my $accumold  = " ";
 my $accumcond = " ";
 
-my $symold = " ";
+my $symold  = " ";
 my $symcond = " ";
 
-my $syncold = " ";
+my $syncold  = " ";
 my $synccond = " ";
+
+my $binterpold  = " ";
+my $binterpcond = " ";
+
+my $restcopyold  = " ";
+my $restcopycond = " ";
 
 while ($line=<INFILE>) {
 
@@ -1152,7 +1159,65 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
 
                $cond = $1;
-               print FILE_BOUNDINTERP  "  if (",$cond,") then\n";
+
+               if ($cond ne $binterpold && $binterpcond ne "true") {
+
+                  $binterpcond = "true";
+                  $binterpold = $cond;
+
+                  print FILE_BOUNDINTERP  "  if (",$cond,") then\n\n";
+                  print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
+                  print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
+                  print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
+                  print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
+                  print FILE_BOUNDINTERP  "        if (border==1) then\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+                  print FILE_BOUNDINTERP  "        else\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+                  print FILE_BOUNDINTERP  "        end if\n";
+                  print FILE_BOUNDINTERP  "     end if\n\n";
+
+               } elsif ($cond ne $binterpold && $binterpcond eq "true") {
+
+                  $binterpold = $cond;
+
+                  print FILE_BOUNDINTERP  "  end if\n\n";
+                  print FILE_BOUNDINTERP  "  if (",$cond,") then\n\n";
+                  print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
+                  print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
+                  print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
+                  print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
+                  print FILE_BOUNDINTERP  "        if (border==1) then\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+                  print FILE_BOUNDINTERP  "        else\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+                  print FILE_BOUNDINTERP  "        end if\n";
+                  print FILE_BOUNDINTERP  "     end if\n\n";
+
+               } else {
+ 
+                  print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
+                  print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
+                  print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
+                  print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
+                  print FILE_BOUNDINTERP  "        if (border==1) then\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+                  print FILE_BOUNDINTERP  "        else\n";
+                  print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
+                  print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
+                  print FILE_BOUNDINTERP  "        end if\n";
+                  print FILE_BOUNDINTERP  "     end if\n\n";
+
+               }
+
+            } elsif (($var eq "alpha") or ($var eq "dtalpha")) {
+
+               print FILE_BOUNDINTERP  "  if (slicing/='maximal') then\n";
                print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
                print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
                print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
@@ -1167,20 +1232,22 @@ while ($line=<INFILE>) {
                print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
 
-            } elsif ($var eq "alpha") {
+            } elsif ($binterpcond eq "true") {
 
-               print FILE_BOUNDINTERP  "  if (slicing/='maximal') then\n";
-               print FILE_BOUNDINTERP  "     interpvar => ",$var,"\n";
-               print FILE_BOUNDINTERP  "     aux1 = interp(l-1,r0,.false.)\n";
-               print FILE_BOUNDINTERP  "     call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
-               print FILE_BOUNDINTERP  "     if (rank==size-1) then\n";
-               print FILE_BOUNDINTERP  "        if (border==1) then\n";
-               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
-               print FILE_BOUNDINTERP  "        else\n";
-               print FILE_BOUNDINTERP  "           ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
+               $binterpcond = " ";
+               $binterpold  = " ";
+
+               print FILE_BOUNDINTERP  "  end if\n\n";
+               print FILE_BOUNDINTERP  "  interpvar => ",$var,"\n";
+               print FILE_BOUNDINTERP  "  aux1 = interp(l-1,r0,.false.)\n";
+               print FILE_BOUNDINTERP  "  call MPI_ALLREDUCE(aux1,aux2,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)\n";
+               print FILE_BOUNDINTERP  "  if (rank==size-1) then\n";
+               print FILE_BOUNDINTERP  "     if (border==1) then\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)/(tp-t0)*aux2 + (tl-tp)/(t0-tp)*",$var,"_p(l,Nr-i)\n";
+               print FILE_BOUNDINTERP  "     else\n";
+               print FILE_BOUNDINTERP  "        ",$var,"(l,Nr-i) = (tl-t0)*(tl-tm1)/((tp-t0)*(tp-tm1))*aux2 &\n";
                print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-tm1)/((t0 -tp)*(t0-tm1))*",$var,"_bound(l,i,1) &\n";
                print FILE_BOUNDINTERP  "                 + (tl-tp)*(tl-t0 )/((tm1-tp)*(tm1-t0))*",$var,"_bound(l,i,2)\n";
-               print FILE_BOUNDINTERP  "        end if\n";
                print FILE_BOUNDINTERP  "     end if\n";
                print FILE_BOUNDINTERP  "  end if\n\n";
 
@@ -1200,6 +1267,7 @@ while ($line=<INFILE>) {
                print FILE_BOUNDINTERP  "  end if\n\n";
 
             }
+
          }
 
       }
@@ -1213,23 +1281,52 @@ while ($line=<INFILE>) {
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
 
                $cond = $1;
-               print FILE_RESTRICTCOPY  "  if (",$cond,") then\n";
-               print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
-               print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
-               print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
-               print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
-               print FILE_RESTRICTCOPY  "     end do\n";
+
+               if ($cond ne $restcopyold && $restcopycond ne "true") {
+
+                  $restcopycond = "true";
+                  $restcopyold = $cond;
+
+                  print FILE_RESTRICTCOPY  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTCOPY  "     end do\n\n";
+
+               } elsif ($cond ne $restcopyold && $restcopycond eq "true") {
+
+                  $restcopyold = $cond;
+
+                  print FILE_RESTRICTCOPY  "  end if\n\n";
+                  print FILE_RESTRICTCOPY  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTCOPY  "     end do\n\n";
+
+               } else {
+
+                  print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTCOPY  "     end do\n\n";
+
+               }
+
+            } elsif ($restcopycond eq "true") {
+
+               $restcopycond = " ";
+               $restcopyold  = " ";
+
                print FILE_RESTRICTCOPY  "  end if\n\n";
-
-            } elsif ($var eq "alpha") {
-
-               print FILE_RESTRICTCOPY  "  !if (slicing/='maximal') then\n";
-               print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
-               print FILE_RESTRICTCOPY  "     do i=1,Nr-(ghost+1),2\n";
-               print FILE_RESTRICTCOPY  "        r0 = r(l,i) + delta\n";
-               print FILE_RESTRICTCOPY  "        ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
-               print FILE_RESTRICTCOPY  "     end do\n";
-               print FILE_RESTRICTCOPY  "  !end if\n\n";
+               print FILE_RESTRICTCOPY  "  interpvar => ",$var,"\n";
+               print FILE_RESTRICTCOPY  "  do i=1,Nr-(ghost+1),2\n";
+               print FILE_RESTRICTCOPY  "     r0 = r(l,i) + delta\n";
+               print FILE_RESTRICTCOPY  "     ",$var,"(l-1,i/2+1) = interp(l,r0,.true.)\n";
+               print FILE_RESTRICTCOPY  "  end do\n\n";
 
             } else {
 
@@ -1262,17 +1359,6 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
                print FILE_RESTRICTSEND  "  end if\n\n";
 
-            } elsif ($var eq "alpha") {
-
-               print FILE_RESTRICTSEND  "  !if (slicing/='maximal') then\n";
-               print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
-               print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
-               print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
-               print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
-               print FILE_RESTRICTSEND  "     end do\n";
-               print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
-               print FILE_RESTRICTSEND  "  !end if\n\n";
-
             } else {
 
                print FILE_RESTRICTSEND  "  interpvar => ",$var,"\n";
@@ -1303,15 +1389,6 @@ while ($line=<INFILE>) {
                print FILE_RESTRICTRECV  "     end do\n";
                print FILE_RESTRICTRECV  "  end if\n\n";
 
-            } elsif ($var eq "alpha") {
-
-               print FILE_RESTRICTRECV  "  !if (slicing/='maximal') then\n";
-               print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
-               print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
-               print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
-               print FILE_RESTRICTRECV  "     end do\n";
-               print FILE_RESTRICTRECV  "  !end if\n\n";
-
             } else {
 
                print FILE_RESTRICTRECV  "  call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
@@ -1338,13 +1415,14 @@ while ($line=<INFILE>) {
    } elsif (($line !~ /^\s*!.*/)&&($line !~ /^\s*$/)) { 
       die "arrays.pl: Bad syntax in line ",$nline," of file arrays.config\n\n";
    }
+
 }
 
 # Close INFILE.
 
 close(INFILE);
 
-# Write ending of file arrays.f90.
+# Write ending of file arrays.f90
 
 print FILE_ARRAYS "\n  end module arrays\n\n";
 
@@ -1352,7 +1430,7 @@ print FILE_ARRAYS "\n  end module arrays\n\n";
 
 print FILE_ALLOCATEARRAYS "  end subroutine allocatearrays\n\n";
 
-# Write ending of file grabarray.f90.
+# Write ending of file grabarray.f90
 
 print FILE_GRABARRAY "  if (.not.exists) then\n";
 print FILE_GRABARRAY "     if (rank==0) then\n";
@@ -1365,7 +1443,7 @@ print FILE_GRABARRAY "     call die\n";
 print FILE_GRABARRAY "  end if\n\n";
 print FILE_GRABARRAY "  end subroutine grabarray\n\n";
 
-# Write ending of file accumulate.f90.
+# Write ending of file accumulate.f90
 
 if ($accumcond eq "true") {
    print FILE_ACCUMULATE "  end if\n\n";
@@ -1373,7 +1451,7 @@ if ($accumcond eq "true") {
 
 print FILE_ACCUMULATE "  end subroutine accumulate\n\n";
 
-# Write ending of file saveold.f90.
+# Write ending of file saveold.f90
 
 if ($savecond eq "true") {
    print FILE_SAVEOLD  "  end if\n\n";
@@ -1385,7 +1463,7 @@ print FILE_SAVEOLD "  end subroutine saveold\n\n";
 
 print FILE_SIMPLEBOUNDARY "  end subroutine simpleboundary\n\n";
 
-# Write ending of file symmetries.f90.
+# Write ending of file symmetries.f90
 
 if ($symcond eq "true") {
    print FILE_SYMMETRIES  "     end do\n";
@@ -1394,11 +1472,11 @@ if ($symcond eq "true") {
 
 print FILE_SYMMETRIES  "  end subroutine symmetries\n\n";
 
-# Write ending of file syncgeo.f90.
+# Write ending of file syncgeo.f90
 
 print FILE_SYNCGEO  "  end subroutine syncgeo\n\n";
 
-# Write ending of file syncmatt.f90.
+# Write ending of file syncmatt.f90
 
 if ($synccond eq "true") {
    print FILE_SYNCMATT  "  end if\n\n";
@@ -1406,13 +1484,25 @@ if ($synccond eq "true") {
 
 print FILE_SYNCMATT  "  end subroutine syncmatt\n\n";
 
-# Write ending of file update.f90.
+# Write ending of file update.f90
 
 if ($updatecond eq "true") {
    print FILE_UPDATE  "  end if\n\n";
 }
 
 print FILE_UPDATE "  end subroutine update\n\n";
+
+# Write ending of file bouninterp.inc
+
+if ($binterpcond eq "true" ) {
+   print FILE_BOUNDINTERP  "  end if\n\n";
+}
+
+# Write ending of file retrict_copy.inc
+
+if ($restcopycond eq "true") {
+   print FILE_RESTRICTCOPY  "  end if\n\n";
+}
 
 # Close output files.
 
