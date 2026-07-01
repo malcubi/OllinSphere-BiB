@@ -21,6 +21,8 @@
 
   logical contains
   logical evolvelapse
+  logical firstcall
+  logical bonamasso,cosmo
 
   integer i,l,p
   integer i0,imax,Naux
@@ -35,28 +37,29 @@
 
   character bound*10
 
+  data firstcall / .true. /
 
-! *****************************
-! ***   STATIC OR MAXIMAL   ***
-! *****************************
+  save firstcall,bonamasso,cosmo
 
-! Sources is set to zero for static or maximal slicing.
 
-  if ((slicing=="static").or.(slicing=="maximal")) then
+! *************************
+! ***   LOGICAL FLAGS   ***
+! *************************
 
-!    Set flag for lapse evolution to false.
+  if (firstcall) then
 
-     evolvelapse = .false.
+      firstcall = .false.
 
-!    Set lapse source to 0.
+    if ((slicing=="harmonic").or.(slicing=="1+log").or. &
+        (slicing=="shockavoid").or.(slicing=="alphaminus2")) then
+       bonamasso = .true.
+       evolvelapse = .true.
+    else if (index(adjustl(slicing),"cosmo")/=0) then
+       cosmo = .true.
+       evolvelapse = .true.
+    end if
 
-     salpha(l,:) = 0.d0
-
-!    Cosmological background lapse.
-
-     if (cosmic_run) then
-        scosmobg_alpha(l) = 0.d0
-     end if
+  end if
 
 
 ! **********************************
@@ -68,12 +71,7 @@
 ! d alpha  = - alpha^2 f(alpha) trK  +  beta d alpha
 !  t                                          r
 
-  else if ((slicing=="harmonic").or.(slicing=="1+log").or. &
-           (slicing=="shockavoid").or.(slicing=="alphaminus2")) then
-
-!    Set flag for lapse evolution to true.
-
-     evolvelapse = .true.
+  if (bonamasso) then
 
 !    Source for cosmological background lapse.
 
@@ -107,7 +105,7 @@
 ! or a conformal background lapse, and evolve the "dynamical" part
 ! using some other Bona-Masso type condition.
 
-  else if (index(adjustl(slicing),"cosmo")/=0) then
+  else if (cosmo) then
 
      if (cosmic_run) then
 
@@ -136,6 +134,29 @@
 
         call die
 
+     end if
+
+
+! *****************************
+! ***   STATIC OR MAXIMAL   ***
+! *****************************
+
+! Sources is set to zero for static or maximal slicing.
+
+  else if ((slicing=="static").or.(slicing=="maximal")) then
+
+!    Set flag for lapse evolution to false.
+
+     evolvelapse = .false.
+
+!    Set lapse source to 0.
+
+     salpha(l,:) = 0.d0
+
+!    Cosmological background lapse.
+
+     if (cosmic_run) then
+        scosmobg_alpha(l) = 0.d0
      end if
 
 
