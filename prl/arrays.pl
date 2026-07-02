@@ -179,16 +179,20 @@ print FILE_BOUNDINTERP "! This routine interpolates variables at boundaries for 
 # Write beginning of file restrict_copy.inc
 
 print FILE_RESTRICTCOPY "! Automatically generated file.  Do not edit!\n\n";
-print FILE_RESTRICTCOPY "! This code restricts data from fine to coarse grids on\n";
-print FILE_RESTRICTCOPY "! single processor runs, or for proc 0 on parallel runs.\n\n";
+print FILE_RESTRICTCOPY "! Restrict data from a fine grid for to a coarse grid for the case\n";
+print FILE_RESTRICTCOPY "! of single processor runs (or for proc 0 on parallel runs).\n\n";
 
 # Write beginning of file restrict_send.inc
 
 print FILE_RESTRICTSEND "! Automatically generated file.  Do not edit!\n\n";
+print FILE_RESTRICTSEND "! Processor 'rank' sends interpolated data on a fine grid to processor\n";
+print FILE_RESTRICTSEND "! int(rank/2, in order to do a restriction to the coarse grid.\n\n";
 
 # Write beginning of file restrict_recv.inc
 
 print FILE_RESTRICTRECV "! Automatically generated file.  Do not edit!\n\n";
+print FILE_RESTRICTRECV "! Processor 'rank' receives interpolated data from a fine grid \n";
+print FILE_RESTRICTRECV "! on processor 2*rank+j, in order to restric it to the coarse grid.\n\n";
 
 # Write beginning of file restrict_cosmo.inc
 
@@ -225,6 +229,12 @@ my $binterpcond = " ";
 
 my $restcopyold  = " ";
 my $restcopycond = " ";
+
+my $restsendold  = " ";
+my $restsendcond = " ";
+
+my $restrecvold  = " ";
+my $restrecvcond = " ";
 
 while ($line=<INFILE>) {
 
@@ -1285,7 +1295,7 @@ while ($line=<INFILE>) {
                if ($cond ne $restcopyold && $restcopycond ne "true") {
 
                   $restcopycond = "true";
-                  $restcopyold = $cond;
+                  $restcopyold  = $cond;
 
                   print FILE_RESTRICTCOPY  "  if (",$cond,") then\n\n";
                   print FILE_RESTRICTCOPY  "     interpvar => ",$var,"\n";
@@ -1350,14 +1360,57 @@ while ($line=<INFILE>) {
 
            if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
 
-               print FILE_RESTRICTSEND  "  if (",$cond,") then\n";
-               print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
-               print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
-               print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
-               print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
-               print FILE_RESTRICTSEND  "     end do\n";
-               print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n";
+               $cond = $1;
+
+               if ($cond ne $restsendold && $restsendcond ne "true") {
+
+                  $restsendcond = "true";
+                  $restsendold  = $cond;
+
+                  print FILE_RESTRICTSEND  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTSEND  "     end do\n";
+                  print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n\n";
+
+               } elsif ($cond ne $restsendold && $restsendcond eq "true") {
+
+                  $restsendold = $cond;
+
+                  print FILE_RESTRICTSEND  "  end if\n\n";
+                  print FILE_RESTRICTSEND  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTSEND  "     end do\n";
+                  print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n\n";
+
+               } else {
+
+                  print FILE_RESTRICTSEND  "     interpvar => ",$var,"\n";
+                  print FILE_RESTRICTSEND  "     do i=imin,Nr-(ghost+1),2\n";
+                  print FILE_RESTRICTSEND  "        r0 = r(l,i) + delta\n";
+                  print FILE_RESTRICTSEND  "        w(i/2) = interp(l,r0,.true.)\n";
+                  print FILE_RESTRICTSEND  "     end do\n";
+                  print FILE_RESTRICTSEND  "     call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n\n";
+
+               }
+
+            } elsif ($restsendcond eq "true") {
+
+               $restsendcond = " ";
+               $restsendold  = " ";
+
                print FILE_RESTRICTSEND  "  end if\n\n";
+               print FILE_RESTRICTSEND  "  interpvar => ",$var,"\n";
+               print FILE_RESTRICTSEND  "  do i=imin,Nr-(ghost+1),2\n";
+               print FILE_RESTRICTSEND  "     r0 = r(l,i) + delta\n";
+               print FILE_RESTRICTSEND  "     w(i/2) = interp(l,r0,.true.)\n";
+               print FILE_RESTRICTSEND  "  end do\n";
+               print FILE_RESTRICTSEND  "  call MPI_SEND(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,ierr)\n\n";
 
             } else {
 
@@ -1382,12 +1435,49 @@ while ($line=<INFILE>) {
 
             if ($storage =~ /^CONDITIONAL\s*\((.*)\)/i) {
 
-               print FILE_RESTRICTRECV  "  if (",$cond,") then\n";
-               print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
-               print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
-               print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
-               print FILE_RESTRICTRECV  "     end do\n";
+               $cond = $1;
+
+               if ($cond ne $restrecvold && $restrecvcond ne "true") {
+
+                  $restrecvcond = "true";
+                  $restrecvold  = $cond;
+
+                  print FILE_RESTRICTRECV  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
+                  print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
+                  print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
+                  print FILE_RESTRICTRECV  "     end do\n";
+
+               } elsif ($cond ne $restrecvold && $restrecvcond eq "true") {
+
+                  $restrecvold = $cond;
+
+                  print FILE_RESTRICTRECV  "  end if\n\n";
+                  print FILE_RESTRICTRECV  "  if (",$cond,") then\n\n";
+                  print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
+                  print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
+                  print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
+                  print FILE_RESTRICTRECV  "     end do\n\n";
+
+               } else {
+
+                  print FILE_RESTRICTRECV  "     call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
+                  print FILE_RESTRICTRECV  "     do i=imin,Nrl(p)-(ghost+1),2\n";
+                  print FILE_RESTRICTRECV  "        ",$var,"(l-1,i/2+k) = w(i/2)\n";
+                  print FILE_RESTRICTRECV  "     end do\n\n";
+
+               }
+
+            } elsif ($restrecvcond eq "true") {
+
+               $restrecvcond = " ";
+               $restrecvold  = " ";
+
                print FILE_RESTRICTRECV  "  end if\n\n";
+               print FILE_RESTRICTRECV  "  call MPI_RECV(w,Ndata,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)\n";
+               print FILE_RESTRICTRECV  "  do i=imin,Nrl(p)-(ghost+1),2\n";
+               print FILE_RESTRICTRECV  "     ",$var,"(l-1,i/2+k) = w(i/2)\n";
+               print FILE_RESTRICTRECV  "  end do\n\n";
 
             } else {
 
@@ -1502,6 +1592,18 @@ if ($binterpcond eq "true" ) {
 
 if ($restcopycond eq "true") {
    print FILE_RESTRICTCOPY  "  end if\n\n";
+}
+
+# Write ending of file retrict_send.inc
+
+if ($restsendcond eq "true") {
+   print FILE_RESTRICTSEND  "  end if\n\n";
+}
+
+# Write ending of file retrict_recv.inc
+
+if ($restrecvcond eq "true") {
+   print FILE_RESTRICTRECV  "  end if\n\n";
 }
 
 # Close output files.
