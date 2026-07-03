@@ -204,6 +204,18 @@
 !                            2      4              2      2       4
 ! SBB  =  T             / ( r  B psi )  =  1/2 ( pi  -  xi / A psi  )  -  V
 !           theta theta
+!
+!
+! Notice in particular that:
+!
+!                               2     2       4
+! trS  =  SAA + 2 SBB  =  ( 3 pi  - xi / A psi  ) / 2 - 3 V
+!
+!
+! which implies:
+!
+!                   2
+! rho + S  =  2 ( pi  -  V )
 
   if (contains(mattertype,"scalar")) then
 
