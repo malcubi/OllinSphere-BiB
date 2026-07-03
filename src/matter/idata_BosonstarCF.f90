@@ -60,12 +60,12 @@
 ! For the lapse we use maximal slicing, which implies:
 !
 !  2                     /                 \                   4
-! d alpha = - 2 d alpha  | 1/r + d psi/psi |  +  4 pi alpha psi (rho + S)
+! d alpha = - 2 d alpha  | 1/r + d psi/psi |  +  4 pi alpha psi (rho + trS)
 !  r             r       \        r        /
 !
 ! where now:
-!                                      2
-! rho + S  =  2 [ ( omega phi / alpha )  -  V ]
+!                                        2
+! rho + trS  =  2 [ ( omega phi / alpha )  -  V ]
 !
 ! This routine takes as input parameter the value of the scalar
 ! field at the origin "boson_phi0", and uses a shooting method
@@ -1414,7 +1414,7 @@
 ! time step.
 !
 ! This method is slow (specially at high resolution), but quite robust. 
-! I can be improved by using a good initial guess (I'll try this later),
+! It can be improved by using a good initial guess (I'll try this later),
 ! and maybe something like multi-grid since it converges much faster
 ! at lower resolutions.
 
