@@ -214,8 +214,8 @@
 !
 ! which implies:
 !
-!                   2
-! rho + S  =  2 ( pi  -  V )
+!                     2
+! rho + trS  =  2 ( pi  -  V )
 
   if (contains(mattertype,"scalar")) then
 
