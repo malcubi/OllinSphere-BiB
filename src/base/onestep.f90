@@ -69,10 +69,10 @@
 ! ***   FIND NUMBER OF INTERNAL ITERATIONS   ***
 ! **********************************************
 
-  if (icn) then
-     niter = icniter
-  else
+  if (rk4) then
      niter = 4
+  else if (icn) then
+     niter = icniter
   end if
 
 
