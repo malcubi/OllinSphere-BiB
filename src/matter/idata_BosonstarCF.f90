@@ -394,9 +394,9 @@
         do l=Nl-1,0,-1
 
 
-!          ****************************************
-!          ***   FIND INITIAL VALUES AT ORIGIN  ***
-!          ****************************************
+!          *****************************************
+!          ***   FIND INITIAL VALUES AT ORIGIN   ***
+!          *****************************************
 
 !          Potential and its derivative at the origin.
 
@@ -1417,6 +1417,11 @@
 ! It can be improved by using a good initial guess (I'll try this later),
 ! and maybe something like multi-grid since it converges much faster
 ! at lower resolutions.
+!
+! IMPORTANT:  To avoid confusion, do notice that in fact we use the
+! array "phi" for the conformal factor "psi" (this is because in the
+! code "psi" is declared non-evolving).  On the other hand, the
+! scalar field "phi" is called "complex_phiR".
 
 ! Include modules.
 
@@ -1623,6 +1628,11 @@
         call save1Dvariable(directory,'boson_phi',1,0,'old',-1)
 
      end if
+
+
+! *************************************
+! ***   END OF ITERATIONS DO LOOP   ***
+! *************************************
 
   end do
 
@@ -1976,12 +1986,13 @@
                  + 2.d0*complex_V(l,:))
 
 !    Source for complex_phiR (from Klein-Gordon equation).
-!    But set the source at the first point to 0 so the value
-!    there does not change.
 
      scomplex_piR(l,:) = D2_complex_phiR(l,:) + D1_complex_phiR(l,:)*(2.d0/r(l,:) &
                        + D1_alpha(l,:)/alpha(l,:) + 2.d0*D1_phi(l,:)/phi(l,:)) &
                        - phi(l,:)**4*(complex_VPR(l,:) - complex_phiR(l,:)*(boson_omega/alpha(l,:))**2)
+
+!    But set the source at the first point to 0 so the value
+!    there does not change.
 
      scomplex_piR(l,1) = 0.d0
 
