@@ -547,10 +547,10 @@
 
 ! Boson star perturbation.
 !
-! bosongauss:        Do we add an initial profile to the boson star solution?
-! boson_a0:          Amplitude of initial profile.
-! boson_r0:          Center of initial profile.
-! boson_s0:          Width of initial profile.
+! bosongauss:        Do we add an initial perturbation to the boson star solution?
+! boson_a0:          Amplitude of initial perturbation.
+! boson_r0:          Center of initial perturbation.
+! boson_s0:          Width of initial perturbation.
 
   logical :: bosongauss = .false.
 
