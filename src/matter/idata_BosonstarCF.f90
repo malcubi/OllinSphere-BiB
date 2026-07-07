@@ -1953,7 +1953,8 @@
      complex_V(l,:)   = half*complex_mass**2*complex_phiR(l,:)**2
      complex_VPR(l,:) = complex_mass**2*complex_phiR(l,:)
 
-!    Find omega.
+!    Find omega.  We solve for omega from the Klen-Gordon
+!    equation at the first grid point.
 
      aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
          *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
@@ -1989,12 +1990,7 @@
 
      scomplex_piR(l,:) = D2_complex_phiR(l,:) + D1_complex_phiR(l,:)*(2.d0/r(l,:) &
                        + D1_alpha(l,:)/alpha(l,:) + 2.d0*D1_phi(l,:)/phi(l,:)) &
-                       - phi(l,:)**4*(complex_VPR(l,:) - complex_phiR(l,:)*(boson_omega/alpha(l,:))**2)
-
-!    But set the source at the first point to 0 so the value
-!    there does not change.
-
-     scomplex_piR(l,1) = 0.d0
+                       + phi(l,:)**4*(complex_phiR(l,:)*(boson_omega/alpha(l,:))**2 - complex_VPR(l,:))
 
 !    Damping term (only for Klein-Gordon).  This
 !    is needed in order to avoid large oscillations.
@@ -2006,6 +2002,11 @@
      dissipvar => complex_piR
      sourcevar => scomplex_piR
      call dissipation(l,+1,0.1d0)
+
+!    But set the source at the first point to 0
+!    so the value there does not change.
+
+     scomplex_piR(l,1) = 0.d0
 
 !    Symmetries.
 
@@ -2021,11 +2022,11 @@
 
 !    Simple radiative boundaries for all three equations.
 
-     sdtalpha(l,Nr) = - (dtalpha(l,Nr)-dtalpha(l,Nr-1))/dr(l) - dtalpha(l,Nr)/r(l,Nr)
-
-     sdtphi(l,Nr)   = - (dtphi(l,Nr)-dtphi(l,Nr-1))/dr(l) - dtphi(l,Nr)/r(l,Nr)
-
-     scomplex_piR(l,Nr)   = - (complex_piR(l,Nr)-complex_piR(l,Nr-1))/dr(l) - complex_piR(l,Nr)/r(l,Nr)
+     if (l==0) then
+        sdtalpha(0,Nr) = - (dtalpha(0,Nr)-dtalpha(0,Nr-1))/dr(0) - dtalpha(0,Nr)/r(0,Nr)
+        sdtphi(0,Nr) = - (dtphi(0,Nr)-dtphi(0,Nr-1))/dr(0) - dtphi(0,Nr)/r(0,Nr)
+        scomplex_piR(0,Nr) = - (complex_piR(0,Nr)-complex_piR(0,Nr-1))/dr(0) - complex_piR(0,Nr)/r(0,Nr)
+     end if
 
 
 !    *****************************************************
