@@ -1437,20 +1437,30 @@
   implicit none
 
   logical savedata
+  logical flag1
 
-  integer i,l                    ! Counters.
+  integer i,j,l                  ! Counters.
   integer step                   ! Iteration counter.
   integer Nl_old                 ! Original number of levels.
-  integer :: maxiter = 50000     ! Maximum number of iterations.
+  integer :: maxiter = 100000    ! Maximum number of iterations.
 
   real(8) lres,gres              ! Local and global residuals.
   real(8) cfac                   ! Courant parameter.
+  real(8) r0,interp              ! For interpolation. 
   real(8) :: small = 1.d-6       ! Tolerance.
 
   integer s_ext(0:Nl-1)          ! External values of step counter.
   real(8) t_ext(0:Nl-1)          ! External values of time counter.
   real(8) t1_ext(0:Nl-1)         ! External values of t1 counter.
   real(8) t2_ext(0:Nl-1)         ! External values of t2 counter.
+
+
+  if (size>1) then
+     print *, 'BosonstarCFevolve: At the moment this routine does not yet work in parallel.'
+     print *, 'Aborting ...'
+     print *
+     call die
+  end if
 
 
 ! ************************************************
@@ -1661,16 +1671,71 @@
 ! If we converged and we have refinement levels, inject the
 ! coarse solution into fine grids and solve again.
 
-  if ((step/=maxiter).and.(l<Nl_old-1)) then
+  if ((step/=maxiter).and.(Nl_old>1)) then
+
+     if (rank==0) then
+        print *, 'BosonstarCFevolve: At the moment fine grid data is just interpolated from the coarse grid.'
+        print *
+     end if
 
 !    Set again Nl to its original value.
 
      Nl = Nl_old
 
-     print *, ' BosonstarCFevolve: At the moment this routine does not work on multiple levels.'
-     print *, ' Aborting ...'
-     call die
- 
+!    Set time derivatives in the base grid back to 0.
+
+     dtalpha = 0.d0
+     dtphi = 0.d0
+     complex_piR = 0.d0
+
+!    Iterate over levels higher than 0.
+
+     do l=1,Nl-1
+
+!       Loop over all grid points in the current grid level
+!       (all of them not just the ones on the current processor).
+
+        do i=1,Nrtotal
+
+!          Figure our position for interpolation.
+
+           r0 = (dble(Nmin(rank) + i) - 0.5d0)*dr(l)
+
+!          Figure out to which grid point this r0 value
+!          would correspond in the local processor at the
+!          fine grid level.
+
+           j = nint((r0-r(l,1-ghost))/dr(l)) + 1 - ghost
+
+!          Notice now that the j values above might be outside
+!          the range of the current processor.  This means that
+!          we should not try to access this location as it belongs
+!          to another processor.
+
+           if ((j>=1-ghost).and.(j<=Nrl(rank))) then
+              flag1 = .true.
+           else
+              flag1 = .false.
+           end if
+
+!          Interpolate variables from coarse grid level.
+
+           interpvar => alpha
+           if (flag1) alpha(l,j) = interp(0,r0,.false.)
+
+           interpvar => phi
+           if (flag1) phi(l,j) = interp(0,r0,.false.)
+
+           interpvar => complex_phiR
+           if (flag1) complex_phiR(l,j) = interp(0,r0,.false.)
+
+        end do
+
+     end do
+
+!    Set time and time step counters back to zero,
+!    and restart iterations.
+
   end if
 
 
@@ -1956,11 +2021,15 @@
 !    Find omega.  We solve for omega from the Klen-Gordon
 !    equation at the first grid point.
 
-     aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
-         *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
-         + D1_alpha(l,1)/alpha(l,1) + 2.d0*D1_phi(l,1)/phi(l,1))))
+     if (rank==0) then
 
-     boson_omega = sqrt(abs(aux))
+        aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
+            *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
+            + D1_alpha(l,1)/alpha(l,1) + 2.d0*D1_phi(l,1)/phi(l,1))))
+
+        boson_omega = sqrt(abs(aux))
+
+     end if
 
 !    Source for alpha.
 
@@ -2006,7 +2075,9 @@
 !    But set the source at the first point to 0
 !    so the value there does not change.
 
-     scomplex_piR(l,1) = 0.d0
+     if (rank==0) then
+        scomplex_piR(l,1) = 0.d0
+     end if
 
 !    Symmetries.
 
@@ -2115,6 +2186,19 @@
 !    ***********************
 !    ***   SYNCHRONIZE   ***
 !    ***********************
+
+     if (size>1) then
+
+        syncvar(1-ghost:Nrmax) => alpha(l,:)
+        call sync
+
+        syncvar(1-ghost:Nrmax) => phi(l,:)
+        call sync
+
+        syncvar(1-ghost:Nrmax) => complex_phiR(l,:)
+        call sync
+
+     end if
 
 
 !    ***********************************
