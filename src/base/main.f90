@@ -265,6 +265,8 @@
      call system('cp '//trim(parfile)//' '//trim(directory))
   end if
 
+  call MPI_Barrier(MPI_COMM_WORLD,ierr)
+
 
 ! ***********************
 ! ***   GHOST ZONES   ***
