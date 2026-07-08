@@ -1447,20 +1447,12 @@
   real(8) lres,gres              ! Local and global residuals.
   real(8) cfac                   ! Courant parameter.
   real(8) r0,interp              ! For interpolation. 
-  real(8) :: small = 1.d-6       ! Tolerance.
+  real(8) :: small = 1.d-12      ! Tolerance.
 
   integer s_ext(0:Nl-1)          ! External values of step counter.
   real(8) t_ext(0:Nl-1)          ! External values of time counter.
   real(8) t1_ext(0:Nl-1)         ! External values of t1 counter.
   real(8) t2_ext(0:Nl-1)         ! External values of t2 counter.
-
-
-  if (size>1) then
-     print *, 'BosonstarCFevolve: At the moment this routine does not yet work in parallel.'
-     print *, 'Aborting ...'
-     print *
-     call die
-  end if
 
 
 ! ************************************************
@@ -1529,12 +1521,16 @@
 ! Save initial data to file if required.
 
   if (savedata) then
+
      savevar => alpha
      call save1Dvariable(directory,'boson_alpha',1,0,'replace',-1)
+
      savevar => phi
      call save1Dvariable(directory,'boson_psi',1,0,'replace',-1)
+
      savevar => complex_phiR
-     call save1Dvariable(directory,'boson_phi',1,0,'replace',-1)
+     call save1Dvariable(directory,'boson_phiR',1,0,'replace',-1)
+
   end if
 
 
@@ -1606,12 +1602,18 @@
      gres = 0.d0
 
      do i=1,Nr
-        lres = lres + abs(dtalpha(0,i)) + abs(dtphi(0,i)) + abs(complex_piR(0,i))
+        lres = lres + (complex_phiR(0,i) - complex_phiR_p(0,i))**2
      end do
+
+     lres = sqrt(lres/dble(Nr))
 
 !    Find global residual.
 
-     call MPI_Allreduce(lres,gres,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)
+     if (size>1) then
+        call MPI_Allreduce(lres,gres,1,MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,ierr)
+     else
+        gres = lres
+     end if
 
 
 !    ******************
@@ -1624,8 +1626,9 @@
 
 !       Data to screen.
 
-        if (rank==0) then
-           write(*,'(A,i5,A,ES23.16)') ' Iteration = ',step,'         Residual = ',gres
+       if (rank==0) then
+           write(*,"(A,i5,A,ES15.8E2,A,ES15.8E2)") 'Iteration = ',step, &
+                   '     omega = ',boson_omega,'     Residual = ',gres
         end if
 
         savevar => alpha
@@ -1635,7 +1638,7 @@
         call save1Dvariable(directory,'boson_psi',1,0,'old',-1)
 
         savevar => complex_phiR
-        call save1Dvariable(directory,'boson_phi',1,0,'old',-1)
+        call save1Dvariable(directory,'boson_phiR',1,0,'old',-1)
 
      end if
 
@@ -1657,6 +1660,7 @@
         print *
      else
         write(*,'(A,i5,A)') ' BosonstarCFevolve: Solution converged after ',step,' iterations.'
+        print *
         write(*,'(A,ES23.16)') ' Final residual = ',gres
         write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
         print *
@@ -1848,6 +1852,9 @@
 
   implicit none
 
+  logical firstcall
+  logical icn,rk4
+
   integer i,imax           ! Grid point counter.
   integer l                ! Refinement level counter.
   integer k                ! Counter for internal iterations.
@@ -1858,6 +1865,24 @@
   real(8) damp             ! Damping coefficient.
   real(8) one,half,smallpi ! Numbers.
   real(8) aux
+
+  data firstcall / .true. /
+
+  save firstcall,icn,rk4
+
+
+! *************************
+! ***   LOGICAL FLAGS   ***
+! *************************
+
+  if (firstcall) then
+
+      firstcall = .false.
+
+      icn = (integrator=="icn")
+      rk4 = (integrator=="rk4")
+
+  end if
 
 
 ! *******************
@@ -1937,10 +1962,10 @@
 ! ***   FIND NUMBER OF INTERNAL ITERATIONS   ***
 ! **********************************************
 
-  if (integrator=="icn") then
-     niter = icniter
-  else if (integrator=="rk4") then
+  if (rk4) then
      niter = 4
+  else if (icn) then
+     niter = icniter
   end if
 
 
@@ -1957,7 +1982,34 @@
 !    Find out weights for each iteration for the
 !    different time integration schemes.
 
-     if (integrator=="icn") then
+!    Fourth order Runge-Kutta.
+
+     if (rk4) then
+
+!       In fourth order Runge-Kutta the first two iterations
+!       jump half a time step and the last two a full time step.
+!       Here we also set the weights with which intermediate
+!       results contribute to final answer: 1/6 for first and
+!       last intermediate results and 1/3 for the two middle ones.
+
+        select case(k)
+           case(1)
+              dtw = 0.5d0*dt(l)
+              weight = 1.d0/6.d0
+           case(2)
+              dtw = 0.5d0*dt(l)
+              weight = 1.d0/3.d0
+           case(3) 
+              dtw = dt(l)
+              weight = 1.d0/3.d0
+           case(4)
+              dtw = dt(l)
+              weight = 1.d0/6.d0
+        end select
+
+!    Iterative Crank-Nicholson (ICN).
+
+     else if (icn) then
 
 !       In normal ICN, all iterations except the last one
 !       jump only half a time step.
@@ -1966,30 +2018,6 @@
            dtw = 0.5d0*dt(l)
         else
            dtw = dt(l)
-        end if
-
-!    Fourth order Runge-Kutta.
-
-     else if (integrator=="rk4") then
-
-!       In fourth order Runge-Kutta the first two iterations
-!       jump half a time step and the last two a full time step.
-!       Here we also set the weights with which intermediate
-!       results contribute to final answer: 1/6 for first and
-!       last intermediate results and 1/3 for the two middle ones.
-
-        if (k==1) then
-           dtw = 0.5d0*dt(l)
-           weight = 1.d0/6.d0
-        else if (k==2) then
-           dtw = 0.5d0*dt(l)
-           weight = 1.d0/3.d0
-        else if (k==3) then
-           dtw = dt(l)
-           weight = 1.d0/3.d0
-        else
-           dtw = dt(l)
-           weight = 1.d0/6.d0
         end if
 
      end if
@@ -2021,13 +2049,27 @@
 !    Find omega.  We solve for omega from the Klen-Gordon
 !    equation at the first grid point.
 
-     if (rank==0) then
+     if (size==1) then
 
         aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
             *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
             + D1_alpha(l,1)/alpha(l,1) + 2.d0*D1_phi(l,1)/phi(l,1))))
 
         boson_omega = sqrt(abs(aux))
+
+     else
+
+        if (rank==0) then
+
+           aux = alpha(l,1)**2/complex_phiR(l,1)*(complex_VPR(l,1) - 1.d0/phi(l,1)**4 &
+               *(D2_complex_phiR(l,1) + D1_complex_phiR(l,1)*(2.d0/r(l,1) &
+               + D1_alpha(l,1)/alpha(l,1) + 2.d0*D1_phi(l,1)/phi(l,1))))
+
+           boson_omega = sqrt(abs(aux))
+
+        end if
+
+        call MPI_BCAST(boson_omega,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
      end if
 
@@ -2072,7 +2114,7 @@
      sourcevar => scomplex_piR
      call dissipation(l,+1,0.1d0)
 
-!    But set the source at the first point to 0
+!    But set the source at the first point to zero
 !    so the value there does not change.
 
      if (rank==0) then
@@ -2084,6 +2126,7 @@
      do i=1,ghost
         sdtalpha(l,1-i) = sdtalpha(l,i)
         sdtphi(l,1-i)   = sdtphi(l,i)
+        scomplex_piR(l,1-i) = scomplex_piR(l,i)
      end do
 
 
@@ -2093,10 +2136,10 @@
 
 !    Simple radiative boundaries for all three equations.
 
-     if (l==0) then
-        sdtalpha(0,Nr) = - (dtalpha(0,Nr)-dtalpha(0,Nr-1))/dr(0) - dtalpha(0,Nr)/r(0,Nr)
-        sdtphi(0,Nr) = - (dtphi(0,Nr)-dtphi(0,Nr-1))/dr(0) - dtphi(0,Nr)/r(0,Nr)
-        scomplex_piR(0,Nr) = - (complex_piR(0,Nr)-complex_piR(0,Nr-1))/dr(0) - complex_piR(0,Nr)/r(0,Nr)
+     if ((l==0).and.(rank==size-1)) then
+        sdtalpha(0,Nr) = - (dtalpha(0,Nr) - dtalpha(0,Nr-1))/dr(0) - dtalpha(0,Nr)/r(0,Nr)
+        sdtphi(0,Nr) = - (dtphi(0,Nr  ) - dtphi(0,Nr-1))/dr(0) - dtphi(0,Nr)/r(0,Nr)
+        scomplex_piR(0,Nr) = - (complex_piR(0,Nr) - complex_piR(0,Nr-1))/dr(0) - complex_piR(0,Nr)/r(0,Nr)
      end if
 
 
@@ -2111,7 +2154,7 @@
            alpha_a(l,:)   = weight*salpha(l,:)
            dtalpha_a(l,:) = weight*sdtalpha(l,:)
 
-           phi_a(l,:) = weight*sphi(l,:)
+           phi_a(l,:)   = weight*sphi(l,:)
            dtphi_a(l,:) = weight*sdtphi(l,:)
 
            complex_phiR_a(l,:) = weight*scomplex_phiR(l,:)
@@ -2169,16 +2212,12 @@
 
      if (rank==0) then
         do i=1,ghost
-
            alpha(l,1-i)   = alpha(l,i)
            dtalpha(l,1-i) = dtalpha(l,i)
-
            phi(l,1-i)   = phi(l,i)
            dtphi(l,1-i) = dtphi(l,i)
-
            complex_phiR(l,1-i) = complex_phiR(l,i)
            complex_piR(l,1-i)  = complex_piR(l,i)
-
         end do
      end if
 
@@ -2192,10 +2231,19 @@
         syncvar(1-ghost:Nrmax) => alpha(l,:)
         call sync
 
+        syncvar(1-ghost:Nrmax) => dtalpha(l,:)
+        call sync
+
         syncvar(1-ghost:Nrmax) => phi(l,:)
         call sync
 
+        syncvar(1-ghost:Nrmax) => dtphi(l,:)
+        call sync
+
         syncvar(1-ghost:Nrmax) => complex_phiR(l,:)
+        call sync
+
+        syncvar(1-ghost:Nrmax) => complex_piR(l,:)
         call sync
 
      end if
@@ -2220,7 +2268,7 @@
 ! Advance time step counter and local time.
 
   s(l) = s(l) + 1
-  t(l) = t(l) + dt(l)
+  t(l) = t(l) + 1 !dt(l)
 
 
 ! **********************************
