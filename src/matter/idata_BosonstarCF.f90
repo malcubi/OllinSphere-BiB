@@ -1570,6 +1570,8 @@
 
 ! Initialize tolerance, residual and iteration number.
 
+  100 continue
+
   lres = 1.d0
   gres = 1.d0
 
@@ -1655,16 +1657,41 @@
 ! ****************************
 
   if (rank==0) then
+
      if (step==maxiter) then
+
         write(*,'(A,i6,A)') ' BosonstarCFevolve: Iterations did not converge after ',maxiter,' iterations.'
         print *
+
      else
-        write(*,'(A,i5,A)') ' BosonstarCFevolve: Solution converged after ',step,' iterations.'
-        print *
-        write(*,'(A,ES23.16)') ' Final residual = ',gres
-        write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
-        print *
+
+        if (Nl_old>0) then
+
+           if (Nl_old/=Nl) then
+              write (*,'(A,i5,A)') ' BosonstarCFevolve:   Coarse grid solution converged after ',step,' iterations!'
+              print *
+              write(*,'(A,ES23.16)') ' Final residual = ',gres
+              write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
+           else
+              write (*,'(A,i5,A)') ' BosonstarCFevolve:   Finer grids solution converged after ',step,' iterations!'
+              print *
+              write(*,'(A,ES23.16)') ' Final residual = ',gres
+              write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
+              print *
+           end if
+
+        else
+
+           write(*,'(A,i5,A)') ' BosonstarCFevolve: Solution converged after ',step,' iterations.'
+           print *
+           write(*,'(A,ES23.16)') ' Final residual = ',gres
+           write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
+           print *
+
+        end if
+
      end if
+
   end if
 
 
@@ -1675,9 +1702,10 @@
 ! If we converged and we have refinement levels, inject the
 ! coarse solution into fine grids and solve again.
 
-  if ((step/=maxiter).and.(Nl_old>1)) then
+  if ((step/=maxiter).and.(Nl/=Nl_old)) then
 
      if (rank==0) then
+        print *
         print *, 'BosonstarCFevolve: At the moment fine grid data is just interpolated from the coarse grid.'
         print *
      end if
@@ -1739,6 +1767,14 @@
 
 !    Set time and time step counters back to zero,
 !    and restart iterations.
+
+     s = 0
+     t = 0.d0
+
+     t1 = 0.d0
+     t2 = 0.d0
+
+     !goto 100
 
   end if
 
@@ -1863,6 +1899,8 @@
   real(8) dtw              ! Internal time step.
   real(8) weight           ! Weight for rk4.
   real(8) damp             ! Damping coefficient.
+  real(8) tp,t0,tm1,tm2,tl ! Local time at different time steps (for interpolation).
+  real(8) r0               ! Interpolation point.
   real(8) one,half,smallpi ! Numbers.
   real(8) aux
 
@@ -2204,6 +2242,12 @@
 !    *************************************************
 !    ***   FOR FINE GRIDS INTERPOLATE BOUNDARIES   ***
 !    *************************************************
+
+!    For fine grids we need to interpolate from the new
+!    time level of the coarse grid to get boundary data.
+!
+!    Remember that the coarse grid has already advanced
+!    to the next time level.
 
 
 !    **********************
