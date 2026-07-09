@@ -24,8 +24,8 @@ mattertype = complex       # Real scalar field
 complexpotential = phi2    # Type of potential
 complex_mass = 1.0         # Mass of scalar field
 
-geodiss    = 0.05          # Dissipation coefficient for geometry
-scalardiss = 0.05	   # Dissipation coefficient for scalar field
+geodiss     = 0.05         # Dissipation coefficient for geometry
+complexdiss = 0.05	   # Dissipation coefficient for scalar field
 
 idata = complexpulse	   # Type of initial data
 complexprofile = gaussian  # Initial data profile
