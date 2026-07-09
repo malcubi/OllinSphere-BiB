@@ -2159,7 +2159,7 @@
 !    Damping term (only for Klein-Gordon).  This
 !    is needed in order to avoid large oscillations.
 
-     scomplex_piR(l,:) = scomplex_piR(l,:) - WE_eta*complex_piR(l,:)/dt(l)
+     scomplex_piR(l,:) = scomplex_piR(l,:) - WE_eta*complex_piR(l,:)
 
 !    Dissipation.
 
