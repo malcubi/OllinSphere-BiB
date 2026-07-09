@@ -1436,20 +1436,21 @@
 
   implicit none
 
-  logical savedata
   logical flag1
 
   integer i,j,l                  ! Counters.
   integer step                   ! Iteration counter.
   integer Nl_old                 ! Original number of levels.
-  integer :: maxiter = 100000    ! Maximum number of iterations.
+  integer miniter                ! Minimum number of iterations.
 
   real(8) lres,gres              ! Local and global residuals.
-  real(8) cfac                   ! Courant parameter.
   real(8) r0,interp              ! For interpolation. 
-  real(8) :: small = 1.d-12      ! Tolerance.
+  real(8) cfac                   ! Courant parameter.
+
+  character(3) method            ! Time integration method.
 
   integer s_ext(0:Nl-1)          ! External values of step counter.
+
   real(8) t_ext(0:Nl-1)          ! External values of time counter.
   real(8) t1_ext(0:Nl-1)         ! External values of t1 counter.
   real(8) t2_ext(0:Nl-1)         ! External values of t2 counter.
@@ -1513,14 +1514,9 @@
 ! ***   SAVE INITIAL DATA   ***
 ! *****************************
 
-! Change this flag to "true" if you want output of the
-! internal evolutions (for testing).
-
-  savedata = .false.
-
 ! Save initial data to file if required.
 
-  if (savedata) then
+  if (WE_verbose) then
 
      savevar => alpha
      call save1Dvariable(directory,'boson_alpha',1,0,'replace',-1)
@@ -1538,10 +1534,13 @@
 ! ***   COURANT PARAMETER   ***
 ! *****************************
 
-! Set internal Courant parameter to 0.7. 
-! This seems to work well.
+! Internal time integration method.
 
-  cfac = 0.7d0
+  method = WE_method
+
+! Courant parameter.
+
+  cfac = WE_dtfac
 
 ! Modify time step.
 
@@ -1568,7 +1567,7 @@
      Nl = 1
   end if
 
-! Initialize tolerance, residual and iteration number.
+! Initialize residual and iteration number.
 
   100 continue
 
@@ -1579,7 +1578,9 @@
 
 ! Start iterations.
 
-  do while ((step<100).or.((gres>small).and.(step<maxiter)))
+  miniter = 100
+
+  do while ((step<miniter).or.((gres>WE_epsilon).and.(step<WE_maxiter)))
 
 !    ******************************************
 !    ***   ADVANCE ONE INTERNAL TIME STEP   ***
@@ -1591,7 +1592,7 @@
 
 !    Advance one time step.
 
-     call bosonstep(0)
+     call bosonstep(0,method)
 
 
 !    *************************
@@ -1604,7 +1605,9 @@
      gres = 0.d0
 
      do i=1,Nr
-        lres = lres + (complex_phiR(0,i) - complex_phiR_p(0,i))**2
+        lres = lres + (alpha(0,i) - alpha_p(0,i))**2 &
+                    + (phi(0,i) - phi_p(0,i))**2 &
+                    + (complex_phiR(0,i) - complex_phiR_p(0,i))**2
      end do
 
      lres = sqrt(lres/dble(Nr))
@@ -1624,7 +1627,7 @@
 
 !    Output if required.
 
-     if ((savedata).and.(mod(step,Noutput1D)==0)) then
+     if (WE_verbose.and.(mod(step,WE_Noutput)==0)) then
 
 !       Data to screen.
 
@@ -1658,9 +1661,9 @@
 
   if (rank==0) then
 
-     if (step==maxiter) then
+     if (step==WE_maxiter) then
 
-        write(*,'(A,i6,A)') ' BosonstarCFevolve: Iterations did not converge after ',maxiter,' iterations.'
+        write(*,'(A,i6,A)') ' BosonstarCFevolve: Iterations did not converge after ',WE_maxiter,' iterations.'
         print *
 
      else
@@ -1702,7 +1705,7 @@
 ! If we converged and we have refinement levels, inject the
 ! coarse solution into fine grids and solve again.
 
-  if ((step/=maxiter).and.(Nl/=Nl_old)) then
+  if ((step/=WE_maxiter).and.(Nl/=Nl_old)) then
 
      if (rank==0) then
         print *
@@ -1866,7 +1869,9 @@
 
 
 
-  recursive subroutine bosonstep(l)
+
+
+  recursive subroutine bosonstep(l,method)
 
 ! *********************************
 ! ***   ADVANCE ONE TIME STEP   ***
@@ -1891,9 +1896,9 @@
   logical firstcall
   logical icn,rk4
 
-  integer i,imax           ! Grid point counter.
   integer l                ! Refinement level counter.
-  integer k                ! Counter for internal iterations.
+  integer i,imax           ! Counters.
+  integer iter             ! Counter for internal iterations.
   integer niter            ! Number of internal iterations.
 
   real(8) dtw              ! Internal time step.
@@ -1903,6 +1908,8 @@
   real(8) r0               ! Interpolation point.
   real(8) one,half,smallpi ! Numbers.
   real(8) aux
+
+  character(*) method      ! Time integration method.
 
   data firstcall / .true. /
 
@@ -2011,7 +2018,7 @@
 ! ***   ADVANCE ONE FULL TIME STEP   ***
 ! **************************************
 
-  do k=1,niter
+  do iter=1,niter
 
 !    ************************
 !    ***   FIND WEIGHTS   ***
@@ -2030,7 +2037,7 @@
 !       results contribute to final answer: 1/6 for first and
 !       last intermediate results and 1/3 for the two middle ones.
 
-        select case(k)
+        select case(iter)
            case(1)
               dtw = 0.5d0*dt(l)
               weight = 1.d0/6.d0
@@ -2052,7 +2059,7 @@
 !       In normal ICN, all iterations except the last one
 !       jump only half a time step.
 
-        if (k<niter) then
+        if (iter<niter) then
            dtw = 0.5d0*dt(l)
         else
            dtw = dt(l)
@@ -2065,26 +2072,38 @@
 !    ***   SOURCES   ***
 !    *******************
 
-!    Calculate derivatives.
+!    Derivatives of (alpha,dtalpha).
 
      diffvar => alpha
      D1_alpha(l,:) = diff1(l,+1)
      D2_alpha(l,:) = diff2(l,+1)
 
+     diffvar => dtalpha
+     D1_dtalpha(l,:) = diff1(l,+1)
+
+!    Derivatives of (phi,dtphi).
+
      diffvar => phi
      D1_phi(l,:) = diff1(l,+1)
      D2_phi(l,:) = diff2(l,+1)
+
+     diffvar => dtphi
+     D1_dtphi(l,:) = diff1(l,+1)
+
+!    Derivatives of (complex_phiR,complex_piR).
 
      diffvar => complex_phiR
      D1_complex_phiR(l,:) = diff1(l,+1)
      D2_complex_phiR(l,:) = diff2(l,+1)
 
-!    Potential (only the mass term for now).
+     diffvar => complex_piR
+     D1_complex_piR(l,:) = diff1(l,+1)
 
-     complex_V(l,:)   = half*complex_mass**2*complex_phiR(l,:)**2
-     complex_VPR(l,:) = complex_mass**2*complex_phiR(l,:)
+!    Scalar field potential.
 
-!    Find omega.  We solve for omega from the Klen-Gordon
+     call potential(l)
+
+!    Find frequency omega.  We solve for omega from the Klein-Gordon
 !    equation at the first grid point.
 
      if (size==1) then
@@ -2111,15 +2130,11 @@
 
      end if
 
-!    Source for alpha.
+!    The sources for (alpha,phi,complex_phiR) are just (dtalpha,dtphi,complex_piR).
 
      salpha(l,:) = dtalpha(l,:)
 
-!    Source for phi.
-
      sphi(l,:) = dtphi(l,:)
-
-!    Source for complex_phiR.
 
      scomplex_phiR(l,:) = complex_piR(l,:)
 
@@ -2144,13 +2159,13 @@
 !    Damping term (only for Klein-Gordon).  This
 !    is needed in order to avoid large oscillations.
 
-     scomplex_piR(l,:) = scomplex_piR(l,:) - 0.01d0*complex_piR(l,:)/dt(l)
+     scomplex_piR(l,:) = scomplex_piR(l,:) - WE_eta*complex_piR(l,:)/dt(l)
 
 !    Dissipation.
 
      dissipvar => complex_piR
      sourcevar => scomplex_piR
-     call dissipation(l,+1,0.1d0)
+     call dissipation(l,+1,WE_diss)
 
 !    But set the source at the first point to zero
 !    so the value there does not change.
@@ -2175,9 +2190,9 @@
 !    Simple radiative boundaries for all three equations.
 
      if ((l==0).and.(rank==size-1)) then
-        sdtalpha(0,Nr) = - (dtalpha(0,Nr) - dtalpha(0,Nr-1))/dr(0) - dtalpha(0,Nr)/r(0,Nr)
-        sdtphi(0,Nr) = - (dtphi(0,Nr  ) - dtphi(0,Nr-1))/dr(0) - dtphi(0,Nr)/r(0,Nr)
-        scomplex_piR(0,Nr) = - (complex_piR(0,Nr) - complex_piR(0,Nr-1))/dr(0) - complex_piR(0,Nr)/r(0,Nr)
+        sdtalpha(0,Nr)     = - D1_dtalpha(0,Nr)     - dtalpha(0,Nr)/r(0,Nr)
+        sdtphi(0,Nr)       = - D1_dtphi(0,Nr)       - dtphi(0,Nr)/r(0,Nr)
+        scomplex_piR(0,Nr) = - D1_complex_piR(0,Nr) - complex_piR(0,Nr)/r(0,Nr)
      end if
 
 
@@ -2187,7 +2202,7 @@
 
      if (integrator=="rk4") then
 
-        if (k==1) then
+        if (iter==1) then
 
            alpha_a(l,:)   = weight*salpha(l,:)
            dtalpha_a(l,:) = weight*sdtalpha(l,:)
@@ -2198,7 +2213,7 @@
            complex_phiR_a(l,:) = weight*scomplex_phiR(l,:)
            complex_piR_a(l,:)  = weight*scomplex_piR(l,:)
 
-        else if (k<niter) then
+        else if (iter<niter) then
 
            alpha_a(l,:)   = alpha_a(l,:)   + weight*salpha(l,:)
            dtalpha_a(l,:) = dtalpha_a(l,:) + weight*sdtalpha(l,:)
@@ -2249,20 +2264,30 @@
 !    Remember that the coarse grid has already advanced
 !    to the next time level.
 
+     if (l>0) then
+
+     end if
+
 
 !    **********************
 !    ***   SYMMETRIES   ***
 !    **********************
 
      if (rank==0) then
+
         do i=1,ghost
+
            alpha(l,1-i)   = alpha(l,i)
            dtalpha(l,1-i) = dtalpha(l,i)
+
            phi(l,1-i)   = phi(l,i)
            dtphi(l,1-i) = dtphi(l,i)
+
            complex_phiR(l,1-i) = complex_phiR(l,i)
            complex_piR(l,1-i)  = complex_piR(l,i)
+
         end do
+
      end if
 
 
@@ -2324,8 +2349,8 @@
 ! current subroutine "onestep" recursively.
 
   if (l<Nl-1) then
-     call bosonstep(l+1)
-     call bosonstep(l+1)
+     call bosonstep(l+1,method)
+     call bosonstep(l+1,method)
   end if
 
 
