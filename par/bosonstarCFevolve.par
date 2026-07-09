@@ -1,0 +1,47 @@
+# Test parameter file:
+#
+# Boson star initial data in the conformally-flat gauge, 1+log slicing, no shift.
+
+dr0 = 0.02		# Grid spacing
+dtfac = 0.5		# Courant parameter
+
+Nrtotal = 3000		# Number of grid points
+Nt = 0   		# Number of time steps
+
+Nl = 1                  # Number of refinement levels
+
+slicing = 1+log 	# Type of slicing condition
+gauge_f = 2.0	        # Coefficient for harmonic slicing
+
+integrator = rk4	# Type of integration method (icn,rk4)
+order = four  		# Order for spatial finite differencing (two,four)
+
+boundtype = constraint  # Constraint preserving boundary condition
+
+mattertype = complex    # Complex scalar field
+complexpotential = phi2 # Type of scalar potential
+complex_mass = 1.0      # Mass of scalar field
+
+idata = bosonstar	# Type of initial data
+boson_gauge = CF        # Gauge for boson star data (PA=polar-areal,CF=conformally flat)
+boson_method = evolve   # Method for solving boson star initial data (shoot,evolve)
+boson_factor = physical # Normalization factor for boson star (physical,harmonic)
+boson_phi0  = 0.05      # Central value of scalar field
+
+WE_epsilon = 1.d-8      # Wave elliptic tolerance
+WE_verbose = .true.     # Output information about the elliptic solver iterations
+WE_Noutput = 500        # How often do we output iterations?
+
+geodiss    = 0.01       # Dissipation coefficient for geometry
+scalardiss = 0.01       # Dissipation coefficient
+
+directory = bosonstarCFevolve # Name of output directory
+Ninfo = 100		# How often do we want to output information to screen?
+Noutput0D = 10		# How often do we want 0D output?
+Noutput1D = 100		# How often do we want 1D output?
+
+outvars0D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int,compactness,virial1,virial2
+outvars1D = alpha,phi,psi,A,B,trK,KTA,Deltar,ham,mom,rho,complex_phiR,complex_xiR,complex_piR,complex_phiI,complex_xiI,complex_piI,complex_phi_norm,complex_Bdens,complex_Bflux,complex_NB,mass_sch,mass_int,compactness,virial1,virial2
+
+outparallel = fileperproc
+
