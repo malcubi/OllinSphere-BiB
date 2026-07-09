@@ -153,7 +153,7 @@
 
 ! Dissipation.
 
-  if (scalardiss/=0.d0) then
+  if (complexdiss/=0.d0) then
 
 !    The symmetry depends on the value of complexghost_l.
 
@@ -161,27 +161,27 @@
 
      dissipvar => complexghost_phiR
      sourcevar => scomplexghost_phiR
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complexghost_phiI
      sourcevar => scomplexghost_phiI
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complexghost_piR
      sourcevar => scomplexghost_piR
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complexghost_piI
      sourcevar => scomplexghost_piI
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complexghost_xiR
      sourcevar => scomplexghost_xiR
-     call dissipation(l,-sym,scalardiss)
+     call dissipation(l,-sym,complexdiss)
 
      dissipvar => complexghost_xiI
      sourcevar => scomplexghost_xiI
-     call dissipation(l,-sym,scalardiss)
+     call dissipation(l,-sym,complexdiss)
 
   end if
 

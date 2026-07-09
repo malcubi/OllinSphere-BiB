@@ -210,7 +210,7 @@
 
 ! Dissipation.
 
-  if (scalardiss/=0.d0) then
+  if (complexdiss/=0.d0) then
 
 !    The symmetry depends on the value of complex_l.
 
@@ -218,27 +218,27 @@
 
      dissipvar => complex_phiR
      sourcevar => scomplex_phiR
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complex_phiI
      sourcevar => scomplex_phiI
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complex_piR
      sourcevar => scomplex_piR
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complex_piI
      sourcevar => scomplex_piI
-     call dissipation(l,sym,scalardiss)
+     call dissipation(l,sym,complexdiss)
 
      dissipvar => complex_xiR
      sourcevar => scomplex_xiR
-     call dissipation(l,-sym,scalardiss)
+     call dissipation(l,-sym,complexdiss)
 
      dissipvar => complex_xiI
      sourcevar => scomplex_xiI
-     call dissipation(l,-sym,scalardiss)
+     call dissipation(l,-sym,complexdiss)
 
   end if
 
