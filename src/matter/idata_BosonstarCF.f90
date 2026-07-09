@@ -939,7 +939,7 @@
 
 !       Output data to screen.
 
-        write(*,"(A,I4,A,ES23.16,A,ES9.2)") ' Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
+        write(*,"(A,I4,A,ES23.16,A,ES9.2)") '  Iteration: ',iter,'    Frequency: ',boson_omega,'    Residual: ',res
 
      end do
 
@@ -1501,7 +1501,7 @@
 ! The scalar field is initialized to a gaussian centered
 ! on the origin with the correct amplitude.
 
-  complex_phiR = gaussian(boson_phi0,complexR_r0,complexR_s0)
+  complex_phiR = gaussian(boson_phi0,0.d0,1.d0)
 
 ! Initialize time derivatives to 0.
 
@@ -1632,7 +1632,7 @@
 !       Data to screen.
 
        if (rank==0) then
-           write(*,"(A,i5,A,ES15.8E2,A,ES15.8E2)") 'Iteration = ',step, &
+           write(*,"(A,i5,A,ES15.8E2,A,ES15.8E2)") ' Iteration = ',step, &
                    '     omega = ',boson_omega,'     Residual = ',gres
         end if
 
@@ -1668,15 +1668,15 @@
 
      else
 
-        if (Nl_old>0) then
+        if (Nl_old>1) then
 
            if (Nl_old/=Nl) then
-              write (*,'(A,i5,A)') ' BosonstarCFevolve:   Coarse grid solution converged after ',step,' iterations!'
+              write (*,'(A,i5,A)') ' BosonstarCFevolve: Coarse grid solution converged after ',step,' iterations!'
               print *
               write(*,'(A,ES23.16)') ' Final residual = ',gres
               write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
            else
-              write (*,'(A,i5,A)') ' BosonstarCFevolve:   Finer grids solution converged after ',step,' iterations!'
+              write (*,'(A,i5,A)') ' BosonstarCFevolve: Finer grids solution converged after ',step,' iterations!'
               print *
               write(*,'(A,ES23.16)') ' Final residual = ',gres
               write(*,'(A,ES23.16)') ' Omega          = ', boson_omega
