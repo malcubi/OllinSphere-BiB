@@ -180,6 +180,32 @@
   character(30) :: dorigin = "centered"       ! range = (centered,onesided)
 
 
+! **************************************
+! ***   WAVE-TYPE ELLIPTIC SOLVERS   ***
+! **************************************
+
+! WE_verbose     Do we output iterations?
+! WE_Noutput     How often do we do output for iterations?
+! WE_method      Integration method.
+! WE_eta         Damping coefficient.
+! WE_diss        Dissipation coefficient.
+! WE_dtfac       Courant factor.
+! WE_epsilon     Tolerance.
+! WE_maxiter     Maximum number of iterations.
+
+  character(30) :: WE_method = "icn"    ! range = (icn,rk4)
+
+  logical :: WE_verbose = .false.
+
+  integer :: WE_Noutput = 10
+  integer :: WE_maxiter = 100000
+
+  real(8) :: WE_eta = 0.01d0
+  real(8) :: WE_diss = 0.1d0
+  real(8) :: WE_dtfac = 0.6d0
+  real(8) :: WE_epsilon = 1.d-8
+
+
 ! *******************
 ! ***   SLICING   ***
 ! *******************
