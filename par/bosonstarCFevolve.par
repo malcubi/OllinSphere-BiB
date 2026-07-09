@@ -32,8 +32,8 @@ WE_epsilon = 1.d-8      # Wave elliptic tolerance
 WE_verbose = .true.     # Output information about the elliptic solver iterations
 WE_Noutput = 500        # How often do we output iterations?
 
-geodiss    = 0.01       # Dissipation coefficient for geometry
-scalardiss = 0.01       # Dissipation coefficient
+geodiss     = 0.05      # Dissipation coefficient for geometry
+complexdiss = 0.05      # Dissipation coefficient
 
 directory = bosonstarCFevolve # Name of output directory
 Ninfo = 100		# How often do we want to output information to screen?
