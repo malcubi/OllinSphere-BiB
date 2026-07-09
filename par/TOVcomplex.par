@@ -44,7 +44,7 @@ ahfind = .true.            # Look for apparent horizon
 ahfind_every = 50          # How often to look for horizons?
 
 geodiss = 0.05             # Dissipation coefficient for geometry
-scalardiss = 0.05          # Dissipation coefficient for scalar field
+complexdiss = 0.05         # Dissipation coefficient for scalar field
 
 output_r1 = 5.0            # Output of array values at r1
 

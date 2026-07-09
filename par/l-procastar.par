@@ -33,9 +33,8 @@ proca_phi0 = 0.5             # Central value of scalar field
 omega_left  = 1.128918822070 # First trial omega
 omega_right = 1.128918822071 # Second trial omega
               
-geodiss    = 0.05            # Dissipation coefficient for geometry
-scalardiss = 0.05            # Dissipation coefficient for scalar field
-procadiss  = 0.05            # Dissipation coefficient fpr Proca field
+geodiss   = 0.05             # Dissipation coefficient for geometry
+procadiss = 0.05             # Dissipation coefficient fpr Proca field
 
 directory = l-procastar	     # Name of output directory
 Ninfo = 100		     # How often do we want to output information to screen?
