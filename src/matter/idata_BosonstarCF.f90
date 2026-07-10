@@ -1610,8 +1610,6 @@
                     + (complex_phiR(0,i) - complex_phiR_p(0,i))**2
      end do
 
-     lres = sqrt(lres/dble(Nr))
-
 !    Find global residual.
 
      if (size>1) then
@@ -1619,6 +1617,8 @@
      else
         gres = lres
      end if
+
+     gres = sqrt(gres/dble(Nr))
 
 
 !    ******************
