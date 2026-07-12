@@ -2175,9 +2175,11 @@
 
 !    But set the source at the first grid point such
 !    that the cubic interpolated value to r=0 does
-!    not change.  In order to do this we notice that
-!    a cubix interpolation to r=0 (assuming that phiR
-!    is symmetric) implies that:
+!    not change.
+!
+!    In order to do this we notice that a cubic
+!    interpolation to r=0 (assuming that phiR is
+!    symmetric) implies that:
 !
 !    f0 = (9*f(1) - f(2))/8
 !
