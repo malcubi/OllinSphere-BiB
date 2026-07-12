@@ -1444,8 +1444,9 @@
   integer miniter                ! Minimum number of iterations.
 
   real(8) lres,gres              ! Local and global residuals.
-  real(8) r0,interp              ! For interpolation. 
+  real(8) r0,interp              ! For interpolation.
   real(8) cfac                   ! Courant parameter.
+  real(8) aux
 
   character(3) method            ! Time integration method.
 
@@ -1634,6 +1635,11 @@
        if (rank==0) then
            write(*,"(A,i5,A,ES15.8E2,A,ES15.8E2)") ' Iteration = ',step, &
                    '     omega = ',boson_omega,'     Residual = ',gres
+
+           !interpvar => complex_phiR
+           !aux = interp(0,0.d0,.false.)
+           !print *, ' Value of phiR at origin = ',aux
+
         end if
 
         savevar => alpha
@@ -2167,11 +2173,25 @@
      sourcevar => scomplex_piR
      call dissipation(l,+1,WE_diss)
 
-!    But set the source at the first point to zero
-!    so the value there does not change.
+!    But set the source at the first grid point such
+!    that the cubic interpolated value to r=0 does
+!    not change.  In order to do this we notice that
+!    a cubix interpolation to r=0 (assuming that phiR
+!    is symmetric) implies that:
+!
+!    f0 = (9*f(1) - f(2))/8
+!
+!    from which we find:
+!
+!    f(1) = (8*f0 + f(2))/9
+!
+!    and its time derivative:
+!
+!    df(1)/dt  = df(2)/dt/9
 
      if (rank==0) then
-        scomplex_piR(l,1) = 0.d0
+        !scomplex_piR(l,1) = 0.d0
+        scomplex_piR(l,1) = scomplex_piR(l,2)/9.d0
      end if
 
 !    Symmetries.
