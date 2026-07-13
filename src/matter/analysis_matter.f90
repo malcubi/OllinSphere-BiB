@@ -130,11 +130,11 @@
 
 !    The integrated boson charge is:
 !
-!                        /r                2
-!    complex_NB  =  4 pi |  complex_Bdens R  dR
-!                        /0
+!                   /
+!    complex_NB  =  |  complex_Bdens dV
+!                   /
 !
-!    with R the Schwarzschild radius.
+!    with dV the physical volume element.
 
      if (allocated(complex_NB)) then
 
@@ -327,11 +327,11 @@
 
 !    The integrated Proca charge is:
 !
-!                        /r               2
-!    complex_NB  =  4 pi |  cproca_Qdens R  dR
-!                        /0
+!                   /
+!    complex_NB  =  |  cproca_Qdens dV
+!                   /
 !
-!    with R the Schwarzschild radius.
+!    with dV the physical volume element.
 
      if (allocated(cproca_Qint)) then
 
@@ -399,11 +399,11 @@
 
 !    The integrated particle number is:
 !
-!                        /r             2
-!    dirac_Nint  =  4 pi |  dirac_dens R  dR
-!                        /0
+!                   /
+!    dirac_Nint  =  |  dirac_dens dV
+!                   /
 !
-!    with R the Schwarzschild radius.
+!    with dV the physical volume element.
 
      if (allocated(dirac_Nint)) then
 
