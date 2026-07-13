@@ -1156,7 +1156,7 @@
 ! Find chi and derviative.
 
   if (chimethod) then
-     chi  = one/psi**chipower
+     chi = one/psi**chipower
      D1_chi = - dble(chipower)*D1_psi/psi**3
   end if
 
