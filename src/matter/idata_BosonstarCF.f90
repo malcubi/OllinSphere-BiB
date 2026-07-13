@@ -2189,7 +2189,7 @@
 !
 !    and its time derivative:
 !
-!    df(1)/dt  = df(2)/dt/9
+!    df(1)/dt = (df(2)/dt)/9
 
      if (rank==0) then
         !scomplex_piR(l,1) = 0.d0
