@@ -144,13 +144,13 @@
      MTOT = mass_int(0,Nr)
 
      if (size==1) then
-        write(*,'(A,ES23.16)') ' Total integrated mass M_int = ',MTOT
+        write(*,'(A,ES23.16)') ' Total integrated mass M_int  = ',MTOT
         print *
      else
         if (rank==0) then
            p = size-1
            call MPI_RECV(MTOT,1,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-           write(*,'(A,ES23.16)') ' Total integrated mass M_int = ',MTOT
+           write(*,'(A,ES23.16)') ' Total integrated mass M_int  = ',MTOT
            print *
         else if (rank==size-1) then
            call MPI_SEND(MTOT,1,MPI_REAL8,0,1,MPI_COMM_WORLD,ierr)
