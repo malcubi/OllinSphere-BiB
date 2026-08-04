@@ -1923,6 +1923,7 @@
 
   if (size==1) then
      write(*,'(A,ES23.16)') ' Total Tolman-Komar mass M_TK = ',MTOT
+     print *
   else
 
   end if
