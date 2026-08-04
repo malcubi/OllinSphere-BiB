@@ -2011,8 +2011,8 @@
 ! a different sum of two terms, but now as integrals over
 ! the physical curved volume element. This is an interesting
 ! expression as the first terms is just the total integrated
-! denisty as measured by the Eulerian observers, and 
-! the second term (which again comes from a quadratic term 
+! density as measured by the Eulerian observers, and
+! the second term (which again comes from a quadratic term
 ! in the Christoffels) can be interpreted as the total
 ! gravitational potential energy. For a conformally flat metric
 ! the final expression is:
