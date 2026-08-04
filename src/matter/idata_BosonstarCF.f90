@@ -1431,6 +1431,7 @@
   use procinfo
   use derivatives
   use radialfunctions
+  use integrals
 
 ! Extra variables.
 
@@ -1446,7 +1447,8 @@
   real(8) lres,gres              ! Local and global residuals.
   real(8) r0,interp              ! For interpolation.
   real(8) cfac                   ! Courant parameter.
-  real(8) aux
+  real(8) one,half,smallpi       ! Numbers.
+  real(8) MTOT,aux
 
   character(3) method            ! Time integration method.
 
@@ -1455,6 +1457,16 @@
   real(8) t_ext(0:Nl-1)          ! External values of time counter.
   real(8) t1_ext(0:Nl-1)         ! External values of t1 counter.
   real(8) t2_ext(0:Nl-1)         ! External values of t2 counter.
+
+
+! *******************
+! ***   NUMBERS   ***
+! *******************
+
+  one  = 1.d0
+  half = 0.5d0
+
+  smallpi = acos(-1.d0)
 
 
 ! ************************************************
@@ -1821,8 +1833,13 @@
 
 ! Now calculate the correct "phi".
 
-  phi  = dlog(psi)
-  D1_phi = D1_psi/psi
+  phi = dlog(psi)
+
+  diffvar => phi
+
+  do l=0,Nl-1
+     D1_phi(l,:) = diff1(l,+1)
+  end do
 
 ! Find "chi" and derviative.
 
@@ -1861,6 +1878,176 @@
 ! Set time derivative of imaginary part to (omega/alpha)*phiR.
 
   complex_piI = boson_omega*complex_phiR/alpha
+
+
+! *****************************
+! ***   TOLMAN-KOMAR MASS   ***
+! *****************************
+
+! The Tolman-Komar mass only makes sense for static solutions.
+! It will not be the correct mass for the perturbed case!
+!
+! It is based on the existence on a Killing field, but can be
+! expressed as a volume integral that depends on the lapse
+! function and the stress-energy of matter.
+!
+! The general expression is:
+!
+!             /
+! mass_TK  =  | alpha (rho + trS) dV
+!             /
+!
+! with alpha the lapse, rho the energy density, trS
+! the trace of the stress tensor, and dV the physical
+! volume element:
+!
+! dV = 4 pi r**2 psi**6 dr
+!
+! The factor 4*pi comes from the integral over angles.
+! Notice that for a boson star we have:
+!
+! rho + trS  =  2 [ PiI**2 - V ]
+
+  do l=0,Nl-1
+     call potential(l)
+  end do
+
+  auxarray = (8.d0*smallpi*r**2*psi**6)*alpha*(complex_piI**2 - complex_V)
+  intvar => auxarray
+
+  do l=0,Nl-1
+     mass_TK(l,:) = integral(l)
+  end do
+
+  MTOT = mass_TK(0,Nr)
+
+  if (size==1) then
+     write(*,'(A,ES23.16)') ' Total Tolman-Komar mass M_TK = ',MTOT
+  else
+
+  end if
+
+
+! ********************
+! ***   ADM MASS   ***
+! ********************
+
+! Energy density.
+
+  do l=0,Nl-1
+     call potential(l)
+  end do
+
+  rho = 0.5d0*(complex_piI**2 + complex_xiR**2/psi4) + complex_V
+
+! ADM mass version 1.  For a conformally flat metric the
+! ADM mass can be expressed as the following volume integral:
+!
+!                   /
+! mass_ADM  =  4 pi | psi**5 rho r**2 dr
+!                   /
+!
+! The factor 4*pi comes from the integral over angles.
+! Notice that the integral is done over the flat volume element.
+
+  auxarray = (4.d0*smallpi*r**2)*psi**5*rho
+  intvar => auxarray
+
+  do l=0,Nl-1
+     mass_ADM1(l,:) = integral(l)
+  end do
+
+  MTOT = mass_ADM1(0,Nr)
+
+  if (size==1) then
+     write(*,'(A,ES23.16)') ' Total ADM mass (version 1)   = ',MTOT
+     print *
+  else
+
+  end if
+
+! ADM mass version 2.  The ADM mass can also be expressed as
+! the sum of two terms, one coming from the integral of the
+! energy density over the flat volume element, and another
+! one coming from the integral coming from a quadratic term
+! in the Christoffel symbols. For a conformally flat metric
+! the final expression is:
+!
+!                   /
+! mass_ADM  =  4 pi | [ rho  +  5/(2 pi) D1_psi**2 / psi**6 ] r**2 dr
+!                   /
+!
+!              /
+!           =  | [ 4 pi rho  +  10 D1_phi**2 / psi**4 ] r**2 dr
+!              /
+!
+! The factor 4*pi comes from the integral over angles, and we
+! used the fact that:
+!
+! D1_psi  =  psi D1_phi
+!
+! This expression converges very very slowly far away (from below)!
+! The slow convergence comes from the second term that contributes
+! to the integral all the way to infinity.
+
+  auxarray = (4.d0*smallpi*rho + 10.d0*D1_phi**2/psi**4)*r**2
+  intvar => auxarray
+
+  do l=0,Nl-1
+     mass_ADM2(l,:) = integral(l)
+  end do
+
+  MTOT = mass_ADM2(0,Nr)
+
+  if (size==1) then
+     !write(*,'(A,ES23.16)') ' Total ADM mass (version 2)   = ',MTOT
+     !print *
+  else
+
+  end if
+
+! ADM mass version 3. The ADM mass can also be expressed as
+! a different sum of two terms, but now as integrals over
+! the physical curved volume element. This is an interesting
+! expression as the first terms is just the total integrated
+! denisty as measured by the Eulerian observers, and 
+! the second term (which again comes from a quadratic term 
+! in the Christoffels) can be interpreted as the total
+! gravitational potential energy. For a conformally flat metric
+! the final expression is:
+!
+!                   /
+! mass_ADM  =  4 pi | [ rho  -  1/(2 pi) D1_psi**2 / psi**6 ] psi**6 r**2 dr
+!                   /
+!
+!              /
+!           =  | [ 4 pi rho psi**6  -  2 D1_phi**2 psi**2 ] r**2 dr
+!              /
+
+! The factor 4*pi comes from the integral over angles, and we
+! used the fact that:
+!
+! D1_psi  =  psi D1_phi
+!
+! This expression also converges slowly far away (from above),
+! but a bit faster that version 2 above.
+
+  auxarray = (4.d0*smallpi*rho*psi**6 - 2.d0*D1_phi**2*psi**2)*r**2
+
+  intvar => auxarray
+
+  do l=0,Nl-1
+     mass_ADM3(l,:) = integral(l)
+  end do
+
+  MTOT = mass_ADM3(0,Nr)
+
+  if (size==1) then
+     !write(*,'(A,ES23.16)') ' Total ADM mass (version 3)   = ',MTOT
+     !print *
+  else
+
+  end if
 
 
 ! ***************
