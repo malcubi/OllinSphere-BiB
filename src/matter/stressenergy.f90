@@ -340,20 +340,21 @@
 !    These are the gauge derivatives for the case of a charged
 !    scalar field.
      
-     complex_gxiR = complex_xiR
-     complex_gxiI = complex_xiI
+     complex_gxiR(l,:) = complex_xiR(l,:)
+     complex_gxiI(l,:) = complex_xiI(l,:)
      
-     complex_gpiR = complex_piR
-     complex_gpiI = complex_piI
+     complex_gpiR(l,:) = complex_piR(l,:)
+     complex_gpiI(l,:) = complex_piI(l,:)
 
      if (contains(mattertype,"electric")) then
 
-        complex_gxiR = complex_gxiR - complex_q*eAr*complex_phiI
-        complex_gxiI = complex_gxiI + complex_q*eAr*complex_phiR
+        complex_gxiR(l,:) = complex_gxiR(l,:) - complex_q*eAr(l,:)*complex_phiI(l,:)
+        complex_gxiI(l,:) = complex_gxiI(l,:) + complex_q*eAr(l,:)*complex_phiR(l,:)
 
-        complex_gpiR = complex_gpiR + complex_q*ePhi*complex_phiI
-        complex_gpiI = complex_gpiI - complex_q*ePhi*complex_phiR
+        complex_gpiR(l,:) = complex_gpiR(l,:) + complex_q*ePhi(l,:)*complex_phiI(l,:)
+        complex_gpiI(l,:) = complex_gpiI(l,:) - complex_q*ePhi(l,:)*complex_phiR(l,:)
 
+        print *, complex_piR(l,0),complex_phiR(l,0),ePhi(l,0),complex_gpiR(l,0),complex_q
      end if
 
 !    Energy density.
@@ -447,14 +448,14 @@
 !
 !    Also, for a charged field we need to replace (pi,xi) with (gpi,gxi).
 
-     complex_Bdens = (complex_phiR*complex_gpiI - complex_phiI*complex_gpiR)
-     complex_Bflux = (complex_phiI*complex_gxiR - complex_phiR*complex_gxiI)/(psi4*A)
+     complex_Bdens(l,:) = (complex_phiR(l,:)*complex_gpiI(l,:) - complex_phiI(l,:)*complex_gpiR(l,:))
+     complex_Bflux(l,:) = (complex_phiI(l,:)*complex_gxiR(l,:) - complex_phiR(l,:)*complex_gxiI(l,:))/(psi4(l,:)*A(l,:))
 
 !    Charge and current density (index up).
 
      if (contains(mattertype,"electric")) then 
-        echarge  = echarge  + complex_q*complex_Bdens
-        ecurrent = ecurrent + complex_q*complex_Bflux
+        echarge(l,:)  = echarge(l,:)  + complex_q*complex_Bdens(l,:)
+        ecurrent(l,:) = ecurrent(l,:) + complex_q*complex_Bflux(l,:)
      end if
 
 !    Cosmological background.
