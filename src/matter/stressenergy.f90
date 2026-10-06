@@ -354,7 +354,6 @@
         complex_gpiR(l,:) = complex_gpiR(l,:) + complex_q*ePhi(l,:)*complex_phiI(l,:)
         complex_gpiI(l,:) = complex_gpiI(l,:) - complex_q*ePhi(l,:)*complex_phiR(l,:)
 
-        print *, complex_piR(l,0),complex_phiR(l,0),ePhi(l,0),complex_gpiR(l,0),complex_q
      end if
 
 !    Energy density.
