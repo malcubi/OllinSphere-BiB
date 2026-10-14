@@ -94,11 +94,11 @@
 
   if (shift/="none") then
 
-     sdirac_FR(l,:) =  sdirac_FR(l,:) + beta(l,:)*DA_dirac_FR(l,:)
-     sdirac_FI(l,:) =  sdirac_FI(l,:) + beta(l,:)*DA_dirac_FI(l,:)
+     sdirac_FR(l,:) = sdirac_FR(l,:) + beta(l,:)*DA_dirac_FR(l,:)
+     sdirac_FI(l,:) = sdirac_FI(l,:) + beta(l,:)*DA_dirac_FI(l,:)
 
-     sdirac_GR(l,:) =  sdirac_GR(l,:) + beta(l,:)*DA_dirac_GR(l,:)
-     sdirac_GI(l,:) =  sdirac_GI(l,:) + beta(l,:)*DA_dirac_GI(l,:)
+     sdirac_GR(l,:) = sdirac_GR(l,:) + beta(l,:)*DA_dirac_GR(l,:)
+     sdirac_GI(l,:) = sdirac_GI(l,:) + beta(l,:)*DA_dirac_GI(l,:)
 
   end if
 
@@ -116,11 +116,15 @@
 
   if (contains(mattertype,"electric")) then
 
-     sdirac_FR(l,:) =  sdirac_FR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FI(l,:) - eAr(l,:)*dirac_GI(l,:)/sqrt(A(l,:)))
-     sdirac_FI(l,:) =  sdirac_FI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FR(l,:) - eAr(l,:)*dirac_GR(l,:)/sqrt(A(l,:)))
+     sdirac_FR(l,:) = sdirac_FR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FI(l,:) &
+                    - eAr(l,:)*dirac_GI(l,:)/(sqrt(A(l,:))*psi2(l,:)))
+     sdirac_FI(l,:) = sdirac_FI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_FR(l,:) &
+                    - eAr(l,:)*dirac_GR(l,:)/(sqrt(A(l,:))*psi2(l,:)))
 
-     sdirac_GR(l,:) =  sdirac_GR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GI(l,:) - eAr(l,:)*dirac_FI(l,:)/sqrt(A(l,:)))
-     sdirac_GI(l,:) =  sdirac_GI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GR(l,:) - eAr(l,:)*dirac_FR(l,:)/sqrt(A(l,:)))
+     sdirac_GR(l,:) = sdirac_GR(l,:) + dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GI(l,:) &
+                    - eAr(l,:)*dirac_FI(l,:)/(sqrt(A(l,:))*psi2(l,:)))
+     sdirac_GI(l,:) = sdirac_GI(l,:) - dirac_q*alpha(l,:)*(ePhi(l,:)*dirac_GR(l,:) &
+                    - eAr(l,:)*dirac_FR(l,:)/(sqrt(A(l,:))*psi2(l,:)))
 
   end if
 
