@@ -907,7 +907,7 @@
 !
 !       This is because the Dirac equation itself has terms that depend on q.
 !
-!       Notice that both terms above are scalars.  The first one is obvious,
+!       Notice that both terms above are scalars. The first one is obvious,
 !       and the second one corresponds to the contraction of the potential
 !       eAr (index down) with dirac_flux j^i (index up).
 
@@ -917,8 +917,8 @@
            rho(l,:) = rho(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)
         end if
 
-!       Momentum density (index down).  Again, the term we must add depends
-!       on how we wrote JA above.  If we did not substitute the Dirac
+!       Momentum density (index down). Again, the term we must add depends
+!       on how we wrote JA above. If we did not substitute the Dirac
 !       equation we must add:
 !
 !       - q/2 ( eAr dirac_dens + ePhi dirac_flux A psi4 )
@@ -928,19 +928,22 @@
 !       - q eAr dirac_dens
 !
 !       Notice that in both cases we add a 1-form since JA is written
-!       with the index down, and so is eAr, with dirac_flux has the
+!       with the index down, and so is eAr, while dirac_flux has the
 !       index up but the metric terms lower it.
 
         if (usediracPi) then
-           JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) + ephi(l,:)*dirac_flux(l,:)*A(l,:)*psi4(l,:))
+           JA(l,:) = JA(l,:) - 0.5d0*dirac_q*(eAr(l,:)*dirac_dens(l,:) &
+                   + ephi(l,:)*dirac_flux(l,:)*A(l,:)*psi4(l,:))
         else
            JA(l,:) = JA(l,:) - dirac_q*eAr(l,:)*dirac_dens(l,:)
         end if
 
-!       Stress tensor.  For the radial component we must add the term: - q*eAr*dirac_flux
+!       Stress tensor. For the radial component we must add the term: - q*eAr*dirac_flux
 !       The angular component is unchanged, but we must correct SLL.
 
         SAA(l,:) = SAA(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)
+
+!       SLL = (SAA - SBB)/r**2.
 
         if (.not.nolambda) then
            SLL(l,:) = SLL(l,:) - dirac_q*eAr(l,:)*dirac_flux(l,:)/r(l,:)**2
