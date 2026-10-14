@@ -100,7 +100,7 @@
 ! Notice that all processors look for a horizon.
 
   if (rank==size-1) then
-     imax = Nr
+     imax = Nr-1
   else
      imax = Nr-ghost+1
   end if
@@ -181,6 +181,7 @@
         if ((r0<r(l,i)).or.(r0>r(l,i+1))) then
            print *
            print *, 'horizon_finder.f90:  This should never happen'
+           print *, i,r0,r(l,i),r(l,i+1)
            print *, 'Aborting! (subroutine horizon_finder)'
            print *
            call die
@@ -451,19 +452,39 @@
 
         if (filestatus == 'replace') then
 
-           open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
-                status=filestatus)
+           if (.not.contains(mattertype,"electric")) then
 
-           if (commenttype=='xgraph') then
-              write(1,*) '"ah_mass.tl'
+              open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus)
+
+              if (commenttype=='xgraph') then
+                 write(1,*) '"ah_mass.tl'
+              else
+                 write(1,*) '#ah_mass.tl'
+              end if
+
            else
-              write(1,*) '#ah_mass.tl'
+
+              open(1,file=trim(directory)//'/ah_mass-irr'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus)
+
+              if (commenttype=='xgraph') then
+                 write(1,*) '"ah_mass-irr.tl'
+              else
+                 write(1,*) '#ah_mass-irr.tl'
+              end if
+
            end if
 
         else
 
-           open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
-                status=filestatus,position='append')
+           if (.not.contains(mattertype,"electric")) then
+              open(1,file=trim(directory)//'/ah_mass'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus,position='append')
+           else
+              open(1,file=trim(directory)//'/ah_mass-irr'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus,position='append')
+           end if
 
         end if
   
@@ -493,6 +514,38 @@
            end if
   
            write(1,"(2ES14.6)") t(0),ah_eQ(l)
+           close(1)
+
+        end if
+
+!       Save total Reissner-Nordstrom horizon mass for charged case.
+
+       if (contains(mattertype,"electric")) then
+
+           if (filestatus == 'replace') then
+
+              open(1,file=trim(directory)//'/ah_mass-rn'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus)
+
+              if (commenttype=='xgraph') then
+                 write(1,*) '"ah_mass-rn.tl'
+              else
+                 write(1,*) '#ah_mass-rn.tl'
+              end if
+
+           else
+
+              open(1,file=trim(directory)//'/ah_mass-rn'//trim(filen)//'.tl',form='formatted', &
+                   status=filestatus,position='append')
+
+           end if
+  
+           if (ah_mass(l)>0.d0) then
+              write(1,"(2ES14.6)") t(0),ah_mass(l) + 0.25d0*ah_eQ(l)**2/ah_mass(l)
+           else
+              write(1,"(2ES14.6)") t(0),0.d0
+           end if
+
            close(1)
 
         end if
