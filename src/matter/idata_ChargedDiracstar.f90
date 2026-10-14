@@ -611,8 +611,8 @@
            res = epsilon/2.d0
            goto 100
         else
-           aux = dirac_omega - dirac_q*maxwellF_g(0,Nrtotal)
-           aux = abs(dirac_mass**2 - (aux/alpha(0,Nrtotal))**2)
+           !aux = dirac_omega - dirac_q*maxwellF_g(0,Nrtotal)
+           aux = abs(dirac_mass**2 - (dirac_omega/alpha(0,Nrtotal))**2)
            res = (F_g(0,Nrtotal)-F_g(0,Nrtotal-1))/dr(0) + dsqrt(aux)*F_g(0,Nrtotal)
         end if
 
