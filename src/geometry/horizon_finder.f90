@@ -180,7 +180,8 @@
 
         if ((r0<r(l,i)).or.(r0>r(l,i+1))) then
            print *
-           print *, 'horizon_finder.f90:  This should never happen'
+           print *, 'horizon_finder.f90:  This should never happen.'
+           print *. 'If it happens your metric probably has NaNs.'
            print *, i,r0,r(l,i),r(l,i+1)
            print *, 'Aborting! (subroutine horizon_finder)'
            print *
