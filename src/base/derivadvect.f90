@@ -80,8 +80,9 @@
 
      end do
 
-!    Point Nr-1:  Second order fully one-sided for negative shift,
-!    second order centered for positive shift.
+!    Point Nr-1:
+!       - Negative shift: Second order fully one-sided.
+!       - Positive shift: Second order centered.
 
      i = Nr-1
 
@@ -91,9 +92,10 @@
         diffadv(i) = hidr*(diffvar(l,i+1) - diffvar(l,i-1))
      end if
 
-!    Point Nr:  Second order fully one-sided always.
+!    Point Nr: Second order fully one-sided.
 
      i = Nr
+
      diffadv(i) = hidr*(3.d0*diffvar(l,i) - 4.d0*diffvar(l,i-1) + diffvar(l,i-2))
 
 !    Check if we want one-sided derivatives at origin.
@@ -126,8 +128,9 @@
 
      end do
 
-!    Point Nr-2:  Fourth order semi one-sided derivatives for negative shift,
-!    fourth order centered for positive shift.
+!    Point Nr-2:
+!       - Negative shift: Fourth order semi one-sided derivatives.
+!       - Positive shift: Fourth order centered.
 
      i = Nr-2
 
@@ -139,23 +142,35 @@
                    - (diffvar(l,i+2) - diffvar(l,i-2)))/12.d0
      end if
 
-!    Point Nr-1: Sixth order semi one-sided always (1 point to the right, 5 to the left).
-!    I use sixth order to improve boundary behaviour.
+!    Point Nr-1:
+!       - Negative shift: Sixth order semi one-sided always (1 point to the right, 5 to the left).
+!                         I use sixth order to improve boundary behaviour.
+!       - Positive shift: Second order centered.
 
      i = Nr-1
 
-     diffadv(i) = idr*(1.d0/6.d0*diffvar(l,i+1) + 77.d0/60.d0*diffvar(l,i) - 5.d0/2.d0*diffvar(l,i-1) &
-                + 5.d0/3.d0*diffvar(l,i-2) - 5.d0/6.d0*diffvar(l,i-3) + 0.25*diffvar(l,i-4) &
-                - 1.d0/30.d0*diffvar(l,i-5)) ! Sixth order semi one-sided
+     if (beta(l,i)<=0.d0) then
+        diffadv(i) = idr*(1.d0/6.d0*diffvar(l,i+1) + 77.d0/60.d0*diffvar(l,i) - 5.d0/2.d0*diffvar(l,i-1) &
+                   + 5.d0/3.d0*diffvar(l,i-2) - 5.d0/6.d0*diffvar(l,i-3) + 0.25*diffvar(l,i-4) &
+                   - 1.d0/30.d0*diffvar(l,i-5)) ! Sixth order semi one-sided
+     else
+        diffadv(i) = hidr*(diffvar(l,i+1) - diffvar(l,i-1))
+     end if
 
-!    Point Nr:  Sixth order fully one-sided always. 
-!    I use sixth order to improve boundary behaviour.
+!    Point Nr:
+!       - Negative shift: Sixth order fully one-sided always. 
+!                         I use sixth order to improve boundary behaviour.
+!       - Positive shift: Second order one-sided.
 
      i = Nr
 
-     diffadv(i) = idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i-1) + 7.5d0*diffvar(l,i-2) &
-                - 20.d0/3.d0*diffvar(l,i-3) + 15.d0/4.d0*diffvar(l,i-4) - 6.d0/5.d0*diffvar(l,i-5) &
-                + 1.d0/6.d0*diffvar(l,i-6)) ! Sixth order fully one-sided
+     if (beta(l,i)<=0.d0) then
+        diffadv(i) = idr*(49.d0/20.d0*diffvar(l,i) - 6.d0*diffvar(l,i-1) + 7.5d0*diffvar(l,i-2) &
+                   - 20.d0/3.d0*diffvar(l,i-3) + 15.d0/4.d0*diffvar(l,i-4) - 6.d0/5.d0*diffvar(l,i-5) &
+                   + 1.d0/6.d0*diffvar(l,i-6)) ! Sixth order fully one-sided
+     else
+        diffadv(i) = hidr*(3.d0*diffvar(l,i) - 4.d0*diffvar(l,i-1) + diffvar(l,i-2))
+     end if
 
 !    Check if we want one-sided derivatives at origin.
 
