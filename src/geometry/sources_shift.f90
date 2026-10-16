@@ -81,7 +81,7 @@
 ! Where "csi" is the parameter that fixes the wave speed
 ! (csi=0.75 corresponds to a speed of 1 in the asymptotic region).
 !
-! I have introduced a modifications that helps avoid
+! I have introduced a modification that helps avoid
 ! coordinate shocks:
 !
 !
@@ -245,6 +245,14 @@
 !    Damping term.
 
      sdtbeta(l,:) = sdtbeta(l,:) - drivereta*dtbeta(l,:)
+
+!    Dissipation.
+
+     if (geodiss/=0.d0) then
+        dissipvar => dtbeta
+        sourcevar => sdtbeta
+        call dissipation(l,-1,geodiss)
+     end if
 
 
 ! ****************************************************
