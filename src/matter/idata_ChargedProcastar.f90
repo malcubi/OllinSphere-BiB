@@ -945,10 +945,10 @@
               alpha_g(l,imin-1) = (9.d0*(alpha_g(l+1,Nrtotal-2)+alpha_g(l+1,Nrtotal-3)) &
                             - (alpha_g(l+1,Nrtotal-4)+alpha_g(l+1,Nrtotal-1)))/16.d0
 
-              maxwellE_g(l-1,iaux) = (9.d0*(maxwellE_g(l,i)+maxwellE_g(l,i+1)) &
-                                   - (maxwellE_g(l,i-1)+maxwellE_g(l,i+2)))/16.d0
-              maxwellF_g(l-1,iaux) = (9.d0*(maxwellF_g(l,i)+maxwellF_g(l,i+1)) &
-                                   - (maxwellF_g(l,i-1)+maxwellF_g(l,i+2)))/16.d0
+              maxwellE_g(l,imin-1) = (9.d0*(maxwellE_g(l+1,Nrtotal-2)+maxwellE_g(l+1,Nrtotal-3)) &
+                                   - (maxwellE_g(l+1,Nrtotal-4)+maxwellE_g(l+1,Nrtotal-1)))/16.d0
+              maxwellF_g(l,imin-1) = (9.d0*(maxwellF_g(l+1,Nrtotal-2)+maxwellF_g(l+1,Nrtotal-3)) &
+                                   - (maxwellF_g(l+1,Nrtotal-4)+maxwellF_g(l+1,Nrtotal-1)))/16.d0
 
               procaE_g(l,imin-1) = (9.d0*(procaE_g(l+1,Nrtotal-2)+procaE_g(l+1,Nrtotal-3)) &
                                  - (procaE_g(l+1,Nrtotal-4)+procaE_g(l+1,Nrtotal-1)))/16.d0
@@ -1061,7 +1061,7 @@
               maxwellF_rk = maxwellF0 + half*k61
               procaE_rk   = procaE0   + half*k71
 
-              if (i==1) then  ! Linear interpolation for first point.
+              if ((i==1).or.(i==Nrtotal)) then  ! Linear interpolation for first and last points
                  procaF_rk = 0.5d0*(procaF0 + procaF_g(l,1))
                  procaA_rk = 0.5d0*(procaA0 + procaA_g(l,1))
               else            ! Cubic interpolation for the rest.
