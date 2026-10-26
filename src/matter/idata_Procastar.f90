@@ -893,7 +893,7 @@
               alpha_rk  = alpha0  + half*k21
               procaE_rk = procaE0 + half*k51
 
-              if (i==1) then  ! Linear interpolation for first point.
+              if ((i==1).or.(i==Nrtotal)) then  ! Linear interpolation for first and last points.
                  procaF_rk = 0.5d0*(procaF0 + procaF_g(l,1))
                  procaA_rk = 0.5d0*(procaA0 + procaA_g(l,1))
               else            ! Cubic interpolation for the rest.

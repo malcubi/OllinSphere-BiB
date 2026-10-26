@@ -1153,7 +1153,7 @@
               A_rk     = A0     + half*k11
               alpha_rk = alpha0 + half*k21
 
-              if (i==1) then  ! Linear interpolation for first point.
+              if ((i==1).or.(i==Nrtotal)) then  ! Linear interpolation for first and last points.
                  phi_rk = 0.5d0*(phi0 + phi_g(l,1))
                  xi_rk  = 0.5d0*(xi0 + xi_g(l,1))
                  piI_rk = 0.5d0*(piI0 + piI_g(l,1))

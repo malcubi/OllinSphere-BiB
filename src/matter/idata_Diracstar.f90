@@ -859,7 +859,7 @@
               A_rk     = A0     + half*k11
               alpha_rk = alpha0 + half*k21
 
-              if (i==1) then  ! Linear interpolation for first and last points.
+              if ((i==1).or.(i==Nrtotal)) then  ! Linear interpolation for first and last points.
                  F_rk = 0.5d0*(F0 + F_g(l,i))
                  G_rk = 0.5d0*(G0 + G_g(l,i))
               else            ! Cubic interpolation for the rest.
