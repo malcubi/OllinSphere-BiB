@@ -113,8 +113,8 @@
 ! Electric charge and current.
 
   if (contains(mattertype,"electric")) then
-     echarge  = zero
-     ecurrent = zero
+     echarge(l,:)  = zero
+     ecurrent(l,:) = zero
   end if
 
 ! Cosmological background.
