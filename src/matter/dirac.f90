@@ -105,13 +105,13 @@
 ! Charge terms if needed. In the case of a charged Dirac field we need
 ! to add the terms:
 !
-! sdirac_FR =  sdirac_FR + q alpha ( ePhi dirac_FI - eAr dirac_GI / sqrt(A) )
+! sdirac_FR =  sdirac_FR + q alpha [ ePhi dirac_FI - eAr dirac_GI / ( sqrt(A) psi**2 ) ]
 !
-! sdirac_FI =  sdirac_FI - q alpha ( ePhi dirac_FR - eAr dirac_GR / sqrt(A) )
+! sdirac_FI =  sdirac_FI - q alpha [ ePhi dirac_FR - eAr dirac_GR / ( sqrt(A) psi**2 ) ]
 !
-! sdirac_GR =  sdirac_GR + q alpha ( ePhi dirac_GI - eAr dirac_FI / sqrt(A) )
+! sdirac_GR =  sdirac_GR + q alpha [ ePhi dirac_GI - eAr dirac_FI / ( sqrt(A) psi**2 ) ]
 !
-! sdirac_GI =  sdirac_GI - q alpha ( ePhi dirac_GR - eAr dirac_FR / sqrt(A) )
+! sdirac_GI =  sdirac_GI - q alpha [ ePhi dirac_GR - eAr dirac_FR / ( sqrt(A) psi**2 ) ]
 
 
   if (contains(mattertype,"electric")) then
