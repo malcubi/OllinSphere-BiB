@@ -67,15 +67,15 @@
   integer lmin,lmax
   integer i0,imax,Naux
   integer status(MPI_STATUS_SIZE)
-  integer :: maxiter = 100
+  integer :: maxiter = 1000
 
   real(8) :: one,two
-  real(8) :: res,aux
+  real(8) :: aux,res
   real(8) :: epsilon = 1.d-10
 
-  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: u,u_old
   real(8), dimension (0:Nl-1,1-ghost:Nrmax)   :: CL0,CL1,CL2,CLA,fL1,fL2
   real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: C0,C1,C2,CA,f1,f2
+  real(8), dimension (0:Nl-1,1-ghost:Nrtotal) :: u,u_old
 
 ! u             Global solution of ODE.
 ! CL0,C0        Local and global coefficient of first derivative in ODE.
@@ -299,11 +299,12 @@
 ! and we multiply them with a the A that comes from the laplacian.
 
   fL1 = dirac_mass*A*(dirac_FR**2 + dirac_FI**2 - dirac_GR**2 - dirac_GI**2)
+
   fL2 = 2.d0*A/(r*sqrt(B))*(dirac_FR*dirac_GI - dirac_FI*dirac_GR) &
       +(dirac_FR*D1_dirac_GI - dirac_FI*D1_dirac_GR &
       + dirac_GR*D1_dirac_FI - dirac_GI*D1_dirac_FR)/sqrt(A)
 
-  rho = f1 + f2
+  rho = fL1 + fL2
 
 ! Fill in local coefficients of linearized equation.
 ! Remember that C0 is the coefficient of dpsi/dr,
@@ -335,9 +336,10 @@
      do i=1-ghost,imax
         C0(:,i) = CL0(:,i)
         C1(:,i) = CL1(:,i)
+        C2(:,i) = CL2(:,i)
         CA(:,i) = CLA(:,i)
-        f1(:,l) = fL1(:,i)
-        f2(:,l) = fL2(:,i)
+        f1(:,i) = fL1(:,i)
+        f2(:,i) = fL2(:,i)
      end do
 
 !    Iterate over other processors to receive data.
@@ -346,8 +348,8 @@
 
      do p=1,size-1
 
-!       Receive local coefficients (CL0,CL1) from other processors
-!       and copy them into large arrays (C0,C1).
+!       Receive local coefficients from other processors
+!       and copy them into large arrays.
 
         do l=0,Nl-1
            call MPI_RECV(CL0(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
@@ -366,6 +368,10 @@
         do i=1,imax
            C0(:,i+i0) = CL0(:,i)
            C1(:,i+i0) = CL1(:,i)
+           C2(:,i+i0) = CL2(:,i)
+           CA(:,i+i0) = CLA(:,i)
+           f1(:,i+i0) = fL1(:,i)
+           f2(:,i+i0) = fL2(:,i)
         end do
 
         i0 = i0 + imax
@@ -385,7 +391,7 @@
 
      iter = 0
 
-     do while ((res.gt.epsilon).and.(iter.lt.maxiter))
+     do while ((res>epsilon).and.(iter<maxiter))
 
         iter = iter + 1
 
@@ -439,11 +445,11 @@
 !       F'(u_old)*u_old - F(u_old)  =  4 f1 u_old  +  2 f2 u_old
 
         if (newr) then
-           C1 = 5.d0*fL1*u_old**4 + 3.d0*fL2*u_old**2 + CA
-           C2 = 4.d0*fL1*u_old**5 + 2.d0*fL2*u_old**3
+           C1 = 5.d0*f1*u_old**4 + 3.d0*f2*u_old**2 + CA
+           C2 = 4.d0*f1*u_old**5 + 2.d0*f2*u_old**3
         else
-           C1 = 5.d0*fL1*u_old**4 + 3.d0*fL2*u_old**2
-           C2 = 4.d0*fL1*u_old**5 + 2.d0*fL2*u_old**3
+           C1 = 5.d0*f1*u_old**4 + 3.d0*f2*u_old**2
+           C2 = 4.d0*f1*u_old**5 + 2.d0*f2*u_old**3
         end if
 
 !       Call matrix inversion.
@@ -479,7 +485,7 @@
         print *
      end if
 
-! Other processors send local coefficients (CL0,CL1) to processor 0.
+! Other processors send local coefficients to processor 0.
 
   else
 
@@ -492,6 +498,7 @@
      end do
 
   end if
+
 
 ! ************************************************
 ! ***   DISTRIBUTE SOLUTION AMONG PROCESSORS   ***
@@ -515,11 +522,11 @@
 
 ! Find phi.
 
-  phi  = dlog(psi)
+  phi = dlog(psi)
   D1_phi = D1_psi/psi
 
   if (chimethod) then
-     chi  = one/psi**chipower
+     chi = one/psi**chipower
      D1_chi = - dble(chipower)*D1_psi/psi**3
   end if
 
