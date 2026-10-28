@@ -392,10 +392,9 @@
 !    Call ODE solver. Notice that in this case C1 is always 0.
 
      lmin = 0; lmax = Nl-1
-
      call invertmatrix(lmin,lmax,0.d0,VG,C0,C1,C2,+1,"robin")
 
-! Other processors send local coefficientes (CL0,CL1,CL2) to processor 0.
+! Other processors send local coefficientes to processor 0.
 
   else
 
