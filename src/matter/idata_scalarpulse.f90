@@ -220,6 +220,7 @@
         do i=1-ghost,imax
            C0(:,i) = CL0(:,i)
            C1(:,i) = CL1(:,i)
+           C2(:,i) = CL2(:,i)
         end do
 
 !       Iterate over other processors to receive data.
@@ -305,7 +306,14 @@
 
      Naux = (Nrmax + ghost)
 
+!    Initialize array u.
+
+     u = 1.d0
+
 !    Fill in local coefficients of linearized equation.
+!    Remember that C0 is the coefficient of dpsi/dr,
+!    C1 is the coefficient of psi, and C2 is the
+!    right hand side.
 
      if (newr) then
         CL0 = two/r - 0.5d0*D1_A/A + D1_B/B
@@ -343,13 +351,13 @@
 
         do p=1,size-1
 
-!          Receive local coefficients (CL0,CL1) from other processors
-!          and copy them into large arrays (C0,C1).
+!          Receive local coefficients  from other processors
+!          and copy them into large arrays.
 
            do l=0,Nl-1
               call MPI_RECV(CL0(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
               call MPI_RECV(CL1(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
-              call MPI_RECV(VL(l,:) ,Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
+              call MPI_RECV( VL(l,:),Naux,MPI_REAL8,p,1,MPI_COMM_WORLD,status,ierr)
            end do
 
            if (p==size-1) then
@@ -456,7 +464,7 @@
            print *
         end if
 
-!    Other processors send local coefficients (CL0,CL1) to processor 0.
+!    Other processors send local coefficients to processor 0.
 
      else
 
