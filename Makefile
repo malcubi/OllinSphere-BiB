@@ -34,12 +34,16 @@ vpath ollinsphere exe
 # Check if we have MPI.
 
 ifeq ($(shell which mpiifort | sed -n "s:.*\/mpiifort:mpiifort:p"),mpiifort)
+
 MPI := mpiifort
 WW := COMPILING WITH mpiifort
+
 else
 ifeq ($(shell which mpif90 | sed -n "s:.*\/mpif90:mpif90:p"),mpif90)
+
 MPI := mpif90
 WW := COMPILING WITH MPIF90
+
 else
 
 MPI := nompi
