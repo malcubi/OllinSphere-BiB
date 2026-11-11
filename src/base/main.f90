@@ -47,6 +47,9 @@
 
 ! When compiling without MPI these calls just return size=1 and rank=0.
 
+  size = 1
+  rank = 0
+
   call MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
 
