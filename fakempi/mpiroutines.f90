@@ -63,24 +63,24 @@
 
 ! ***   MPI_RECV   ***
 
-  subroutine MPI_RECV(buffer1,N1,MPI_TYPE1,proc1,tag1, &
-                      buffer2,N2,MPI_TYPE2,proc2,tag2, &
-                      MPI_COMM_WORLD,MPI_STATUS,ierr)
-  implicit none
-  integer MPI_COMM_WORLD,MPI_STATUS
-  integer MPI_TYPE1,MPI_TYPE2
-  integer N1,N2,proc1,proc2,tag1,tag2,ierr
-  real(8) buffer1(1:N1),buffer2(1:N2)
-  end subroutine MPI_RECV
-
-! ***   MPI_SENDRECV   ***
-
-  subroutine MPI_SENDRECV(buffer,N,MPI_TYPE,proc,tag,MPI_COMM_WORLD,ierr)
+  subroutine MPI_RECV(buffer,N,MPI_TYPE,proc,tag,MPI_COMM_WORLD,ierr)
   implicit none
   integer MPI_COMM_WORLD
   integer MPI_TYPE
   integer N,proc,tag,ierr
   real(8) buffer(1:N)
+  end subroutine MPI_RECV
+
+! ***   MPI_SENDRECV   ***
+
+  subroutine MPI_SENDRECV(buffer1,N1,MPI_TYPE1,proc1,tag1, &
+                          buffer2,N2,MPI_TYPE2,proc2,tag2, &
+                          MPI_COMM_WORLD,MPI_STATUS,ierr)
+  implicit none
+  integer MPI_COMM_WORLD,MPI_STATUS
+  integer MPI_TYPE1,MPI_TYPE2
+  integer N1,N2,proc1,proc2,tag1,tag2,ierr
+  real(8) buffer1(1:N1),buffer2(1:N2)
   end subroutine MPI_SENDRECV
 
 ! ***   MPI_BCAST   ***
