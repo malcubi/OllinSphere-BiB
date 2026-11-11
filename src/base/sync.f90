@@ -32,7 +32,7 @@
 
      wsend = syncvar(1:ghost)
 
-     call MPI_Sendrecv( &
+     call MPI_SENDRECV( &
         wsend, ghost, MPI_REAL8, left, 1, &
         wrecv, ghost, MPI_REAL8, left, 2, &
         MPI_COMM_WORLD, status, ierr)
@@ -52,7 +52,7 @@
 
      wsend = syncvar(Nr-2*ghost+1:Nr-ghost)
 
-     call MPI_Sendrecv( &
+     call MPI_SENDRECV( &
         wsend, ghost, MPI_REAL8, right, 2, &
         wrecv, ghost, MPI_REAL8, right, 1, &
         MPI_COMM_WORLD, status, ierr)
